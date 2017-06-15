@@ -1,4 +1,4 @@
-#!/bin/env python2.7
+#!/bin/env python
 
 # -*- coding: utf-8 -*-
 """
@@ -16,7 +16,7 @@ parser = OptionParser()
 
 parser.add_option("-i", "--infilename", type="string", dest="filename", default="LatencyScanData.root",
                   help="Specify Input Filename", metavar="filename")
-parser.add_option("-o", "--outfilename", type="string", dest="outfilename", default="SCurveFitData.root",
+parser.add_option("-o", "--outfilename", type="string", dest="outfilename", default="latencyAna.root",
                   help="Specify Output Filename", metavar="outfilename")
 
 (options, args) = parser.parse_args()
