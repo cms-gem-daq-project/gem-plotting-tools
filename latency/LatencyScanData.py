@@ -34,8 +34,8 @@ errY= array( 'f' )
 errX=array('f')
 
 for vfat in range(24):
-    Nhits_hs[vfat] = r.TH1D("Nhits%i_h"%vfat,"Nhits%i_h"%vfat,251,-0.5,250.5)
-    Nev_hs[vfat] = r.TH1D("Nev%i_h"%vfat,"Nev%i_h"%vfat,251,-0.5,250.5)
+    Nhits_hs[vfat] = r.TH1D("Nhits%i_h"%vfat,"Nhits%i_h"%vfat,256,-0.5,255.5)
+    Nev_hs[vfat] = r.TH1D("Nev%i_h"%vfat,"Nev%i_h"%vfat,256,-0.5,255.5)
     pass
 
 for evt in t:
@@ -49,7 +49,7 @@ outF = r.TFile(options.outfilename,"RECREATE")
 lat_ga = {}
 fit_f = {}
 for vfat in range(0,24):
-    fit_f[vfat] = r.TF1("fit%i_f"%vfat,"[0]",140,200)
+    fit_f[vfat] = r.TF1("fit%i_f"%vfat,"[0]",0,255)
     lat_ga[vfat] = r.TGraphAsymmErrors(Nhits_hs[vfat],Nev_hs[vfat])
     lat_ga[vfat].SetName("lat%i_ga"%vfat)
     vfats.append(vfat)
