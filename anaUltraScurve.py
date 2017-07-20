@@ -16,7 +16,10 @@ parser.add_option("-f", "--fit", action="store_true", dest="SaveFile",
                   help="Save the Fit values to Root file", metavar="SaveFile")
 parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                   help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
-
+parser.add_option("--ztrim", type="float", dest="ztrim", default=0.0,
+                  help="Specify the p value of the trim", metavar="ztrim")
+parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
+                  help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
 parser.set_defaults(outfilename="SCurveData.root")
 
 (options, args) = parser.parse_args()
@@ -185,6 +188,7 @@ if options.SaveFile:
     scanFits = fitScanData(filename+'.root')
     pass
 
+# Fill
 for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
@@ -210,8 +214,26 @@ for event in inF.scurveTree:
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
     pass
 
+# Determine hot channels
+from qcutilities import isOutlierMADOneSided
+import numpy as np
 if options.SaveFile:
+    print 'Determining hot channels'
     masks = []
+    for vfat in range(0, 24):
+        # Compute the value to apply MAD on for each channel
+        MADVariable = np.zeros(128)
+        for ch in range(0, 128):
+            threshold[0] = scanFits[0][vfat][ch]
+            noise[0] = scanFits[1][vfat][ch]
+            MADVariable[ch] = threshold[0] - options.ztrim * noise[0]
+        # Determine outliers
+        masks.append(isOutlierMADOneSided(MADVariable, thresh=options.zscore,
+                                          rejectHighTail=False))
+
+# Store values in ROOT file
+if options.SaveFile:
+if options.SaveFile:
     fitSums = {}
     for vfat in range (0,24):
         fitThr = []        
@@ -219,7 +241,6 @@ if options.SaveFile:
         stripList = []
         panList = []
         chanList = []
-        masks.append([])
         for chan in range (0, 128):
             #Get strip and pan pin
             strip = chanToStripLUT[vfat][chan]
@@ -249,9 +270,11 @@ if options.SaveFile:
             noise[0] = param1
             fitENC.append(vToQm*param1*options.ztrim)
             pedestal[0] = param2
-            if noise[0] > 20.0 or ped_eff[0] > 50.0: mask[0] = True
-            else: mask[0] = False
-            masks[vfat].append(mask[0])
+            maskOutlier[0] = masks[vfat][chan]
+            if noise[0] > 20.0 or ped_eff[0] > 50.0: maskPedestal[0] = True
+            else: maskPedestal[0] = False
+            masks[vfat][chan] |= maskPedestal[0]
+            mask[0] = masks[vfat][chan]
             chi2[0] = scanFits[3][vfat][chan]
             ndf[0] = int(scanFits[5][vfat][chan])
             holder_curve = vScurves[vfat][chan]
