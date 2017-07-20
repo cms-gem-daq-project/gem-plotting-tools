@@ -225,17 +225,30 @@ from qcutilities import isOutlierMADOneSided
 import numpy as np
 if options.SaveFile:
     print 'Determining hot channels'
+    masksPedestal = []
+    masksMAD = []
     masks = []
     for vfat in range(0, 24):
-        # Compute the value to apply MAD on for each channel
         MADVariable = np.zeros(128)
+        isHotPerChannel = np.zeros(128)
         for ch in range(0, 128):
+            # Get variables from fits
             threshold[0] = scanFits[0][vfat][ch]
             noise[0] = scanFits[1][vfat][ch]
+            FittedFunction =  r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
+            for i in range(3):
+                FittedFunction.SetParameter(i, scanFits[i][vfat][ch])
+            ped_eff[0] = FittedFunction.Eval(0.0)
+            # Identify hot channels on a per-channel basis
+            isHotPerChannel[ch] = channelIsHot(noise, ped_eff)
+            # Compute the value to apply MAD on for each channel
             MADVariable[ch] = threshold[0] - options.ztrim * noise[0]
         # Determine outliers
-        masks.append(isOutlierMADOneSided(MADVariable, thresh=options.zscore,
-                                          rejectHighTail=False))
+        masksPedestal.append(isHotPerChannel)
+        maskMAD = isOutlierMADOneSided(MADVariable, thresh=options.zscore,
+                                       rejectHighTail=False).flatten()
+        masksMAD.append(maskMAD)
+        masks.append(np.logical_or(isHotPerChannel, maskMAD))
 
 # Store values in ROOT file
 if options.SaveFile:
@@ -276,7 +289,7 @@ if options.SaveFile:
             fitENC.append(vToQm*param1*options.ztrim)
             pedestal[0] = param2
             maskOutlier[0] = masks[vfat][chan]
-            maskPedestal[0] = channelIsHot(noise, ped_eff)
+            maskPedestal[0] = int(masksPedestal[vfat][chan])
             masks[vfat][chan] |= maskPedestal[0]
             mask[0] = masks[vfat][chan]
             chi2[0] = scanFits[3][vfat][chan]
