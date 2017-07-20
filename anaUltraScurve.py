@@ -16,8 +16,6 @@ parser.add_option("-f", "--fit", action="store_true", dest="SaveFile",
                   help="Save the Fit values to Root file", metavar="SaveFile")
 parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                   help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
-parser.add_option("--ztrim", type="float", dest="ztrim", default=0.0,
-                  help="Specify the p value of the trim", metavar="ztrim")
 parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                   help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
 parser.set_defaults(outfilename="SCurveData.root")
