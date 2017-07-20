@@ -214,6 +214,10 @@ for event in inF.scurveTree:
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
     pass
 
+def channelIsHot(noise, ped_eff):
+    """Determine whether a channel is hot on a per-channel basis"""
+    return noise[0] > 20.0 or ped_eff[0] > 50.0
+
 # Determine hot channels
 from qcutilities import isOutlierMADOneSided
 import numpy as np
@@ -271,8 +275,7 @@ if options.SaveFile:
             fitENC.append(vToQm*param1*options.ztrim)
             pedestal[0] = param2
             maskOutlier[0] = masks[vfat][chan]
-            if noise[0] > 20.0 or ped_eff[0] > 50.0: maskPedestal[0] = True
-            else: maskPedestal[0] = False
+            maskPedestal[0] = channelIsHot(noise, ped_eff)
             masks[vfat][chan] |= maskPedestal[0]
             mask[0] = masks[vfat][chan]
             chi2[0] = scanFits[3][vfat][chan]
