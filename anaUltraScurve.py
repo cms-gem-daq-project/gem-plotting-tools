@@ -235,7 +235,6 @@ if options.SaveFile:
 
 # Store values in ROOT file
 if options.SaveFile:
-if options.SaveFile:
     fitSums = {}
     for vfat in range (0,24):
         fitThr = []        
