@@ -286,7 +286,6 @@ if options.SaveFile:
             pedestal[0] = param2
             maskOutlier[0] = masks[vfat][chan]
             maskDead[0] = int(masksDead[vfat][ch])
-            masks[vfat][chan] |= maskPedestal[0]
             mask[0] = masks[vfat][chan]
             chi2[0] = scanFits[3][vfat][chan]
             ndf[0] = int(scanFits[5][vfat][chan])
