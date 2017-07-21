@@ -9,10 +9,15 @@
 import ROOT as r
 import numpy as np
 from array import array
+from optparse import OptionParser
 
-from anaoptions import parser
+#Define and parse options
+parser = OptionParser()
 
-parser.set_defaults(outfilename="LatencyData.root")
+parser.add_option("-i", "--infilename", type="string", dest="filename", default="LatencyScanData.root",
+                  help="Specify Input Filename", metavar="filename")
+parser.add_option("-o", "--outfilename", type="string", dest="outfilename", default="latencyAna.root",
+                  help="Specify Output Filename", metavar="outfilename")
 
 (options, args) = parser.parse_args()
 
@@ -75,5 +80,6 @@ tgr.SetMarkerSize(0.7)
 tgr.SetTitle("Average Nhits per Vfat")
 canv.SaveAs("Average_Nhits_per_vfat.png")
 tgr.Write()
+
 
 outF.Close()

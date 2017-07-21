@@ -1,5 +1,9 @@
 #!/bin/env python
+"""
+@author: Cameron Bravo (c.bravo@cern.ch)
+         Brian Dorney (brian.l.dorney@cern.ch)
 
+"""
 def launchAna(args):
   return launchAnaArgs(*args)
 

@@ -8,7 +8,6 @@ from channelMaps import *
 from PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
-#parser = OptionParser()
 from anaoptions import parser
 
 parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
@@ -17,7 +16,6 @@ parser.add_option("-f", "--fit", action="store_true", dest="SaveFile",
                   help="Save the Fit values to Root file", metavar="SaveFile")
 parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                   help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
-
 
 parser.set_defaults(outfilename="SCurveData.root")
 
@@ -32,16 +30,15 @@ vToQb = -0.8
 vToQm = 0.05
 
 import ROOT as r
-
 r.gROOT.SetBatch(True)
 r.gStyle.SetOptStat(1111111)
 GEBtype = options.GEBtype
 inF = r.TFile(filename+'.root')
-
 if options.SaveFile:
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
     myT = r.TTree('scurveFitTree','Tree Holding FitData')
     pass
+
 #Build the channel to strip mapping from the text file
 chanToStripLUT = []
 stripToChanLUT = []
@@ -326,17 +323,19 @@ else:
 
 canv.SaveAs(filename+'/Summary.png')
 
-canv = r.TCanvas('canv','canv',500*8,500*3)
-canv.Divide(8,3)
-r.gStyle.SetOptStat(0)
-for vfat in fitSums.keys():
+if options.SaveFile:
+    canv = r.TCanvas('canv','canv',500*8,500*3)
+    canv.Divide(8,3)
     r.gStyle.SetOptStat(0)
-    canv.cd(vfat+1)
-    fitSums[vfat].Draw('ap')
-    canv.Update()
+    for vfat in fitSums.keys():
+        r.gStyle.SetOptStat(0)
+        canv.cd(vfat+1)
+        fitSums[vfat].Draw('ap')
+        canv.Update()
+        pass
+    
+    canv.SaveAs(filename+'/fitSummary.png')
     pass
-
-canv.SaveAs(filename+'/fitSummary.png')
 
 if options.SaveFile:
     confF = open(filename+'/chConfig.txt','w')
