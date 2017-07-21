@@ -95,8 +95,6 @@ if options.SaveFile:
     myT.Branch( 'ROBstr', ROBstr, 'ROBstr/I' )
     mask = array( 'i', [ 0 ] )
     myT.Branch( 'mask', mask, 'mask/I' )
-    maskPedestal = array( 'i', [ 0 ] )
-    myT.Branch( 'maskPedestal', maskPedestal, 'maskPedestal/I' )
     maskOutlier = array( 'i', [ 0 ] )
     myT.Branch( 'maskOutlier', maskOutlier, 'maskOutlier/I' )
     panPin = array( 'i', [ 0 ] )
@@ -216,35 +214,22 @@ for event in inF.scurveTree:
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
     pass
 
-def channelIsHot(noise, ped_eff):
-    """Determine whether a channel is hot on a per-channel basis"""
-    return noise[0] > 20.0 or ped_eff[0] > 50.0
-
 # Determine hot channels
 from anautilities import isOutlierMADOneSided
 import numpy as np
 if options.SaveFile:
     print 'Determining hot channels'
-    masksPedestal = []
     masksMAD = []
     masks = []
     for vfat in range(0, 24):
         MADVariable = np.zeros(128)
-        isHotPerChannel = np.zeros(128)
         for ch in range(0, 128):
             # Get variables from fits
             threshold[0] = scanFits[0][vfat][ch]
             noise[0] = scanFits[1][vfat][ch]
-            FittedFunction =  r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
-            for i in range(3):
-                FittedFunction.SetParameter(i, scanFits[i][vfat][ch])
-            ped_eff[0] = FittedFunction.Eval(0.0)
-            # Identify hot channels on a per-channel basis
-            isHotPerChannel[ch] = channelIsHot(noise, ped_eff)
             # Compute the value to apply MAD on for each channel
             MADVariable[ch] = threshold[0] - options.ztrim * noise[0]
         # Determine outliers
-        masksPedestal.append(isHotPerChannel)
         maskMAD = isOutlierMADOneSided(MADVariable, thresh=options.zscore,
                                        rejectHighTail=False).flatten()
         masksMAD.append(maskMAD)
