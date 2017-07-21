@@ -219,21 +219,20 @@ from anautilities import isOutlierMADOneSided
 import numpy as np
 if options.SaveFile:
     print 'Determining hot channels'
-    masksMAD = []
+    masksDead = []
     masks = []
     for vfat in range(0, 24):
-        MADVariable = np.zeros(128)
+        trimValue = np.zeros(128)
         for ch in range(0, 128):
-            # Get variables from fits
+            # Get fit results
             threshold[0] = scanFits[0][vfat][ch]
             noise[0] = scanFits[1][vfat][ch]
             # Compute the value to apply MAD on for each channel
-            MADVariable[ch] = threshold[0] - options.ztrim * noise[0]
+            trimValue[ch] = threshold[0] - options.ztrim * noise[0]
         # Determine outliers
-        maskMAD = isOutlierMADOneSided(MADVariable, thresh=options.zscore,
-                                       rejectHighTail=False).flatten()
-        masksMAD.append(maskMAD)
-        masks.append(np.logical_or(isHotPerChannel, maskMAD))
+        hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
+                                   rejectHighTail=False).flatten()
+        masksHot.append(hot)
 
 # Store values in ROOT file
 if options.SaveFile:
