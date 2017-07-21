@@ -127,6 +127,8 @@ if options.SaveFile:
 
 vSum  = ndict()
 vSum2 = ndict()
+vSumPruned = ndict()
+vSumPruned2 = ndict()
 vScurves = []
 vthr_list = []
 trim_list = []
@@ -167,16 +169,24 @@ for vfat in range(0,24):
     if not (options.channels or options.PanPin):
         vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
         vSum[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSumPruned[vfat] = r.TH2D('vSumPruned%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSumPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     if options.channels:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)        
+        vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
         vSum[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSumPruned[vfat] = r.TH2D('vSumPruned%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSumPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     if options.PanPin:
         vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
         vSum[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSumPruned[vfat] = r.TH2D('vSumPruned%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSumPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         vSum2[vfat] = r.TH2D('vSum2_%i'%vfat,'vSum%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
         vSum2[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSumPruned2[vfat] = r.TH2D('vSumPruned2_%i'%vfat,'vSum%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSumPruned2[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     for chan in range (0,128):
         vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
@@ -245,6 +255,22 @@ if options.SaveFile:
         print 'VFAT %2d: %d dead, %d hot channels' % (vfat,
                                                       np.count_nonzero(dead),
                                                       np.count_nonzero(hot))
+
+# Fill pruned
+for event in inF.scurveTree:
+    if masks[event.vfatN][event.vfatCH]:
+        continue
+    strip = chanToStripLUT[event.vfatN][event.vfatCH]
+    pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
+    if not (options.channels or options.PanPin):
+        vSumPruned[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
+    if options.channels:
+        vSumPruned[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
+    if options.PanPin:
+        if (pan_pin < 64):
+            vSumPruned[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+        else:
+            vSumPruned2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
 
 # Store values in ROOT file
 if options.SaveFile:
@@ -319,44 +345,49 @@ if options.SaveFile:
         pass
     pass
 
-canv = r.TCanvas('canv','canv',500*8,500*3)
-legend = r.TLegend(0.75,0.7,0.88,0.88)
-if not options.PanPin:
-    canv.Divide(8,3)
-    r.gStyle.SetOptStat(0)
-    for vfat in range(0,24):
+def saveSummary(vSum, vSum2, name='Summary'):
+    canv = r.TCanvas('canv','canv',500*8,500*3)
+    legend = r.TLegend(0.75,0.7,0.88,0.88)
+    if not options.PanPin:
+        canv.Divide(8,3)
         r.gStyle.SetOptStat(0)
-        canv.cd(vfat+1)
-        vSum[vfat].Draw('colz')
-        if options.IsTrimmed:
-            legend.Clear()
-            legend.AddEntry(line, 'trimVCal is %f'%(trimVcal[vfat]))
-            legend.Draw('SAME')
-            print trimVcal[vfat]
-            lines[vfat].SetLineColor(1)
-            lines[vfat].SetLineWidth(3)
-            lines[vfat].Draw('SAME')
-            pass
-        canv.Update()
-        pass
-    pass
-else:
-    canv.Divide(8,6)
-    r.gStyle.SetOptStat(0)
-    for ieta in range(0,8):
-        for iphi in range (0,3):
+        for vfat in range(0,24):
             r.gStyle.SetOptStat(0)
-            canv.cd((ieta+1 + iphi*16)%48 + 16)
-            vSum[ieta+(8*iphi)].Draw('colz')
-            canv.Update()
-            canv.cd((ieta+9 + iphi*16)%48 + 16)
-            vSum2[ieta+(8*iphi)].Draw('colz')
+            canv.cd(vfat+1)
+            vSum[vfat].Draw('colz')
+            if options.IsTrimmed:
+                legend.Clear()
+                legend.AddEntry(line, 'trimVCal is %f'%(trimVcal[vfat]))
+                legend.Draw('SAME')
+                print trimVcal[vfat]
+                lines[vfat].SetLineColor(1)
+                lines[vfat].SetLineWidth(3)
+                lines[vfat].Draw('SAME')
+                pass
             canv.Update()
             pass
         pass
-    pass
+    else:
+        canv.Divide(8,6)
+        r.gStyle.SetOptStat(0)
+        for ieta in range(0,8):
+            for iphi in range (0,3):
+                r.gStyle.SetOptStat(0)
+                canv.cd((ieta+1 + iphi*16)%48 + 16)
+                vSum[ieta+(8*iphi)].Draw('colz')
+                canv.Update()
+                canv.cd((ieta+9 + iphi*16)%48 + 16)
+                vSum2[ieta+(8*iphi)].Draw('colz')
+                canv.Update()
+                pass
+            pass
+        pass
 
-canv.SaveAs(filename+'/Summary.png')
+    canv.SaveAs(filename+'/%s.png' % name)
+
+saveSummary(vSum, vSum2)
+if options.SaveFile:
+    saveSummary(vSumPruned, vSumPruned2, name='PrunedSummary')
 
 if options.SaveFile:
     canv = r.TCanvas('canv','canv',500*8,500*3)
