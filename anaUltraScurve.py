@@ -221,7 +221,7 @@ def channelIsHot(noise, ped_eff):
     return noise[0] > 20.0 or ped_eff[0] > 50.0
 
 # Determine hot channels
-from qcutilities import isOutlierMADOneSided
+from anautilities import isOutlierMADOneSided
 import numpy as np
 if options.SaveFile:
     print 'Determining hot channels'
