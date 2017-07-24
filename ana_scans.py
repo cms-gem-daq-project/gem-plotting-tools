@@ -14,6 +14,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   from anaInfo import ana_config
   from gempython.utils.wrappers import runCommand
 
+  cmdPath   = os.getenv('GEM_PLOTTING_PROJECT')
   dataPath  = os.getenv('DATA_PATH')
   dirPath   = ""
   elogPath  = "%s/%s"%(os.getenv('ELOG_PATH'),scandate)
@@ -21,11 +22,9 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   print "Analysis Requested: %s"%(anaType)
 
   #Build Commands
-  cmd = ["python", ana_config[anaType]]
+  cmd = ["python", "%s/%s"%(cmdPath,ana_config[anaType])]
   postCmds = {}
   if anaType == "latency":
-    #cmd.append("%s/vfatqc-python-scripts/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
-    #cmd.append("%s/gem-plotting-tools/latency/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType])) 
     dirPath = "%s/%s/%s/trk/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "LatencyScanData.root"
     if not os.path.isfile(filename):
@@ -36,7 +35,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     cmd.append("--outfilename=%s"%("latencyAna.root"))
     pass
   elif anaType == "scurve":
-    cmd.append("%s/vfatqc-python-scripts/macros/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
     dirPath = "%s/%s/%s/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "SCurveData.root"
     if not os.path.isfile(filename):
@@ -61,7 +59,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
                  "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)]
     pass
   elif anaType == "threshold":
-    #cmd.append("%s/vfatqc-python-scripts/macros/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
     dirPath = "%s/%s/%s/channel/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
@@ -70,7 +67,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
 
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("ThresholdPlots.root"))
-    cmd.append("--vfatmask=0x0")
    
     if chConfigKnown:
       cmd.append("--chConfigKnown")
@@ -95,7 +91,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
 
     pass
   elif anaType == "trim":
-    #cmd.append("%s/vfatqc-python-scripts/macros/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
     dirPath = "%s/%s/%s/z%f/%s/"%(dataPath,cName,anaType,ztrim,scandate)
     filename = dirPath + "SCurveData_Trimmed.root"
     if not os.path.isfile(filename):
@@ -124,8 +119,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   try:
     log = file("%s/anaLog.log"%(dirPath),"w")
    
-    runCommand(cmd,log)
-    #runCommand(cmd)
+    #runCommand(cmd,log)
+    runCommand(cmd)
     for key in postCmds:
       runCommand(postCmds[key])
       pass
