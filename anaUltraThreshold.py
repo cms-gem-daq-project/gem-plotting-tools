@@ -10,8 +10,6 @@ from gempython.utils.nesteddict import nesteddict as ndict
 
 from anaoptions import parser
 
-#parser.add_option("--chConfigKnown", action="store_true", dest="chConfigKnown",
-#                  help="Channel config already known and found in --fileScurveFitTree", metavar="chConfigKnown")
 parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree", default="SCurveFitData.root",
                   help="TFile containing scurveFitTree", metavar="fileScurveFitTree")
 parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
@@ -25,8 +23,6 @@ os.system("mkdir " + filename)
 
 print filename
 outfilename = options.outfilename
-
-#vfat_mask = options.vfatmask
 
 import ROOT as r
 r.gROOT.SetBatch(True)
@@ -54,11 +50,9 @@ for vfat in range(0,24):
 buildHome = os.environ.get('BUILD_HOME')
 
 if GEBtype == 'long':
-    #intext = open(buildHome+'/vfatqc-python-scripts/macros/longChannelMap.txt', 'r')
     intext = open(buildHome+'/gem-plotting-tools/setup/longChannelMap.txt', 'r')
     pass
 if GEBtype == 'short':
-    #intext = open(buildHome+'/vfatqc-python-scripts/macros/shortChannelMap.txt', 'r')
     intext = open(buildHome+'/gem-plotting-tools/setup/shortChannelMap.txt', 'r')
     pass
 for i, line in enumerate(intext):
@@ -98,11 +92,8 @@ for vfat in range(0,24):
     pass
 
 print 'Filling Histograms'
-#trimRange = {}
 trimRange = dict((vfat,0) for vfat in range(0,24))
 for event in inF.thrTree :
-    #if (vfat_mask >> int(event.vfatN)) & 0x1: continue
-
     strip = lookup_table[event.vfatN][event.vfatCH]
     pan_pin = pan_lookup[event.vfatN][event.vfatCH]
     trimRange[int(event.vfatN)] = int(event.trimRange)
@@ -126,8 +117,6 @@ import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip instal
 dict_hMaxVT1 = {}
 dict_hMaxVT1_NoOutlier = {}
 for vfat in range(0,24):
-    #if (vfat_mask >> vfat) & 0x1: continue
-
     dict_hMaxVT1[vfat]          = r.TH1F('vfat%iChanMaxVT1'%vfat,"vfat%i"%vfat,256,-0.5,255.5)
     dict_hMaxVT1_NoOutlier[vfat]= r.TH1F('vfat%iChanMaxVT1_NoOutlier'%vfat,"vfat%i - No Outliers"%vfat,256,-0.5,255.5)
 
@@ -236,7 +225,6 @@ canv_vt1Max.SaveAs(filename+'/VT1MaxSummary.png')
 #Subtracting off the hot channels, so the projection shows only usable ones.
 print "Subtracting off hot channels"
 for vfat in range(0,24):
-    #if (vfat_mask >> vfat) & 0x1: continue
     for chan in range(0,vSum[vfat].GetNbinsX()):
         isHotChan = hot_channels[vfat][chan]
        
@@ -281,10 +269,8 @@ canv_proj.SaveAs(filename+'/VFATPrunedSummary.png')
 
 #Now determine what VT1 to use for configuration.  The first threshold bin with no entries for now.
 #Make a text file readable by TTree::ReadFile
-#vt1 = {}
 vt1 = dict((vfat,0) for vfat in range(0,24))
 for vfat in range(0,24):
-    #if (vfat_mask >> vfat) & 0x1: continue
     for thresh in range(VT1_MAX+1,0,-1):
         if (vSum[vfat].ProjectionY().GetBinContent(thresh+1)) > 10.0:
             print 'vt1 for VFAT %i found'%vfat
@@ -302,7 +288,6 @@ print vt1
 
 txt_vfat.write("vfatN/I:vt1/I:trimRange/I\n")
 for vfat in range(0,24):
-    #if (vfat_mask >> vfat) & 0x1: continue
     txt_vfat.write('%i\t%i\t%i\n'%(vfat, vt1[vfat],trimRange[vfat]))
     pass
 txt_vfat.close()
@@ -317,7 +302,6 @@ if options.chConfigKnown:
         pass
 
     for vfat in range (0,24):
-        #if (vfat_mask >> vfat) & 0x1: continue
         for j in range (0, 128):
             chan = vfatCh_lookup[vfat][j]
             if options.debug:
