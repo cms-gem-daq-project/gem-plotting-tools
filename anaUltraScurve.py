@@ -249,7 +249,7 @@ if options.SaveFile:
         masksDead.append(dead)
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
-                                   rejectHighTail=False).flatten()
+                                   rejectHighTail=False)
         masksHot.append(hot)
         masks.append(np.logical_or(dead, hot))
         print 'VFAT %2d: %d dead, %d hot channels' % (vfat,
