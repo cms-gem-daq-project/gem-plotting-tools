@@ -97,8 +97,8 @@ if options.SaveFile:
     myT.Branch( 'mask', mask, 'mask/I' )
     maskDead = array( 'i', [ 0 ] )
     myT.Branch( 'maskDead', maskDead, 'maskDead/I' )
-    maskOutlier = array( 'i', [ 0 ] )
-    myT.Branch( 'maskOutlier', maskOutlier, 'maskOutlier/I' )
+    maskHot = array( 'i', [ 0 ] )
+    myT.Branch( 'maskHot', maskHot, 'maskHot/I' )
     panPin = array( 'i', [ 0 ] )
     myT.Branch( 'panPin', panPin, 'panPin/I' )
     trimRange = array( 'i', [ 0 ] )
@@ -310,7 +310,7 @@ if options.SaveFile:
             noise[0] = param1
             fitENC.append(vToQm*param1*options.ztrim)
             pedestal[0] = param2
-            maskOutlier[0] = masks[vfat][chan]
+            maskHot[0] = masksHot[vfat][chan]
             maskDead[0] = int(masksDead[vfat][ch])
             mask[0] = masks[vfat][chan]
             chi2[0] = scanFits[3][vfat][chan]
