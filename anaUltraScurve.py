@@ -96,10 +96,8 @@ if options.SaveFile:
     myT.Branch( 'ROBstr', ROBstr, 'ROBstr/I' )
     mask = array( 'i', [ 0 ] )
     myT.Branch( 'mask', mask, 'mask/I' )
-    maskDead = array( 'i', [ 0 ] )
-    myT.Branch( 'maskDead', maskDead, 'maskDead/I' )
-    maskHot = array( 'i', [ 0 ] )
-    myT.Branch( 'maskHot', maskHot, 'maskHot/I' )
+    maskReason = array( 'i', [ 0 ] )
+    myT.Branch( 'maskReason', maskReason, 'maskReason/I' )
     panPin = array( 'i', [ 0 ] )
     myT.Branch( 'panPin', panPin, 'panPin/I' )
     trimRange = array( 'i', [ 0 ] )
@@ -231,12 +229,11 @@ for event in inF.scurveTree:
 import numpy as np
 if options.SaveFile:
     print 'Determining hot channels'
-    masksDead = []
-    masksHot = []
     masks = []
+    maskReasons = []
     for vfat in range(0, 24):
         trimValue = np.zeros(128)
-        dead = np.zeros(128)
+        dead = np.zeros(128, dtype=bool)
         for ch in range(0, 128):
             # Get fit results
             threshold[0] = scanFits[0][vfat][ch]
@@ -246,12 +243,15 @@ if options.SaveFile:
             dead[ch] = (threshold[0] == 8 and pedestal[0] == 8)
             # Compute the value to apply MAD on for each channel
             trimValue[ch] = threshold[0] - options.ztrim * noise[0]
-        masksDead.append(dead)
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
                                    rejectHighTail=False)
-        masksHot.append(hot)
         masks.append(np.logical_or(dead, hot))
+        # Create reason array
+        reason = np.zeros(128, dtype=int) # Not masked
+        reason[hot]  = 1 # Hot channels
+        reason[dead] = 2 # Dead channels
+        maskReasons.append(reason)
         print 'VFAT %2d: %d dead, %d hot channels' % (vfat,
                                                       np.count_nonzero(dead),
                                                       np.count_nonzero(hot))
@@ -310,9 +310,8 @@ if options.SaveFile:
             noise[0] = param1
             fitENC.append(vToQm*param1*options.ztrim)
             pedestal[0] = param2
-            maskHot[0] = masksHot[vfat][chan]
-            maskDead[0] = int(masksDead[vfat][ch])
             mask[0] = masks[vfat][chan]
+            maskReason[0] = maskReasons[vfat][chan]
             chi2[0] = scanFits[3][vfat][chan]
             ndf[0] = int(scanFits[5][vfat][chan])
             holder_curve = vScurves[vfat][chan]
