@@ -8,6 +8,7 @@ By: Brian Dorney (brian.l.dorney@cern.ch)
 # Imports
 import sys, os
 import numpy as np
+import ROOT as r
 #import root_numpy as rp
 
 def filePathExists(searchPath, subPath):
@@ -40,6 +41,17 @@ def initVFATArray(array_dtype, nstrips=128):
         pass
 
     return np.zeros(nstrips, dtype=list_dtypeTuple)
+
+def make3x8Canvas(name, initialContent = None, drawOption = ''):
+    """Creates a 3x8 canvas for summary plots"""
+    canv = r.TCanvas(name,name,500*8,500*3)
+    canv.Divide(8,3)
+    if initialContent != None:
+        for vfat in range(24):
+            canv.cd(vfat+1)
+            initialContent[vfat].Draw(drawOption)
+    canv.Update()
+    return canv
 
 #Use Median absolute deviation (MAD) to reject outliers
 #See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
