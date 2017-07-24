@@ -3,6 +3,7 @@ import os
 import numpy as np
 from optparse import OptionParser
 from array import array
+from anautilities import *
 from fitScanData import *
 from channelMaps import *
 from PanChannelMaps import *
@@ -227,7 +228,6 @@ for event in inF.scurveTree:
     pass
 
 # Determine hot channels
-from anautilities import isOutlierMADOneSided
 import numpy as np
 if options.SaveFile:
     print 'Determining hot channels'
@@ -346,15 +346,12 @@ if options.SaveFile:
     pass
 
 def saveSummary(vSum, vSum2, name='Summary'):
-    canv = r.TCanvas('canv','canv',500*8,500*3)
     legend = r.TLegend(0.75,0.7,0.88,0.88)
+    r.gStyle.SetOptStat(0)
     if not options.PanPin:
-        canv.Divide(8,3)
-        r.gStyle.SetOptStat(0)
+        canv = make3x8Canvas('canv', vSum, 'colz')
         for vfat in range(0,24):
-            r.gStyle.SetOptStat(0)
             canv.cd(vfat+1)
-            vSum[vfat].Draw('colz')
             if options.IsTrimmed:
                 legend.Clear()
                 legend.AddEntry(line, 'trimVCal is %f'%(trimVcal[vfat]))
@@ -368,6 +365,7 @@ def saveSummary(vSum, vSum2, name='Summary'):
             pass
         pass
     else:
+        canv = r.TCanvas('canv','canv',500*8,500*3)
         canv.Divide(8,6)
         r.gStyle.SetOptStat(0)
         for ieta in range(0,8):
