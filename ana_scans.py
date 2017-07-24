@@ -14,7 +14,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   from anaInfo import ana_config
   from gempython.utils.wrappers import runCommand
 
-  cmdPath   = os.getenv('GEM_PLOTTING_PROJECT')
+  #cmdPath   = os.getenv('GEM_PLOTTING_PROJECT')
   dataPath  = os.getenv('DATA_PATH')
   dirPath   = ""
   elogPath  = "%s/%s"%(os.getenv('ELOG_PATH'),scandate)
@@ -22,7 +22,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   print "Analysis Requested: %s"%(anaType)
 
   #Build Commands
-  cmd = ["python", "%s/%s"%(cmdPath,ana_config[anaType])]
+  #cmd = ["python", "%s/%s"%(cmdPath,ana_config[anaType])]
+  cmd = [ana_config[anaType]]
   postCmds = {}
   if anaType == "latency":
     dirPath = "%s/%s/%s/trk/%s/"%(dataPath,cName,anaType,scandate)
