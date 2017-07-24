@@ -388,16 +388,8 @@ if options.SaveFile:
     saveSummary(vSumPruned, vSumPruned2, name='PrunedSummary')
 
 if options.SaveFile:
-    canv = r.TCanvas('canv','canv',500*8,500*3)
-    canv.Divide(8,3)
     r.gStyle.SetOptStat(0)
-    for vfat in fitSums.keys():
-        r.gStyle.SetOptStat(0)
-        canv.cd(vfat+1)
-        fitSums[vfat].Draw('ap')
-        canv.Update()
-        pass
-    
+    canv = make3x8Canvas('canv', fitSums, 'ap')
     canv.SaveAs(filename+'/fitSummary.png')
     pass
 
