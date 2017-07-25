@@ -21,19 +21,21 @@ class ScanDataFitter:
                 self.scanHistos[vfat][ch] = r.TH1D('scurve_%i_%i_h'%(vfat,ch),'scurve_%i_%i_h'%(vfat,ch),254,0.5,254.5)
                 self.scanCount[vfat][ch] = 0
 
-    def fit(self, treeFile):
+    def feed(self, event):
+        self.scanHistos[event.vfatN][event.vfatCH].Fill(event.vcal,event.Nhits)
+        if(event.vcal > 250):
+            self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
+
+    def readFile(self, treeFileName):
+        import ROOT as r
+        inF = r.TFile(treeFileName)
+        for event in inF.scurveTree :
+            self.feed(event)
+
+    def fit(self):
         import ROOT as r
         r.gROOT.SetBatch(True)
         r.gStyle.SetOptStat(0)
-
-        inF = r.TFile(treeFile)
-
-        for event in inF.scurveTree :
-            self.scanHistos[event.vfatN][event.vfatCH].Fill(event.vcal,event.Nhits)
-            if(event.vcal > 250):
-                self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
-                pass
-            pass
 
         random = r.TRandom3()
         random.SetSeed(0)
