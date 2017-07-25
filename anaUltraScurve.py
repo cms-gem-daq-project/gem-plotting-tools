@@ -129,6 +129,7 @@ vSum2 = ndict()
 vSumPruned = ndict()
 vSumPruned2 = ndict()
 vScurves = []
+dead_list = []
 vthr_list = []
 trim_list = []
 trimrange_list = []
@@ -159,6 +160,7 @@ def overlay_fit(VFAT, CHAN):
 
 for vfat in range(0,24):
     vScurves.append([])
+    dead_list.append(np.ones(128, dtype=bool))
     vthr_list.append([])
     trim_list.append([])
     trimrange_list.append([])
@@ -220,6 +222,7 @@ for event in inF.scurveTree:
     x = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(x, event.Nhits)
     r.gStyle.SetOptStat(1111111)
+    dead_list[event.vfatN][event.vfatCH] = False
     vthr_list[event.vfatN][event.vfatCH] = event.vthr
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
@@ -233,28 +236,30 @@ if options.SaveFile:
     maskReasons = []
     for vfat in range(0, 24):
         trimValue = np.zeros(128)
-        dead = np.zeros(128, dtype=bool)
+        fitFailed = np.zeros(128, dtype=bool)
         for ch in range(0, 128):
             # Get fit results
             threshold[0] = scanFits[0][vfat][ch]
             noise[0] = scanFits[1][vfat][ch]
             pedestal[0] = scanFits[2][vfat][ch]
-            # Identify dead channels
-            dead[ch] = (threshold[0] == 8 and pedestal[0] == 8)
+            # Identify failed fits
+            fitFailed[ch] = (threshold[0] == 8 and pedestal[0] == 8)
             # Compute the value to apply MAD on for each channel
             trimValue[ch] = threshold[0] - options.ztrim * noise[0]
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
                                    rejectHighTail=False)
-        masks.append(np.logical_or(dead, hot))
+        masks.append(fitFailed | hot | dead_list[vfat])
         # Create reason array
         reason = np.zeros(128, dtype=int) # Not masked
-        reason[hot]  = 1 # Hot channels
-        reason[dead] = 2 # Dead channels
+        reason[hot] |= 0x01 # Hot channels
+        reason[fitFailed] |= 0x02 # Failed fits
+        reason[dead_list[vfat]] |= 0x04 # Dead channels
         maskReasons.append(reason)
-        print 'VFAT %2d: %d dead, %d hot channels' % (vfat,
-                                                      np.count_nonzero(dead),
-                                                      np.count_nonzero(hot))
+        print 'VFAT %2d: %d dead, %d hot channels, %d failed fits' % (vfat,
+                np.count_nonzero(dead_list[vfat]),
+                np.count_nonzero(hot),
+                np.count_nonzero(fitFailed))
 
 # Fill pruned
 for event in inF.scurveTree:
