@@ -23,6 +23,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   #Build Commands
   cmd = [ana_config[anaType]]
   postCmds = {}
+  postCmds[0] = ["mkdir","-p","%s"%(elogPath)]
   if anaType == "latency":
     dirPath = "%s/%s/%s/trk/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "LatencyScanData.root"
@@ -32,6 +33,14 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("latencyAna.root"))
+    
+    postCmds[1]=["cp","%s/LatencyData_Trimmed/Summary.png"%(dirPath),
+                 "%s/LatencySumary_%s.png"%(elogPath,cName)]
+    postCmds[2]=["cp","%s/LatencyData_Trimmed/MaxHitsPerLatByVFAT.png"%(dirPath),
+                 "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)]
+    postCmds[3]=["cp","%s/LatencyData_Trimmed/SignalOverSigPBkg.png"%(dirPath),
+                 "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)]
+    
     pass
   elif anaType == "scurve":
     dirPath = "%s/%s/%s/%s/"%(dataPath,cName,anaType,scandate)
@@ -51,7 +60,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
         cmd.append("--panasonic")
         pass
 
-    postCmds[0]=["mkdir","-p","%s"%(elogPath)]
     postCmds[1]=["cp","%s/SCurveData/Summary.png"%(dirPath),
                  "%s/SCurveSummary_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)]
     postCmds[2]=["cp","%s/SCurveData/chConfig.txt"%(dirPath),
@@ -78,7 +86,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
       cmd.append("--fileScurveFitTree=%s"%(filename_Trim))
       pass
 
-    postCmds[0] = ["mkdir","-p","%s"%(elogPath)]
     postCmds[1] = ["cp","%s/ThresholdScanData/ThreshSummary.png"%(dirPath),
                    "%s/ThreshSummary_%s.png"%(elogPath,cName)]
     postCmds[2] = ["cp","%s/ThresholdScanData/ThreshPrunedSummary.png"%(dirPath),
@@ -107,7 +114,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
         cmd.append("--panasonic")
         pass
         
-    postCmds[0]=["mkdir","-p","%s"%(elogPath)]
     postCmds[1]=["cp","%s/SCurveData_Trimmed/Summary.png"%(dirPath),
                  "%s/SCurveSummaryTrimmed_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)]
     postCmds[2]=["cp","%s/SCurveData_Trimmed/chConfig.txt"%(dirPath),
@@ -144,8 +150,6 @@ if __name__ == '__main__':
                     help="Run tests in series (default is false)", metavar="series")
   parser.add_option("--anaType", type="string", dest="anaType",#default="trim",
                      help="Analysis type to be executed, from list {'latency','scurve','threshold','trim'}", metavar="anaType")
-  #parser.add_option("--chConfigKnown", action="store_true", dest="chConfigKnown",
-  #                   help="Channel config already known and found in --fileScurveFitTree", metavar="chConfigKnown")
 
   (options, args) = parser.parse_args()
 
