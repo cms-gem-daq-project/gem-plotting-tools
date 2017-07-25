@@ -198,7 +198,8 @@ for vfat in range(0,24):
     pass
 
 if options.SaveFile:
-    scanFits = fitScanData(filename+'.root')
+    fitter = ScanDataFitter()
+    scanFits = fitter.fit(filename+'.root')
     pass
 
 # Fill

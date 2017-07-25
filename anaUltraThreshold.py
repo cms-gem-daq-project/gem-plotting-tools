@@ -3,7 +3,6 @@ import os
 import sys
 from optparse import OptionParser
 from array import array
-from fitScanData import *
 from channelMaps import *
 from PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
