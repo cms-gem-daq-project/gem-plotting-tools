@@ -199,8 +199,6 @@ for vfat in range(0,24):
 
 if options.SaveFile:
     fitter = ScanDataFitter()
-    fitter.readFile(filename+'.root')
-    scanFits = fitter.fit()
     pass
 
 # Fill
@@ -228,6 +226,13 @@ for event in inF.scurveTree:
     vthr_list[event.vfatN][event.vfatCH] = event.vthr
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
+    if options.SaveFile:
+        fitter.feed(event)
+        pass
+    pass
+
+if options.SaveFile:
+    scanFits = fitter.fit()
     pass
 
 # Determine hot channels
