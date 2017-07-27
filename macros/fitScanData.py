@@ -26,9 +26,12 @@ class ScanDataFitter(DeadChannelFinder):
             self.scanFits[3][vfat] = np.zeros(128)
             self.scanFits[4][vfat] = np.zeros(128)
             self.scanFits[5][vfat] = np.zeros(128)
+            self.scanFits[6][vfat] = np.zeros(128, dtype=bool)
             for ch in range(0,128):
                 self.scanHistos[vfat][ch] = r.TH1D('scurve_%i_%i_h'%(vfat,ch),'scurve_%i_%i_h'%(vfat,ch),254,0.5,254.5)
                 self.scanCount[vfat][ch] = 0
+
+        self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
 
     def feed(self, event):
         super(ScanDataFitter, self).feed(event)
@@ -72,12 +75,12 @@ class ScanDataFitter(DeadChannelFinder):
                     if fitEmpty:
                         # Don't try to fit empty data again
                         break
-                    fitValid = ((not fitEmpty) and fitResult.IsValid())
+                    fitValid = fitResult.IsValid()
+                    if not fitValid:
+                        continue
                     fitChi2 = fitTF1.GetChisquare()
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
-                    if not fitValid:
-                        continue
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
@@ -85,7 +88,7 @@ class ScanDataFitter(DeadChannelFinder):
                         self.scanFits[3][vfat][ch] = fitChi2
                         self.scanFits[4][vfat][ch] = self.scanCount[vfat][ch]
                         self.scanFits[5][vfat][ch] = fitNDF
-                        self.fitValid[vfat][ch] = fitValid
+                        self.fitValid[vfat][ch] = True
                         MinChi2Temp = fitChi2
                         pass
                     if (MinChi2Temp < 50): break
