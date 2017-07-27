@@ -1,6 +1,15 @@
-
-class ScanDataFitter:
+class DeadChannelFinder(object):
     def __init__(self):
+        import numpy as np
+        self.isDead = [ np.ones(128, dtype=bool) for i in range(24) ]
+
+    def feed(self, event):
+        self.isDead[event.vfatN][event.vfatCH] = False
+
+class ScanDataFitter(DeadChannelFinder):
+    def __init__(self):
+        super(ScanDataFitter, self).__init__()
+
         import ROOT as r
         import numpy as np
         from gempython.utils.nesteddict import nesteddict as ndict
@@ -22,6 +31,7 @@ class ScanDataFitter:
                 self.scanCount[vfat][ch] = 0
 
     def feed(self, event):
+        super(ScanDataFitter, self).feed(event)
         self.scanHistos[event.vfatN][event.vfatCH].Fill(event.vcal,event.Nhits)
         if(event.vcal > 250):
             self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
@@ -43,6 +53,8 @@ class ScanDataFitter:
         for vfat in range(0,24):
             print 'fitting vfat %i'%vfat
             for ch in range(0,128):
+                if self.isDead[vfat][ch]:
+                    continue # Don't try to fit dead channels
                 fitStatus = 1
                 fitChi2 = 0
                 fitN = 0
