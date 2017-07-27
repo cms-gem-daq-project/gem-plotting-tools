@@ -129,7 +129,6 @@ vSum2 = ndict()
 vSumPruned = ndict()
 vSumPruned2 = ndict()
 vScurves = []
-dead_list = []
 vthr_list = []
 trim_list = []
 trimrange_list = []
@@ -160,7 +159,6 @@ def overlay_fit(VFAT, CHAN):
 
 for vfat in range(0,24):
     vScurves.append([])
-    dead_list.append(np.ones(128, dtype=bool))
     vthr_list.append([])
     trim_list.append([])
     trimrange_list.append([])
@@ -222,7 +220,6 @@ for event in inF.scurveTree:
     x = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(x, event.Nhits)
     r.gStyle.SetOptStat(1111111)
-    dead_list[event.vfatN][event.vfatCH] = False
     vthr_list[event.vfatN][event.vfatCH] = event.vthr
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
@@ -256,15 +253,15 @@ if options.SaveFile:
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
                                    rejectHighTail=False)
-        masks.append(fitFailed | hot | dead_list[vfat])
+        masks.append(fitFailed | hot | fitter.isDead[vfat])
         # Create reason array
         reason = np.zeros(128, dtype=int) # Not masked
         reason[hot] |= 0x01 # Hot channels
         reason[fitFailed] |= 0x02 # Failed fits
-        reason[dead_list[vfat]] |= 0x04 # Dead channels
+        reason[fitter.isDead[vfat]] |= 0x04 # Dead channels
         maskReasons.append(reason)
         print 'VFAT %2d: %d dead, %d hot channels, %d failed fits' % (vfat,
-                np.count_nonzero(dead_list[vfat]),
+                np.count_nonzero(fitter.isDead[vfat]),
                 np.count_nonzero(hot),
                 np.count_nonzero(fitFailed))
 
