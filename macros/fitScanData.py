@@ -55,13 +55,9 @@ class ScanDataFitter(DeadChannelFinder):
             for ch in range(0,128):
                 if self.isDead[vfat][ch]:
                     continue # Don't try to fit dead channels
-                fitStatus = 1
                 fitChi2 = 0
-                fitN = 0
-                fitGoodN = 0
                 MinChi2Temp = 99999999
                 stepN = 0
-                chi2_iter = 0
                 while(stepN < 25):
                     rand = random.Gaus(10, 5)
                     if (rand < 0.0 or rand > 100): continue
@@ -72,15 +68,9 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParLimits(1, 0.0, 100.0)
                     fitTF1.SetParLimits(2, 0.0, 300.0)
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
-                    #fitStatus = fitResult.Status()
                     fitChi2 = fitTF1.GetChisquare()
                     fitNDF = fitTF1.GetNDF()
-                    #print fitChi2
                     stepN +=1
-                    fitGoodN+=1
-                    if abs(fitChi2 - MinChi2Temp) < 0.001:
-                        chi2_iter += 1
-                        pass
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
