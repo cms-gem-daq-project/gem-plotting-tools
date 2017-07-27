@@ -58,7 +58,7 @@ class ScanDataFitter(DeadChannelFinder):
                 fitChi2 = 0
                 MinChi2Temp = 99999999
                 stepN = 0
-                while(stepN < 25):
+                while(stepN < 15):
                     rand = random.Gaus(10, 5)
                     if (rand < 0.0 or rand > 100): continue
                     fitTF1.SetParameter(0, 8+stepN*8)
@@ -69,6 +69,9 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParLimits(2, 0.0, 300.0)
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
+                    if fitEmpty:
+                        # Don't try to fit empty data again
+                        break
                     fitValid = ((not fitEmpty) and fitResult.IsValid())
                     fitChi2 = fitTF1.GetChisquare()
                     fitNDF = fitTF1.GetNDF()
