@@ -88,6 +88,8 @@ class ScanDataFitter(DeadChannelFinder):
                     fitChi2 = fitTF1.GetChisquare()
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
+                    if not fitValid:
+                        continue
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
