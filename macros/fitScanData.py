@@ -82,15 +82,7 @@ class ScanDataFitter(DeadChannelFinder):
                         self.scanFits[3][vfat][ch] = fitChi2
                         self.scanFits[4][vfat][ch] = self.scanCount[vfat][ch]
                         self.scanFits[5][vfat][ch] = fitNDF
-                        MinChi2Temp = fitChi2
-                        pass
-                    if (fitTF1.GetParameter(0) == 8+stepN*8):
-                        self.scanFits[0][vfat][ch] = -999.9
-                        self.scanFits[1][vfat][ch] = -999.9
-                        self.scanFits[2][vfat][ch] = -999.9
-                        self.scanFits[3][vfat][ch] = -999999999.9
-                        self.scanFits[4][vfat][ch] = self.scanCount[vfat][ch]
-                        self.scanFits[5][vfat][ch] = -999999
+                        self.fitValid[vfat][ch] = fitValid
                         MinChi2Temp = fitChi2
                         pass
                     if (MinChi2Temp < 50): break
