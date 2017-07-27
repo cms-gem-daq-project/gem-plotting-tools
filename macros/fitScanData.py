@@ -68,9 +68,13 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParLimits(1, 0.0, 100.0)
                     fitTF1.SetParLimits(2, 0.0, 300.0)
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
+                    fitEmpty = fitResult.IsEmpty()
+                    fitValid = ((not fitEmpty) and fitResult.IsValid())
                     fitChi2 = fitTF1.GetChisquare()
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
+                    if not fitValid:
+                        continue
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
