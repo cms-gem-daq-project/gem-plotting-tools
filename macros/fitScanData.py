@@ -96,3 +96,8 @@ class ScanDataFitter(DeadChannelFinder):
                 pass
             pass
         return self.scanFits
+
+def fitScanData(treeFileName):
+    fitter = ScanDataFitter()
+    fitter.readFile(treeFileName)
+    return fitter.fit()
