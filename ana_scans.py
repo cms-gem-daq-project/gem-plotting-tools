@@ -22,8 +22,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
 
   #Build Commands
   cmd = [ana_config[anaType]]
-  postCmds = {}
-  postCmds[0] = ["mkdir","-p","%s"%(elogPath)]
+  postCmds = []
+  postCmds.append(["mkdir","-p","%s"%(elogPath)])
   if anaType == "latency":
     dirPath = "%s/%s/%s/trk/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "LatencyScanData.root"
@@ -34,12 +34,12 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("latencyAna.root"))
     
-    postCmds[1]=["cp","%s/LatencyScanData/Summary.png"%(dirPath),
-                 "%s/LatencySumary_%s.png"%(elogPath,cName)]
-    postCmds[2]=["cp","%s/LatencyScanData/MaxHitsPerLatByVFAT.png"%(dirPath),
-                 "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)]
-    postCmds[3]=["cp","%s/LatencyScanData/SignalOverSigPBkg.png"%(dirPath),
-                 "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)]
+    postCmds.append(["cp","%s/LatencyScanData/Summary.png"%(dirPath),
+                 "%s/LatencySumary_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/LatencyScanData/MaxHitsPerLatByVFAT.png"%(dirPath),
+                 "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/LatencyScanData/SignalOverSigPBkg.png"%(dirPath),
+                 "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)])
     
     pass
   elif anaType == "scurve":
@@ -60,10 +60,10 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
         cmd.append("--panasonic")
         pass
 
-    postCmds[1]=["cp","%s/SCurveData/Summary.png"%(dirPath),
-                 "%s/SCurveSummary_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)]
-    postCmds[2]=["cp","%s/SCurveData/chConfig.txt"%(dirPath),
-                 "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)]
+    postCmds.append(["cp","%s/SCurveData/Summary.png"%(dirPath),
+                 "%s/SCurveSummary_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)])
+    postCmds.append(["cp","%s/SCurveData/chConfig.txt"%(dirPath),
+                 "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
   elif anaType == "threshold":
     dirPath = "%s/%s/%s/channel/%s/"%(dataPath,cName,anaType,scandate)
@@ -86,15 +86,15 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
       cmd.append("--fileScurveFitTree=%s"%(filename_Trim))
       pass
 
-    postCmds[1] = ["cp","%s/ThresholdScanData/ThreshSummary.png"%(dirPath),
-                   "%s/ThreshSummary_%s.png"%(elogPath,cName)]
-    postCmds[2] = ["cp","%s/ThresholdScanData/ThreshPrunedSummary.png"%(dirPath),
-                   "%s/ThreshPrunedSummary_%s.png"%(elogPath,cName)]
-    postCmds[3] = ["cp","%s/ThresholdScanData/vfatConfig.txt"%(dirPath),
-                   "%s/vfatConfig_%s.txt"%(elogPath,cName)]
+    postCmds.append(["cp","%s/ThresholdScanData/ThreshSummary.png"%(dirPath),
+                   "%s/ThreshSummary_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/ThresholdScanData/ThreshPrunedSummary.png"%(dirPath),
+                   "%s/ThreshPrunedSummary_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/ThresholdScanData/vfatConfig.txt"%(dirPath),
+                   "%s/vfatConfig_%s.txt"%(elogPath,cName)])
     if chConfigKnown:
-      postCmds[4] = ["cp","%s/ThresholdScanData/chConfig_MasksUpdated.txt"%(dirPath),
-                     "%s/chConfig_MasksUpdated_%s.txt"%(elogPath,cName)]
+      postCmds.append(["cp","%s/ThresholdScanData/chConfig_MasksUpdated.txt"%(dirPath),
+                     "%s/chConfig_MasksUpdated_%s.txt"%(elogPath,cName)])
       pass
     pass
   elif anaType == "trim":
@@ -115,10 +115,10 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
         cmd.append("--panasonic")
         pass
         
-    postCmds[1]=["cp","%s/SCurveData_Trimmed/Summary.png"%(dirPath),
-                 "%s/SCurveSummaryTrimmed_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)]
-    postCmds[2]=["cp","%s/SCurveData_Trimmed/chConfig.txt"%(dirPath),
-                 "%s/chConfigTrimmed_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)]
+    postCmds.append(["cp","%s/SCurveData_Trimmed/Summary.png"%(dirPath),
+                 "%s/SCurveSummaryTrimmed_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)])
+    postCmds.append(["cp","%s/SCurveData_Trimmed/chConfig.txt"%(dirPath),
+                 "%s/chConfigTrimmed_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
 
   #Execute Commands
@@ -127,8 +127,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
  
     #runCommand(cmd,log)
     runCommand(cmd)
-    for key in postCmds:
-      runCommand(postCmds[key])
+    for item in postCmds:
+      runCommand(item)
       pass
   except CalledProcessError as e:
     print "Caught exception",e
