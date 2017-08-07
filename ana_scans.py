@@ -34,11 +34,11 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("latencyAna.root"))
     
-    postCmds[1]=["cp","%s/LatencyData_Trimmed/Summary.png"%(dirPath),
+    postCmds[1]=["cp","%s/LatencyScanData/Summary.png"%(dirPath),
                  "%s/LatencySumary_%s.png"%(elogPath,cName)]
-    postCmds[2]=["cp","%s/LatencyData_Trimmed/MaxHitsPerLatByVFAT.png"%(dirPath),
+    postCmds[2]=["cp","%s/LatencyScanData/MaxHitsPerLatByVFAT.png"%(dirPath),
                  "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)]
-    postCmds[3]=["cp","%s/LatencyData_Trimmed/SignalOverSigPBkg.png"%(dirPath),
+    postCmds[3]=["cp","%s/LatencyScanData/SignalOverSigPBkg.png"%(dirPath),
                  "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)]
     
     pass
@@ -90,11 +90,12 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
                    "%s/ThreshSummary_%s.png"%(elogPath,cName)]
     postCmds[2] = ["cp","%s/ThresholdScanData/ThreshPrunedSummary.png"%(dirPath),
                    "%s/ThreshPrunedSummary_%s.png"%(elogPath,cName)]
-    postCmds[3] = ["cp","%s/ThresholdScanData/chConfig_MasksUpdated.txt"%(dirPath),
-                   "%s/chConfig_MasksUpdated_%s.txt"%(elogPath,cName)]
-    postCmds[4] = ["cp","%s/ThresholdScanData/vfatConfig.txt"%(dirPath),
+    postCmds[3] = ["cp","%s/ThresholdScanData/vfatConfig.txt"%(dirPath),
                    "%s/vfatConfig_%s.txt"%(elogPath,cName)]
-
+    if chConfigKnown:
+      postCmds[4] = ["cp","%s/ThresholdScanData/chConfig_MasksUpdated.txt"%(dirPath),
+                     "%s/chConfig_MasksUpdated_%s.txt"%(elogPath,cName)]
+      pass
     pass
   elif anaType == "trim":
     dirPath = "%s/%s/%s/z%f/%s/"%(dataPath,cName,anaType,ztrim,scandate)
@@ -123,7 +124,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   #Execute Commands
   try:
     log = file("%s/anaLog.log"%(dirPath),"w")
-   
+ 
     #runCommand(cmd,log)
     runCommand(cmd)
     for key in postCmds:

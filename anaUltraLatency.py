@@ -50,7 +50,7 @@ for event in inF.latTree:
     pass
 
 from math import sqrt
-outF = r.TFile(options.outfilename,"RECREATE")
+outF = r.TFile(filename+"/"+options.outfilename,"RECREATE")
 dict_grNHitsVFAT = ndict()
 dict_fitNHitsVFAT = ndict()
 grNMaxLatBinByVFAT = r.TGraphAsymmErrors(len(dict_hVFATHitsVsLat))
