@@ -21,11 +21,10 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   print "Analysis Requested: %s"%(anaType)
 
   #Build Commands
-  cmd = ["python", ana_config[anaType]]
-  postCmds = {}
+  cmd = [ana_config[anaType]]
+  postCmds = []
+  postCmds.append(["mkdir","-p","%s"%(elogPath)])
   if anaType == "latency":
-    #cmd.append("%s/vfatqc-python-scripts/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
-    #cmd.append("%s/gem-plotting-tools/latency/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType])) 
     dirPath = "%s/%s/%s/trk/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "LatencyScanData.root"
     if not os.path.isfile(filename):
@@ -34,9 +33,16 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("latencyAna.root"))
+    
+    postCmds.append(["cp","%s/LatencyScanData/Summary.png"%(dirPath),
+                 "%s/LatencySumary_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/LatencyScanData/MaxHitsPerLatByVFAT.png"%(dirPath),
+                 "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/LatencyScanData/SignalOverSigPBkg.png"%(dirPath),
+                 "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)])
+    
     pass
   elif anaType == "scurve":
-    cmd.append("%s/vfatqc-python-scripts/macros/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
     dirPath = "%s/%s/%s/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "SCurveData.root"
     if not os.path.isfile(filename):
@@ -54,14 +60,12 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
         cmd.append("--panasonic")
         pass
 
-    postCmds[0]=["mkdir","-p","%s"%(elogPath)]
-    postCmds[1]=["cp","%s/SCurveData/Summary.png"%(dirPath),
-                 "%s/SCurveSummary_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)]
-    postCmds[2]=["cp","%s/SCurveData/chConfig.txt"%(dirPath),
-                 "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)]
+    postCmds.append(["cp","%s/SCurveData/Summary.png"%(dirPath),
+                 "%s/SCurveSummary_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)])
+    postCmds.append(["cp","%s/SCurveData/chConfig.txt"%(dirPath),
+                 "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
   elif anaType == "threshold":
-    #cmd.append("%s/vfatqc-python-scripts/macros/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
     dirPath = "%s/%s/%s/channel/%s/"%(dataPath,cName,anaType,scandate)
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
@@ -70,7 +74,6 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
 
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("ThresholdPlots.root"))
-    cmd.append("--vfatmask=0x0")
    
     if chConfigKnown:
       cmd.append("--chConfigKnown")
@@ -83,19 +86,18 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
       cmd.append("--fileScurveFitTree=%s"%(filename_Trim))
       pass
 
-    postCmds[0] = ["mkdir","-p","%s"%(elogPath)]
-    postCmds[1] = ["cp","%s/ThresholdScanData/ThreshSummary.png"%(dirPath),
-                   "%s/ThreshSummary_%s.png"%(elogPath,cName)]
-    postCmds[2] = ["cp","%s/ThresholdScanData/ThreshPrunedSummary.png"%(dirPath),
-                   "%s/ThreshPrunedSummary_%s.png"%(elogPath,cName)]
-    postCmds[3] = ["cp","%s/ThresholdScanData/chConfig_MasksUpdated.txt"%(dirPath),
-                   "%s/chConfig_MasksUpdated_%s.txt"%(elogPath,cName)]
-    postCmds[4] = ["cp","%s/ThresholdScanData/vfatConfig.txt"%(dirPath),
-                   "%s/vfatConfig_%s.txt"%(elogPath,cName)]
-
+    postCmds.append(["cp","%s/ThresholdScanData/ThreshSummary.png"%(dirPath),
+                   "%s/ThreshSummary_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/ThresholdScanData/ThreshPrunedSummary.png"%(dirPath),
+                   "%s/ThreshPrunedSummary_%s.png"%(elogPath,cName)])
+    postCmds.append(["cp","%s/ThresholdScanData/vfatConfig.txt"%(dirPath),
+                   "%s/vfatConfig_%s.txt"%(elogPath,cName)])
+    if chConfigKnown:
+      postCmds.append(["cp","%s/ThresholdScanData/chConfig_MasksUpdated.txt"%(dirPath),
+                     "%s/chConfig_MasksUpdated_%s.txt"%(elogPath,cName)])
+      pass
     pass
   elif anaType == "trim":
-    #cmd.append("%s/vfatqc-python-scripts/macros/%s"%(os.getenv("BUILD_HOME"),ana_config[anaType]))
     dirPath = "%s/%s/%s/z%f/%s/"%(dataPath,cName,anaType,ztrim,scandate)
     filename = dirPath + "SCurveData_Trimmed.root"
     if not os.path.isfile(filename):
@@ -113,21 +115,20 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
         cmd.append("--panasonic")
         pass
         
-    postCmds[0]=["mkdir","-p","%s"%(elogPath)]
-    postCmds[1]=["cp","%s/SCurveData_Trimmed/Summary.png"%(dirPath),
-                 "%s/SCurveSummaryTrimmed_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)]
-    postCmds[2]=["cp","%s/SCurveData_Trimmed/chConfig.txt"%(dirPath),
-                 "%s/chConfigTrimmed_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)]
+    postCmds.append(["cp","%s/SCurveData_Trimmed/Summary.png"%(dirPath),
+                 "%s/SCurveSummaryTrimmed_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)])
+    postCmds.append(["cp","%s/SCurveData_Trimmed/chConfig.txt"%(dirPath),
+                 "%s/chConfigTrimmed_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
 
   #Execute Commands
   try:
     log = file("%s/anaLog.log"%(dirPath),"w")
-   
-    runCommand(cmd,log)
-    #runCommand(cmd)
-    for key in postCmds:
-      runCommand(postCmds[key])
+ 
+    #runCommand(cmd,log)
+    runCommand(cmd)
+    for item in postCmds:
+      runCommand(item)
       pass
   except CalledProcessError as e:
     print "Caught exception",e
@@ -150,8 +151,6 @@ if __name__ == '__main__':
                     help="Run tests in series (default is false)", metavar="series")
   parser.add_option("--anaType", type="string", dest="anaType",#default="trim",
                      help="Analysis type to be executed, from list {'latency','scurve','threshold','trim'}", metavar="anaType")
-  #parser.add_option("--chConfigKnown", action="store_true", dest="chConfigKnown",
-  #                   help="Channel config already known and found in --fileScurveFitTree", metavar="chConfigKnown")
 
   (options, args) = parser.parse_args()
 
