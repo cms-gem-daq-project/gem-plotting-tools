@@ -24,7 +24,6 @@ print filename
 outputfilename = options.outfilename
 
 import ROOT as r
-from ROOT import TH1F
 r.gROOT.SetBatch(True)
 r.gStyle.SetOptStat(1111111)
 inF = r.TFile(filename+'.root',"READ")
@@ -33,7 +32,7 @@ inF = r.TFile(filename+'.root',"READ")
 print 'Initializing Histograms'
 dict_hVFATHitsVsLat = ndict()
 for vfat in range(0,24):
-    dict_hVFATHitsVsLat[vfat]   = TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,256,-0.5,255.5)
+    dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,256,-0.5,255.5)
     pass
 
 #Filling Histograms
