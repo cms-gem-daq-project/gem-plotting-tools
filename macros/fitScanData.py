@@ -1,6 +1,8 @@
+import numpy as np
+import ROOT as r
+
 class DeadChannelFinder(object):
     def __init__(self):
-        import numpy as np
         self.isDead = [ np.ones(128, dtype=bool) for i in range(24) ]
 
     def feed(self, event):
@@ -10,8 +12,6 @@ class ScanDataFitter(DeadChannelFinder):
     def __init__(self):
         super(ScanDataFitter, self).__init__()
 
-        import ROOT as r
-        import numpy as np
         from gempython.utils.nesteddict import nesteddict as ndict
         r.gStyle.SetOptStat(0)
 
@@ -40,13 +40,11 @@ class ScanDataFitter(DeadChannelFinder):
             self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
 
     def readFile(self, treeFileName):
-        import ROOT as r
         inF = r.TFile(treeFileName)
         for event in inF.scurveTree :
             self.feed(event)
 
     def fit(self):
-        import ROOT as r
         r.gROOT.SetBatch(True)
         r.gStyle.SetOptStat(0)
 
