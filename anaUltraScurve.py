@@ -4,6 +4,7 @@ import numpy as np
 from optparse import OptionParser
 from array import array
 from anautilities import *
+from anaInfo import *
 from fitScanData import *
 from channelMaps import *
 from PanChannelMaps import *
@@ -255,9 +256,9 @@ if options.SaveFile:
         masks.append(fitFailed | hot | fitter.isDead[vfat])
         # Create reason array
         reason = np.zeros(128, dtype=int) # Not masked
-        reason[hot] |= 0x01 # Hot channels
-        reason[fitFailed] |= 0x02 # Failed fits
-        reason[fitter.isDead[vfat]] |= 0x04 # Dead channels
+        reason[hot] |= MaskReason.HotChannel
+        reason[fitFailed] |= MaskReason.FitFailed
+        reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
         maskReasons.append(reason)
         print 'VFAT %2d: %d dead, %d hot channels, %d failed fits' % (vfat,
                 np.count_nonzero(fitter.isDead[vfat]),
