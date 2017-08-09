@@ -249,6 +249,7 @@ if options.SaveFile:
             pedestal[0] = scanFits[2][vfat][ch]
             # Compute the value to apply MAD on for each channel
             trimValue[ch] = threshold[0] - options.ztrim * noise[0]
+            pass
         fitFailed = np.logical_not(fitter.fitValid[vfat])
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
