@@ -265,20 +265,21 @@ if options.SaveFile:
                 np.count_nonzero(fitFailed))
 
 # Fill pruned
-for event in inF.scurveTree:
-    if masks[event.vfatN][event.vfatCH]:
-        continue
-    strip = chanToStripLUT[event.vfatN][event.vfatCH]
-    pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
-    if not (options.channels or options.PanPin):
-        vSumPruned[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
-    if options.channels:
-        vSumPruned[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
-    if options.PanPin:
-        if (pan_pin < 64):
-            vSumPruned[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
-        else:
-            vSumPruned2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+if options.SaveFile:
+    for event in inF.scurveTree:
+        if masks[event.vfatN][event.vfatCH]:
+            continue
+        strip = chanToStripLUT[event.vfatN][event.vfatCH]
+        pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
+        if not (options.channels or options.PanPin):
+            vSumPruned[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
+        if options.channels:
+            vSumPruned[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
+        if options.PanPin:
+            if (pan_pin < 64):
+                vSumPruned[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+            else:
+                vSumPruned2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
 
 # Store values in ROOT file
 if options.SaveFile:
