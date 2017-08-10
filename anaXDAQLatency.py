@@ -13,18 +13,18 @@ if __name__ == "__main__":
                       help="Input file to process", metavar="infile")
     parser.add_option("--amc13", type="int", dest="amc13", default=1,
                       help="AMC13 to look at", metavar="amc13")
-    parser.add_option("--amc", type="int", dest="amc",
-                      help="AMC to look at", metavar="amc")
-    parser.add_option("--gtx", type="int", dest="gtx",
-                      help="GTX to look at", metavar="gtx")
-    parser.add_option("--min", type="int", dest="min", default=0,
-                      help="Min parameter range to look at", metavar="min")
-    parser.add_option("--max", type="int", dest="max", default=256,
-                      help="Max parameter range to look at", metavar="max")
+    parser.add_option("-s", "--slot", type="int", dest="slot",
+                      help="slot in uTCA crate", metavar="slot", default=2)
+    parser.add_option("-g", "--gtx", type="int", dest="gtx",
+                      help="GTX on the AMC", metavar="gtx")
+    parser.add_option("--scanmin", type="int", dest="scanmin", default=0,
+                      help="Minimum value of scan parameter range to look at", metavar="scanmin")
+    parser.add_option("--scanmax", type="int", dest="scanmax", default=256,
+                      help="Maximum value of scan parameter range to look at", metavar="scanmax")
     
     (options, args) = parser.parse_args()
     
-    if (options.amc == None):
+    if (options.slot == None):
         print "Please specify a valid AMC [1,12]"
         exit(0)
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     infilename = "%s"%(options.infile)
     
-    latencyMean = r.TH1D("latencyMean", "Latency spread across all VFATs", (options.max-options.min)*10, options.min, options.max)
+    latencyMean = r.TH1D("latencyMean", "Latency spread across all VFATs", (options.scanmax-options.scanmin)*10, options.scanmin, options.scanmax)
     latencyRMS  = r.TH1D("latencyRMS",  "Latency RMS across all VFATs",    100, 0, 10)
     allVFATsLatency = None
     
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     if not infile.IsOpen():
         print infilename,"is not open"
         exit(0)
-    baseDir = "AMC13-%d/AMC-%d/GTX-%d/"%(options.amc13,options.amc,options.gtx)
+    baseDir = "AMC13-%d/AMC-%d/GTX-%d/"%(options.amc13,options.slot,options.gtx)
     vfatDirs = ["VFAT-%d"%x for x in range(24)]
     
     latCan = r.TCanvas("latCan","latCan", 1000,1000)
@@ -75,26 +75,26 @@ if __name__ == "__main__":
         if inHist:
             latCan.cd(i+1)
             inHist.SetTitle(vfat)
-            inHist.GetXaxis().SetRangeUser(options.min,options.max)
+            inHist.GetXaxis().SetRangeUser(options.scanmin,options.scanmax)
             inHist.Draw("colz")
             #inHist.GetXaxis().SetRangeUser(145,170)
             pass
         pass
     
     latCan.cd(25)
-    allVFATsLatency.GetXaxis().SetRangeUser(options.min,options.max)
+    allVFATsLatency.GetXaxis().SetRangeUser(options.scanmin,options.scanmax)
     allVFATsLatency.Draw()
 
     outname = options.infile.split('/')[-1]
     print outname
-    latCan.SaveAs("~/latency_scan_all_vfats_AMC13%02d_AMC%02d_OH%02d_%s.pdf"%(options.amc13,options.amc,options.gtx,outname))
-    latCan.SaveAs("~/latency_scan_all_vfats_AMC13%02d_AMC%02d_OH%02d_%s.png"%(options.amc13,options.amc,options.gtx,outname))
+    latCan.SaveAs("~/latency_scan_all_vfats_AMC13%02d_AMC%02d_OH%02d_%s.pdf"%(options.amc13,options.slot,options.gtx,outname))
+    latCan.SaveAs("~/latency_scan_all_vfats_AMC13%02d_AMC%02d_OH%02d_%s.png"%(options.amc13,options.slot,options.gtx,outname))
     outCan = r.TCanvas("outCan","outCan", 1000,600)
     outCan.Divide(2,1)
     outCan.cd(1)
     latencyMean.Draw("ep0")
     outCan.cd(2)
     latencyRMS.Draw("ep0")
-    outCan.SaveAs("~/latency_scan_AMC13%02d_AMC%02d_OH%02d_%s.pdf"%(options.amc13,options.amc,options.gtx,outname))
-    outCan.SaveAs("~/latency_scan_AMC13%02d_AMC%02d_OH%02d_%s.png"%(options.amc13,options.amc,options.gtx,outname))
+    outCan.SaveAs("~/latency_scan_AMC13%02d_AMC%02d_OH%02d_%s.pdf"%(options.amc13,options.slot,options.gtx,outname))
+    outCan.SaveAs("~/latency_scan_AMC13%02d_AMC%02d_OH%02d_%s.png"%(options.amc13,options.slot,options.gtx,outname))
     raw_input("press enter to quit")
