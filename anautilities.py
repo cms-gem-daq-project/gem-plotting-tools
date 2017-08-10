@@ -43,7 +43,11 @@ def initVFATArray(array_dtype, nstrips=128):
     return np.zeros(nstrips, dtype=list_dtypeTuple)
 
 def make3x8Canvas(name, initialContent = None, drawOption = ''):
-    """Creates a 3x8 canvas for summary plots"""
+    """Creates a 3x8 canvas for summary plots.
+
+    initialContent should be None or an array of 24 (one per VFAT) TObject that
+    will be drawn on the canvas. drawOption will be passed to the Draw
+    function."""
     canv = r.TCanvas(name,name,500*8,500*3)
     canv.Divide(8,3)
     if initialContent != None:
