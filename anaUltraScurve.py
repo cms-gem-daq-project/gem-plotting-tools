@@ -125,10 +125,10 @@ if options.SaveFile:
     myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
     pass
 
-vSum  = ndict()
-vSum2 = ndict()
-vSumPruned = ndict()
-vSumPruned2 = ndict()
+vSummaryPlots = ndict()
+vSummaryPlotsPanPin2 = ndict()
+vSummaryPlotsPruned = ndict()
+vSummaryPlotsPrunedPanPin2 = ndict()
 vScurves = []
 vthr_list = []
 trim_list = []
@@ -167,26 +167,26 @@ for vfat in range(0,24):
         lines.append(r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat]))
         pass
     if not (options.channels or options.PanPin):
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSum[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSumPruned[vfat] = r.TH2D('vSumPruned%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSumPruned[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     if options.channels:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSum[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSumPruned[vfat] = r.TH2D('vSumPruned%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSumPruned[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     if options.PanPin:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSum[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSumPruned[vfat] = r.TH2D('vSumPruned%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSumPruned[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSum2[vfat] = r.TH2D('vSum2_%i'%vfat,'vSum%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSum2[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSumPruned2[vfat] = r.TH2D('vSumPruned2_%i'%vfat,'vSum%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        vSumPruned2[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsPrunedPanPin2[vfat] = r.TH2D('vSummaryPlotsPrunedPanPin2_%i'%vfat,'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPrunedPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     for chan in range (0,128):
         vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
@@ -205,17 +205,17 @@ for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
     if not (options.channels or options.PanPin):
-        vSum[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
+        vSummaryPlots[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
         pass
     if options.channels:
-        vSum[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
+        vSummaryPlots[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
         pass
     if options.PanPin:
         if (pan_pin < 64):
-            vSum[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlots[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             pass
         else:
-            vSum2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             pass
         pass
     x = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
@@ -274,14 +274,14 @@ if options.SaveFile:
         strip = chanToStripLUT[event.vfatN][event.vfatCH]
         pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
         if not (options.channels or options.PanPin):
-            vSumPruned[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlotsPruned[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
         if options.channels:
-            vSumPruned[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlotsPruned[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
         if options.PanPin:
             if (pan_pin < 64):
-                vSumPruned[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+                vSummaryPlotsPruned[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             else:
-                vSumPruned2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+                vSummaryPlotsPrunedPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
 
 # Store values in ROOT file
 if options.SaveFile:
@@ -355,11 +355,11 @@ if options.SaveFile:
         pass
     pass
 
-def saveSummary(vSum, vSum2, name='Summary'):
+def saveSummary(vSummaryPlots, vSummaryPlotsPanPin2, name='Summary'):
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
     if not options.PanPin:
-        canv = make3x8Canvas('canv', vSum, 'colz')
+        canv = make3x8Canvas('canv', vSummaryPlots, 'colz')
         for vfat in range(0,24):
             canv.cd(vfat+1)
             if options.IsTrimmed:
@@ -382,10 +382,10 @@ def saveSummary(vSum, vSum2, name='Summary'):
             for iphi in range (0,3):
                 r.gStyle.SetOptStat(0)
                 canv.cd((ieta+1 + iphi*16)%48 + 16)
-                vSum[ieta+(8*iphi)].Draw('colz')
+                vSummaryPlots[ieta+(8*iphi)].Draw('colz')
                 canv.Update()
                 canv.cd((ieta+9 + iphi*16)%48 + 16)
-                vSum2[ieta+(8*iphi)].Draw('colz')
+                vSummaryPlotsPanPin2[ieta+(8*iphi)].Draw('colz')
                 canv.Update()
                 pass
             pass
@@ -393,9 +393,9 @@ def saveSummary(vSum, vSum2, name='Summary'):
 
     canv.SaveAs(filename+'/%s.png' % name)
 
-saveSummary(vSum, vSum2)
+saveSummary(vSummaryPlots, vSummaryPlotsPanPin2)
 if options.SaveFile:
-    saveSummary(vSumPruned, vSumPruned2, name='PrunedSummary')
+    saveSummary(vSummaryPlotsPruned, vSummaryPlotsPrunedPanPin2, name='PrunedSummary')
 
 if options.SaveFile:
     r.gStyle.SetOptStat(0)
