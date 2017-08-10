@@ -37,38 +37,27 @@ else
     source $BUILD_HOME/cmsgemos/setup/paths.sh
 fi
 
+# Export project
+export GEM_PLOTTING_PROJECT=$BUILD_HOME/gem-plotting-tools
+
+# Setup Path
+export PATH=$PATH:$GEM_PLOTTING_PROJECT
+export PATH=$PATH:$GEM_PLOTTING_PROJECT/macros
+export PATH=$PATH:$GEM_PLOTTING_PROJECT/setup
+
+# Setup PYTHONPATH
+export PYTHONPATH=$PYTHONPATH:$BUILD_HOME/vfatqc-python-scripts
+export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT
+export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT/macros
+export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT/setup
+
 # Making detector channel maps
 echo "Checking Detector Channel Maps"
-cd $BUILD_HOME/gem-plotting-tools/setup
-if [ ! -f longChannelMap.txt ]; then
+if [ ! -f $GEM_PLOTTING_PROJECT/setup/longChannelMap.txt ]; then
 	echo "No channel maps found, making"
-	python buildMapFiles.py 
+	python $GEM_PLOTTING_PROJECT/setup/buildMapFiles.py 
 fi
 
-# Appending to path
-#export PYTHONPATH=$PYTHONPATH:/lib
-
-# Adding Scan Applications to Path
-#cd $BUILD_HOME/cmsgemos/gempython/tools
-#export PYTHONPATH=$PYTHONPATH:$PWD
-
-cd $BUILD_HOME/vfatqc-python-scripts
-export PYTHONPATH=$PYTHONPATH:$PWD
-
-cd $BUILD_HOME/gem-plotting-tools
-export PATH=$PATH:$PWD
-export PYTHONPATH=$PYTHONPATH:$PWD
-
-cd $BUILD_HOME/gem-plotting-tools/macros
-export PATH=$PATH:$PWD
-export PYTHONPATH=$PYTHONPATH:$PWD
-
-cd $BUILD_HOME/gem-plotting-tools/setup
-export PATH=$PATH:$PWD
-export PYTHONPATH=$PYTHONPATH:$PWD
-
 # Done
-cd $BUILD_HOME/gem-plotting-tools
-export GEM_PLOTTING_PROJECT=$PWD
 echo GEM_PLOTTING_PROJECT $GEM_PLOTTING_PROJECT
 echo "Setup Complete"
