@@ -42,8 +42,6 @@ export GEM_PLOTTING_PROJECT=$BUILD_HOME/gem-plotting-tools
 
 # Setup Path
 export PATH=$PATH:$GEM_PLOTTING_PROJECT
-export PATH=$PATH:$GEM_PLOTTING_PROJECT/macros
-export PATH=$PATH:$GEM_PLOTTING_PROJECT/setup
 
 # Setup PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:$BUILD_HOME/vfatqc-python-scripts
