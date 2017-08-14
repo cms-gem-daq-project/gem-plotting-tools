@@ -17,7 +17,6 @@ parser.add_option("-f","--fit", action="store_true", dest="fit_plots",
 parser.add_option("-x","--chi2", action="store_true", dest="chi2_plots",
                   help="Make Chi2 plots", metavar="chi2_plots")
 
-
 (options, args) = parser.parse_args()
 filename = options.filename[:-5]
 
@@ -28,7 +27,6 @@ GEBtype = options.GEBtype
 inF = r.TFile(filename+'.root')
 
 #Build the channel to strip mapping from the text file
-
 buildHome = os.environ.get('BUILD_HOME')
 
 vSum   = ndict()
@@ -38,7 +36,6 @@ vChi2      = ndict()
 vComparison = ndict()
 vNoiseTrim  = ndict()
 vPedestal   = ndict()
-
 
 for i in range(0,24):
     vNoise[i] = r.TH1D('Noise%i'%i,'Noise%i;Noise [DAC units]'%i,35,-0.5,34.5)
@@ -133,4 +130,3 @@ if options.chi2_plots or options.all_plots:
     canv_Chi2.SetLogy()
     canv_Chi2.SaveAs(filename+'_FitChi2Summary.png')
     pass
-

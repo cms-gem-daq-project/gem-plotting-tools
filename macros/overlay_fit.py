@@ -1,4 +1,3 @@
-
 def overlay_fit(VFAT, CH, data_filename, fit_filename):
     import ROOT as r
 
@@ -30,5 +29,3 @@ def overlay_fit(VFAT, CH, data_filename, fit_filename):
     Chi2 = fitTF1.GetChisquare()
     print Chi2
     return
-
-#overlay_fit(8, 106, 'SCurveData_Trimmed.root', 'SCurveFitData.root')

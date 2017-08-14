@@ -12,7 +12,6 @@ parser.add_option("-c","--channels", action="store_true", dest="channels",
 
 (options, args) = parser.parse_args()
 
-
 def plot_vfat_summary(VFAT, STRIP, fit_filename):
     import ROOT as r
 

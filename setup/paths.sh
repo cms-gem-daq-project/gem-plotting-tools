@@ -32,9 +32,8 @@ fi
 if [[ -n "$GEM_PYTHON_PATH" ]]; then
     echo GEM_PYTHON_PATH $GEM_PYTHON_PATH
 else
-    echo "GEM_PYTHON_PATH not set"
-    echo "Setting up GEM_PYTHON_PATH"
-    source $BUILD_HOME/cmsgemos/setup/paths.sh
+    echo "GEM_PYTHON_PATH not set, please source \$BUILD_HOME/cmsgemos/setup/paths.sh"
+    return
 fi
 
 # Export project
@@ -44,16 +43,13 @@ export GEM_PLOTTING_PROJECT=$BUILD_HOME/gem-plotting-tools
 export PATH=$PATH:$GEM_PLOTTING_PROJECT
 
 # Setup PYTHONPATH
-export PYTHONPATH=$PYTHONPATH:$BUILD_HOME/vfatqc-python-scripts
 export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT
-export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT/macros
-export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT/setup
 
 # Making detector channel maps
 echo "Checking Detector Channel Maps"
-if [ ! -f $GEM_PLOTTING_PROJECT/setup/longChannelMap.txt ]; then
-	echo "No channel maps found, making"
-	python $GEM_PLOTTING_PROJECT/setup/buildMapFiles.py 
+if [ ! -f $GEM_PLOTTING_PROJECT/mapping/longChannelMap.txt ]; then
+    echo "No channel maps found, making"
+    python $GEM_PLOTTING_PROJECT/mapping/buildMapFiles.py 
 fi
 
 # Done

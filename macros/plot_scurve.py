@@ -1,9 +1,7 @@
-
 def plot_scurve(VFAT, CH, fit_filename, overlay_fit, channel_yes):
     import ROOT as r
     fitF = r.TFile(fit_filename)
     Scurve = TH1D()
-#    Scurve = TH1D('Scurve','Scurve for VFAT %i channel %i;VCal [DAC units]'%(VFAT, CH),255,-0.5,254.5)
     for event in fitF.scurveFitTree:
         if (event.vfatN == VFAT) and ((event.vfatCH == CH and channel_yes) or (event.vfatstrip == CH and not channel_yes)):
             Scurve = ((fitF.scurveFitTree.scurve_h).Clone())
@@ -45,4 +43,3 @@ def plot_scurve(VFAT, CH, fit_filename, overlay_fit, channel_yes):
             pass
         pass
     return
-
