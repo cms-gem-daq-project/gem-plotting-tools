@@ -1,4 +1,3 @@
-from macros.plot_scurve import *
 from macros.plotoptions import parser
 
 parser.add_option("-o","--overlay", action="store_true", dest="overlay_fit",
