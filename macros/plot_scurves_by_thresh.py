@@ -11,7 +11,7 @@ channel_yes = options.channels
 vfat = options.vfat
 strip = options.strip
 
-import root as r
+import ROOT as r
 r.gStyle.SetOptStat(0)
 
 thr     = []
