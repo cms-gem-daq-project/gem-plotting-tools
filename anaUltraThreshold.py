@@ -3,9 +3,9 @@ import os
 import sys
 from optparse import OptionParser
 from array import array
-from fitScanData import *
-from channelMaps import *
-from PanChannelMaps import *
+from fitting.fitScanData import *
+from mapping.channelMaps import *
+from mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
 from anaoptions import parser
@@ -47,14 +47,17 @@ for vfat in range(0,24):
         pass
     pass
 
-buildHome = os.environ.get('BUILD_HOME')
+from gempython.utils.wrappers import envCheck
+envCheck('GEM_PLOTTING_PROJECT')
 
+projectHome = os.environ.get('GEM_PLOTTING_PROJECT')
 if GEBtype == 'long':
-    intext = open(buildHome+'/gem-plotting-tools/setup/longChannelMap.txt', 'r')
+    intext = open(projectHome+'/mapping/longChannelMap.txt', 'r')
     pass
 if GEBtype == 'short':
-    intext = open(buildHome+'/gem-plotting-tools/setup/shortChannelMap.txt', 'r')
+    intext = open(projectHome+'/mapping/shortChannelMap.txt', 'r')
     pass
+
 for i, line in enumerate(intext):
     if i == 0: continue
     mapping = line.rsplit('\t')

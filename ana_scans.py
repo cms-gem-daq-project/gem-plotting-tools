@@ -136,12 +136,11 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   return
 
 if __name__ == '__main__':
-
   import sys,os,signal
   import subprocess
   import itertools
   from multiprocessing import Pool, freeze_support
-  from chamberInfo import chamber_config, GEBtype
+  from mapping.chamberInfo import chamber_config, GEBtype
   from anaInfo import ana_config
   from gempython.utils.wrappers import envCheck
 
@@ -149,7 +148,7 @@ if __name__ == '__main__':
 
   parser.add_option("--series", action="store_true", dest="series",
                     help="Run tests in series (default is false)", metavar="series")
-  parser.add_option("--anaType", type="string", dest="anaType",#default="trim",
+  parser.add_option("--anaType", type="string", dest="anaType",
                      help="Analysis type to be executed, from list {'latency','scurve','threshold','trim'}", metavar="anaType")
 
   (options, args) = parser.parse_args()

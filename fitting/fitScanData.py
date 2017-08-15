@@ -1,4 +1,3 @@
-
 def fitScanData(treeFile):
     import ROOT as r
     import numpy as np
