@@ -19,6 +19,8 @@ class MaskReason:
     HotChannel  = 0x01
     FitFailed   = 0x02
     DeadChannel = 0x04
+    HighNoise   = 0x08
+    HighEffPed  = 0x10
 
     @staticmethod
     def humanReadable(reason):

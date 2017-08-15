@@ -239,14 +239,23 @@ if options.SaveFile:
     print 'Determining hot channels'
     masks = []
     maskReasons = []
+    effectivePedestals = [ np.zeros(128) for vfat in range(24) ]
     for vfat in range(0, 24):
         trimValue = np.zeros(128)
+        channelNoise = np.zeros(128)
         fitFailed = np.zeros(128, dtype=bool)
         for ch in range(0, 128):
             # Get fit results
             threshold[0] = scanFits[0][vfat][ch]
             noise[0] = scanFits[1][vfat][ch]
             pedestal[0] = scanFits[2][vfat][ch]
+            # Compute values for cuts
+            channelNoise[ch] = noise[0]
+            FittedFunction = r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
+            for i in range(3):
+                FittedFunction.SetParameter(i, scanFits[i][vfat][ch])
+                pass
+            effectivePedestals[vfat][ch] = FittedFunction.Eval(0.0)
             # Compute the value to apply MAD on for each channel
             trimValue[ch] = threshold[0] - options.ztrim * noise[0]
             pass
@@ -254,17 +263,21 @@ if options.SaveFile:
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
                                    rejectHighTail=False)
-        masks.append(fitFailed | hot | fitter.isDead[vfat])
         # Create reason array
         reason = np.zeros(128, dtype=int) # Not masked
         reason[hot] |= MaskReason.HotChannel
         reason[fitFailed] |= MaskReason.FitFailed
         reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
+        reason[channelNoise > 20] |= MaskReason.HighNoise
+        reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
         maskReasons.append(reason)
-        print 'VFAT %2d: %d dead, %d hot channels, %d failed fits' % (vfat,
+        masks.append(reason != MaskReason.NotMasked)
+        print 'VFAT %2d: %d dead, %d hot channels, %d failed fits, %d high noise, %d high eff.ped.' % (vfat,
                 np.count_nonzero(fitter.isDead[vfat]),
                 np.count_nonzero(hot),
-                np.count_nonzero(fitFailed))
+                np.count_nonzero(fitFailed),
+                np.count_nonzero(channelNoise > 20),
+                np.count_nonzero(effectivePedestals[vfat] > 50))
 
 # Fill pruned
 if options.SaveFile:
@@ -304,11 +317,7 @@ if options.SaveFile:
             param0 = scanFits[0][vfat][chan]
             param1 = scanFits[1][vfat][chan]
             param2 = scanFits[2][vfat][chan]
-            FittedFunction =  r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
-            FittedFunction.SetParameter(0, param0)
-            FittedFunction.SetParameter(1, param1)
-            FittedFunction.SetParameter(2, param2)
-            ped_eff[0] = FittedFunction.Eval(0.0)
+            ped_eff[0] = effectivePedestals[vfat][chan]
             vfatN[0] = vfat
             vfatCH[0] = chan
             ROBstr[0] = strip
