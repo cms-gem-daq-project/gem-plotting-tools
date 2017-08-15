@@ -1,10 +1,13 @@
 import os
 from mapping.channelMaps import *
 from mapping.PanChannelMaps import *
-chamberType = ['long','short']
-  
+
+from gempython.utils.wrappers import envCheck
+envCheck('GEM_PLOTTING_PROJECT')
+
 mapPath  = "%s/mapping"%(os.getenv('GEM_PLOTTING_PROJECT'))
 
+chamberType = ['long','short']
 for cT in chamberType:
     outF = open('%s/%sChannelMap.txt'%(mapPath,cT),'w')
     outF.write('vfat/I:strip/I:channel/I:PanPin/I\n')

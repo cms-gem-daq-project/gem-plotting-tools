@@ -1,15 +1,7 @@
 import os
-from optparse import OptionParser
 from gempython.utils.nesteddict import nesteddict as ndict
+from macros.plotoptions import parser
 
-parser = OptionParser()
-
-parser.add_option("-i", "--infilename", type="string", dest="filename", default="SCurveFitData.root",
-                  help="Specify Input Filename", metavar="filename")
-parser.add_option("-t", "--type", type="string", dest="GEBtype", default="long",
-                  help="Specify GEB (long/short)", metavar="GEBtype")
-parser.add_option("-c","--channels", action="store_true", dest="channels",
-                  help="Make plots vs channels instead of strips", metavar="channels")
 parser.add_option("-a","--all", action="store_true", dest="all_plots",
                   help="Make all plots", metavar="all_plots")
 parser.add_option("-f","--fit", action="store_true", dest="fit_plots",
@@ -23,11 +15,7 @@ filename = options.filename[:-5]
 import ROOT as r
 
 r.gROOT.SetBatch(True)
-GEBtype = options.GEBtype
 inF = r.TFile(filename+'.root')
-
-#Build the channel to strip mapping from the text file
-buildHome = os.environ.get('BUILD_HOME')
 
 vSum   = ndict()
 vNoise = ndict()
@@ -37,15 +25,15 @@ vComparison = ndict()
 vNoiseTrim  = ndict()
 vPedestal   = ndict()
 
-for i in range(0,24):
-    vNoise[i] = r.TH1D('Noise%i'%i,'Noise%i;Noise [DAC units]'%i,35,-0.5,34.5)
-    vPedestal[i] = r.TH1D('Pedestal%i'%i,'Pedestal%i;Pedestal [DAC units]'%i,256,-0.5,255.5)
-    vThreshold[i] = r.TH1D('Threshold%i'%i,'Threshold%i;Threshold [DAC units]'%i,60,-0.5,299.5)
-    vChi2[i] = r.TH1D('ChiSquared%i'%i,'ChiSquared%i;Chi2'%i,100,-0.5,999.5)
-    vComparison[i] = r.TH2D('vComparison%i'%i,'Fit Summary %i;Threshold [DAC units];Noise [DAC units]'%i,60,-0.5,299.5,70,-0.5,34.5)
-    vNoiseTrim[i] = r.TH2D('vNoiseTrim%i'%i,'Noise vs. Trim Summary %i;Trim [DAC units];Noise [DAC units]'%i,32,-0.5,31.5,70,-0.5,34.5)
-    vComparison[i].GetYaxis().SetTitleOffset(1.5)
-    vNoiseTrim[i].GetYaxis().SetTitleOffset(1.5)
+for vfat in range(0,24):
+    vNoise[vfat] = r.TH1D('Noise%i'%vfat,'Noise%i;Noise [DAC units]'%vfat,35,-0.5,34.5)
+    vPedestal[vfat] = r.TH1D('Pedestal%i'%vfat,'Pedestal%i;Pedestal [DAC units]'%vfat,256,-0.5,255.5)
+    vThreshold[vfat] = r.TH1D('Threshold%i'%vfat,'Threshold%i;Threshold [DAC units]'%vfat,60,-0.5,299.5)
+    vChi2[vfat] = r.TH1D('ChiSquared%i'%vfat,'ChiSquared%i;Chi2'%vfat,100,-0.5,999.5)
+    vComparison[vfat] = r.TH2D('vComparison%i'%vfat,'Fit Summary %i;Threshold [DAC units];Noise [DAC units]'%vfat,60,-0.5,299.5,70,-0.5,34.5)
+    vNoiseTrim[vfat] = r.TH2D('vNoiseTrim%i'%vfat,'Noise vs. Trim Summary %i;Trim [DAC units];Noise [DAC units]'%vfat,32,-0.5,31.5,70,-0.5,34.5)
+    vComparison[vfat].GetYaxis().SetTitleOffset(1.5)
+    vNoiseTrim[vfat].GetYaxis().SetTitleOffset(1.5)
     pass
 
 for event in inF.scurveFitTree:
@@ -65,10 +53,10 @@ if options.fit_plots or options.all_plots:
     r.gStyle.SetOptStat(111100)
     canv_comp = r.TCanvas('canv_comp','canv_comp',500*8,500*3)
     canv_comp.Divide(8,3)
-    for i in range(0,24):
-        canv_comp.cd(i+1)
+    for vfat in range(0,24):
+        canv_comp.cd(vfat+1)
         r.gStyle.SetOptStat(111100)
-        vComparison[i].Draw('colz')
+        vComparison[vfat].Draw('colz')
         canv_comp.Update()
         pass
     canv_comp.SaveAs(filename+'_FitSummary.png')
@@ -76,20 +64,20 @@ if options.fit_plots or options.all_plots:
     r.gStyle.SetOptStat(111100)
     canv_trim = r.TCanvas('canv_trim','canv_trim',500*8,500*3)
     canv_trim.Divide(8,3)
-    for i in range(0,24):
-        canv_trim.cd(i+1)
+    for vfat in range(0,24):
+        canv_trim.cd(vfat+1)
         r.gStyle.SetOptStat(111100)
-        vNoiseTrim[i].Draw('colz')
+        vNoiseTrim[vfat].Draw('colz')
         canv_trim.Update()
         pass
     canv_trim.SaveAs(filename+'_TrimNoiseSummary.png')
 
     canv_thresh = r.TCanvas('canv_thresh','canv_thresh',500*8,500*3)
     canv_thresh.Divide(8,3)
-    for i in range(0,24):
-        canv_thresh.cd(i+1)
+    for vfat in range(0,24):
+        canv_thresh.cd(vfat+1)
         r.gStyle.SetOptStat(111100)
-        vThreshold[i].Draw()
+        vThreshold[vfat].Draw()
         r.gPad.SetLogy()
         canv_thresh.Update()
         pass
@@ -97,10 +85,10 @@ if options.fit_plots or options.all_plots:
 
     canv_Pedestal = r.TCanvas('canv_Pedestal','canv_Pedestal',500*8,500*3)
     canv_Pedestal.Divide(8,3)
-    for i in range(0,24):
-        canv_Pedestal.cd(i+1)
+    for vfat in range(0,24):
+        canv_Pedestal.cd(vfat+1)
         r.gStyle.SetOptStat(111100)
-        vPedestal[i].Draw()
+        vPedestal[vfat].Draw()
         r.gPad.SetLogy()
         canv_Pedestal.Update()
         pass
@@ -108,9 +96,9 @@ if options.fit_plots or options.all_plots:
 
     canv_noise = r.TCanvas('canv_noise','canv_noise',500*8,500*3)
     canv_noise.Divide(8,3)
-    for i in range(0,24):
-        canv_noise.cd(i+1)
-        vNoise[i].Draw()
+    for vfat in range(0,24):
+        canv_noise.cd(vfat+1)
+        vNoise[vfat].Draw()
         r.gPad.SetLogy()
         canv_noise.Update()
         pass
@@ -121,9 +109,9 @@ if options.chi2_plots or options.all_plots:
     canv_Chi2 = r.TCanvas('canv_Chi2','canv_Chi2',500*8,500*3)
     canv_Chi2.Divide(8,3)
     canv_Chi2.SetLogy()
-    for i in range(0,24):
-        canv_Chi2.cd(i+1)
-        vChi2[i].Draw()
+    for vfat in range(0,24):
+        canv_Chi2.cd(vfat+1)
+        vChi2[vfat].Draw()
         r.gPad.SetLogy()
         canv_Chi2.Update()
         pass
