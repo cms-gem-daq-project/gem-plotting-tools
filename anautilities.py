@@ -8,6 +8,7 @@ By: Brian Dorney (brian.l.dorney@cern.ch)
 # Imports
 import sys, os
 import numpy as np
+import ROOT as r
 #import root_numpy as rp
 
 def filePathExists(searchPath, subPath):
@@ -41,6 +42,21 @@ def initVFATArray(array_dtype, nstrips=128):
 
     return np.zeros(nstrips, dtype=list_dtypeTuple)
 
+def make3x8Canvas(name, initialContent = None, drawOption = ''):
+    """Creates a 3x8 canvas for summary plots.
+
+    initialContent should be None or an array of 24 (one per VFAT) TObject that
+    will be drawn on the canvas. drawOption will be passed to the Draw
+    function."""
+    canv = r.TCanvas(name,name,500*8,500*3)
+    canv.Divide(8,3)
+    if initialContent != None:
+        for vfat in range(24):
+            canv.cd(vfat+1)
+            initialContent[vfat].Draw(drawOption)
+    canv.Update()
+    return canv
+
 #Use Median absolute deviation (MAD) to reject outliers
 #See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
 #And also: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
@@ -57,10 +73,6 @@ def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
 #Use inter-quartile range (IQR) to reject outliers
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierIQR(arrayData):
-    if len(arrayData.shape) == 1:
-        arrayData = arrayData[:,None]
-        pass
-
     dMin    = np.min(arrayData,     axis=0)
     dMax    = np.max(arrayData,     axis=0)
     median  = np.median(arrayData,  axis=0)
@@ -68,15 +80,11 @@ def isOutlierIQR(arrayData):
     q1,q3   = np.percentile(arrayData, [25,75], axis=0)
     IQR     = q3 - q1
 
-    return (arrayData < (q1 - 1.5 * IQR)) or (arrayData > (q3 + 1.5 * IQR))
+    return (arrayData < (q1 - 1.5 * IQR)) | (arrayData > (q3 + 1.5 * IQR))
 
 #Use inter-quartile range (IQR) to reject outliers, but consider only high or low tail
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierIQROneSided(arrayData, rejectHighTail=True):
-    if len(arrayData.shape) == 1:
-        arrayData = arrayData[:,None]
-        pass
-
     dMin    = np.min(arrayData,     axis=0)
     dMax    = np.max(arrayData,     axis=0)
     median  = np.median(arrayData,  axis=0)
@@ -93,15 +101,8 @@ def isOutlierIQROneSided(arrayData, rejectHighTail=True):
 #See: https://github.com/joferkington/oost_paper_code/blob/master/utilities.py
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierMAD(arrayData, thresh=3.5):
-    if len(arrayData.shape) == 1:
-        arrayData = arrayData[:,None]
-        pass
-
     median = np.median(arrayData, axis=0)
-
-    diff = np.sum((arrayData - median)**2, axis=-1)
-    diff = np.sqrt(diff)
-
+    diff = np.abs(arrayData - median)
     med_abs_deviation = np.median(diff)
 
     if med_abs_deviation == 0:
@@ -113,14 +114,9 @@ def isOutlierMAD(arrayData, thresh=3.5):
 #Use MAD to reject outliers, but consider only high or low tail
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
-    if len(arrayData.shape) == 1:
-        arrayData = arrayData[:,None]
-        pass
-
     median = np.median(arrayData, axis=0)
-    diff = np.sum(arrayData - median, axis=-1)
+    diff = arrayData - median
     med_abs_deviation = np.median(np.abs(diff))
-
 
     if med_abs_deviation == 0:
         return isOutlierIQROneSided(arrayData, rejectHighTail)
