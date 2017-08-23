@@ -55,7 +55,7 @@ class ScanDataFitter(DeadChannelFinder):
 
         random = r.TRandom3()
         random.SetSeed(0)
-        fitTF1 = r.TF1('myERF','%f*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+%f'%(self.Nev/2.),1,253)
+        fitTF1 = r.TF1('myERF','%f*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+%f'%(self.Nev/2.,self.Nev/2.),1,253)
         for vfat in range(0,24):
             print 'fitting vfat %i'%vfat
             for ch in range(0,128):
