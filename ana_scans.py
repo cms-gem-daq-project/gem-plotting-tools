@@ -125,15 +125,22 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   try:
     log = file("%s/anaLog.log"%(dirPath),"w")
  
-    #runCommand(cmd,log)
-    runCommand(cmd)
+    #returncode = runCommand(cmd,log)
+    returncode = runCommand(cmd)
+    if returncode != 0:
+      print "Error: command exited with non-zero code %d" % returncode
+      return returncode
     for item in postCmds:
-      runCommand(item)
+      returncode = runCommand(item)
+      if returncode != 0:
+        print "Error: command exited with non-zero code %d" % returncode
+        return returncode
       pass
   except CalledProcessError as e:
     print "Caught exception",e
+    return -1
     pass
-  return
+  return 0
 
 if __name__ == '__main__':
   import sys,os,signal
@@ -217,13 +224,20 @@ if __name__ == '__main__':
       print("Normal termination")
       pool.close()
       pool.join()
+      print "Results:", res.get()
+      for returncode in res.get():
+        if returncode != 0:
+          sys.exit(returncode)
+        pass
     except KeyboardInterrupt:
       print("Caught KeyboardInterrupt, terminating workers")
       pool.terminate()
     except Exception as e:
       print("Caught Exception %s, terminating workers"%(str(e)))
       pool.terminate()
+      sys.exit(-1)
     except: # catch *all* exceptions
       e = sys.exc_info()[0]
       print("Caught non-Python Exception %s"%(e))
       pool.terminate()
+      sys.exit(-1)
