@@ -7,11 +7,13 @@ python:
   - "pypy"
   - "pypy3"
 
-script:
+install:
   - pip install -r requirements.txt
   - pip install codecov
-  
+
+script:
+  - coverage run python
+
 after_script:
-  - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
   - codecov
-  
+  - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
