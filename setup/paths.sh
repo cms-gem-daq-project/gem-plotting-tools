@@ -1,5 +1,5 @@
 # Setup cmsgemos
-echo "Checking paths" 
+echo "Checking paths"
 
 #export BUILD_HOME=<your path>/cmsgemos/../
 if [[ -n "$BUILD_HOME" ]]; then
@@ -41,6 +41,7 @@ export GEM_PLOTTING_PROJECT=$BUILD_HOME/gem-plotting-tools
 
 # Setup Path
 export PATH=$PATH:$GEM_PLOTTING_PROJECT
+export PATH=$PATH:$GEM_PLOTTING_PROJECT/macros
 
 # Setup PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT
