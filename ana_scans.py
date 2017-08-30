@@ -232,6 +232,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
       print("Caught KeyboardInterrupt, terminating workers")
       pool.terminate()
+      sys.exit(-1)
     except Exception as e:
       print("Caught Exception %s, terminating workers"%(str(e)))
       pool.terminate()
