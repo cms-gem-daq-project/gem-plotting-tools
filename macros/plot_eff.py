@@ -125,8 +125,9 @@ if __name__ == '__main__':
     import ROOT as r
     r.gROOT.SetBatch(True)
     grEffPlot = r.TGraphErrors(len(list_EffData))
-    grEffPlot.GetXaxis().SetTitle(strIndepVar)
-    grEffPlot.GetYaxis().SetTitle("Efficiency")
+    grEffPlot.SetTitle("Eff from VFATs: [%s]"%(options.vfatList))
+    grEffPlot.GetYaxis().SetTitle(strIndepVar)
+    grEffPlot.GetXaxis().SetTitle("Efficiency")
     grEffPlot.GetYaxis().SetRangeUser(0.0,1.0)
     grEffPlot.SetMarkerStyle(20)
     grEffPlot.SetLineWidth(2)
