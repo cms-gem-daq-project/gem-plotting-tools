@@ -32,4 +32,5 @@ then
     coverage run python
     codecov
     bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
+    deactivate
 fi
