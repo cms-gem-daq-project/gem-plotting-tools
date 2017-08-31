@@ -1,19 +1,37 @@
+sudo: required
+
 language: python
 
-python:
-  - "2.6"
-  - "2.7"
-  - "3.2"
-  - "pypy"
-  - "pypy3"
+env:
+  matrix:
+    - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=python3.2 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=python3.3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=python3.5 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=pypy  OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
+    - OS_TYPE=centos PY_VER=pypy3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
 
-install:
-  - pip install -r requirements.txt
-  - pip install codecov
+    - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=python3.2 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=python3.3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=python3.5 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=pypy  OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
+    - OS_TYPE=centos PY_VER=pypy3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
 
+services:
+  - docker
+
+before_install:
+  - sudo apt-get update
+  - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
+  - sudo service docker restart
+  - sleep 1
+  - docker pull $DOCKER_IMAGE
+  - docker ps -al
+  
 script:
-  - coverage run python
-
-after_script:
-  - codecov
-  - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
+  - ./.travis/docker.sh ${OS_VERSION} ${PY_VER}
