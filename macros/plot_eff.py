@@ -58,12 +58,12 @@ if __name__ == '__main__':
     
     parser.add_option("--latSig", type="int", dest="latSig", default=None,
                       help="Latency bin where signal is found", metavar="latSig")
+    parser.add_option("-p","--print", action="store_true", dest="printData",
+                      help="Prints a comma separated table with the data to the terminal", metavar="printData")
     parser.add_option("--scandate", type="string", dest="scandate", default="current",
                       help="Specify specific date to analyze", metavar="scandate")
     parser.add_option("--vfatList", type="string", dest="vfatList", default=None,
                       help="Comma separated list of VFATs to consider, e.g. '12,13'", metavar="vfatList")
-    parser.add_option("-p","--print", action="store_true", dest="printData",
-                      help="Prints a comma separated table with the data to the terminal", metavar="printData")
 
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
@@ -126,9 +126,6 @@ if __name__ == '__main__':
     r.gROOT.SetBatch(True)
     grEffPlot = r.TGraphErrors(len(list_EffData))
     grEffPlot.SetTitle("Eff from VFATs: [%s]"%(options.vfatList))
-    grEffPlot.GetYaxis().SetTitle(strIndepVar)
-    grEffPlot.GetXaxis().SetTitle("Efficiency")
-    grEffPlot.GetYaxis().SetRangeUser(0.0,1.0)
     grEffPlot.SetMarkerStyle(20)
     grEffPlot.SetLineWidth(2)
     for idx in range(len(list_EffData)):
@@ -136,10 +133,31 @@ if __name__ == '__main__':
         grEffPlot.SetPointError(idx, 0., list_EffData[idx][2])
 
     # Draw this plot on a canvas
-    canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVar),"%s: Eff vs. %s"%(strChamberName,strIndepVar),600,600)
+    strIndepVarNoBrances = strIndepVar.replace('{','').replace('}','').replace('_','')
+    canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVarNoBrances),"%s: Eff vs. %s"%(strChamberName,strIndepVarNoBrances),600,600)
     canvEff.cd()
     grEffPlot.Draw("APE1")
-    canvEff.SaveAs(elogPath + "/%s_Eff_vs_%s.png"%(strChamberName,strIndepVar))
+    grEffPlot.GetXaxis().SetTitle(strIndepVar)
+    grEffPlot.GetYaxis().SetDecimals(True)
+    grEffPlot.GetYaxis().SetRangeUser(0.0,1.0)
+    grEffPlot.GetYaxis().SetTitle("Efficiency")
+    grEffPlot.GetYaxis().SetTitleOffset(1.2)
+    canvEff.Update()
+    strCanvName = elogPath + "/%s_Eff_vs_%s.png"%(strChamberName,strIndepVarNoBrances)
+    canvEff.SaveAs(strCanvName)
+    
     print ""
     print "To view your plot, execute:"
-    print ("eog " + elogPath + "/%s_Eff_vs_%s.png"%(strChamberName,strIndepVar))
+    print ("eog " + strCanvName)
+    print ""
+
+    # Make an output ROOT file
+    strRootName = elogPath + "/%s_Eff_vs_%s.root"%(strChamberName,strIndepVarNoBrances)
+    outF = r.TFile(strRootName,"recreate")
+    grEffPlot.Write()
+    canvEff.Write()
+    
+    print ""
+    print "Your plot is stored in a TFile, to open it execute:"
+    print ("root " + strRootName)
+    print ""
