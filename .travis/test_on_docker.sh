@@ -14,6 +14,7 @@ ls -l $PWD
 # Clean the yum cache
 yum -y clean all
 yum -y clean expire-cache
+yum -y install root root-\*
 
 uname -a
 
@@ -22,6 +23,7 @@ export BUILD_HOME=$PWD
 cd ${BUILD_HOME}/gem-plotting-tools
 
 pyexec=$(which ${PY_VER})
+echo Trying to test with ${pyexec}
 
 if [ -f "$pyexec" ]
 then
