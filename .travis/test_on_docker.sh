@@ -29,4 +29,7 @@ then
     . ~/virtualenvs/${PY_VER}/bin/activate
     pip install -r requirements.txt
     pip install codecov
+    coverage run python
+    codecov
+    bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 fi
