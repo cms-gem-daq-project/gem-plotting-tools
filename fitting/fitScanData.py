@@ -32,12 +32,17 @@ class ScanDataFitter(DeadChannelFinder):
                 self.scanCount[vfat][ch] = 0
 
         self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
+        self.Nev = -1
 
     def feed(self, event):
         super(ScanDataFitter, self).feed(event)
         self.scanHistos[event.vfatN][event.vfatCH].Fill(event.vcal,event.Nhits)
         if(event.vcal > 250):
             self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
+        if self.Nev < 0:
+            self.Nev = event.Nev
+        else:
+            assert self.Nev == event.Nev, 'Inconsistent S-curve tree'
 
     def readFile(self, treeFileName):
         inF = r.TFile(treeFileName)
@@ -50,7 +55,7 @@ class ScanDataFitter(DeadChannelFinder):
 
         random = r.TRandom3()
         random.SetSeed(0)
-        fitTF1 = r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
+        fitTF1 = r.TF1('myERF','%f*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+%f'%(self.Nev/2.,self.Nev/2.),1,253)
         for vfat in range(0,24):
             print 'fitting vfat %i'%vfat
             for ch in range(0,128):
