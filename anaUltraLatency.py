@@ -95,7 +95,8 @@ for vfat in dict_hVFATHitsVsLat:
     dict_grNHitsVFAT[vfat].Draw("APE1")
 
     #Write
-    outF.mkdir("VFAT%i"%vfat)
+    dirVFAT = outF.mkdir("VFAT%i"%vfat)
+    dirVFAT.cd()
     dict_grNHitsVFAT[vfat].Write()
     dict_hVFATHitsVsLat[vfat].Write()
     dict_fitNHitsVFAT[vfat].Write()
@@ -146,7 +147,10 @@ canv_MaxHitsPerLatByVFAT.SaveAs(filename+'/MaxHitsPerLatByVFAT.png')
 
 #Store - TObjects
 outF.cd()
+grNMaxLatBinByVFAT.SetName("grNMaxLatBinByVFAT")
 grNMaxLatBinByVFAT.Write()
+grMaxLatBinByVFAT.SetName("grMaxLatBinByVFAT")
 grMaxLatBinByVFAT.Write()
+grVFATSigOverSigPBkg.SetName("grVFATSigOverSigPBkg")
 grVFATSigOverSigPBkg.Write()
 outF.Close()
