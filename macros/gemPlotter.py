@@ -1,12 +1,17 @@
 #!/bin/env python
 
-
-# listDataPtTuples[i] = (cName, scandate, indepVar)
 def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCh=None, strip=None):
     """
+    Provides a list of tuples for 1D data where each element is of the form: (indepVarVal, depVarVal, depVarValErr)
 
-    dataPath/<scandates>/<dirname>/<root file>
-
+    anaType - type of analysis to perform, helps build the file path to the input file(s), from set ana_config.keys()
+    listDataPtTuples - list of tuples where each element is of the form: (cName, scandate, indepVar), note indepVar is expected to be numeric
+    rootFileName - name of the TFile that will be found in the data path corresponding to anaType
+    treeName - name of the TTree inside rootFileName
+    branchName - name of a branch inside treeName that the dependent variable will be extracted from
+    vfat - vfat number that plots should be made for
+    vfatCh - channel of the vfat that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/strip
+    strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCh
     """
   
     from anautilities import getDirByAnaType
@@ -75,8 +80,8 @@ if __name__ == '__main__':
                     help="Name of TBranch where dependent variable is store", metavar="branchName")
     parser.add_option("-p","--print", action="store_true", dest="printData",
                     help="Prints a comma separated table with the data to the terminal", metavar="printData")
-    parser.add_option("--scandate", type="string", dest="scandate", default="current",
-                    help="Specify specific date to analyze", metavar="scandate")
+    parser.add_option("--rootOpt", type="string", dest="rootOpt", default="RECREATE",
+                    help="Option for the output TFile, e.g. {'RECREATE','UPDATE'}", metavar="rootOpt")
     parser.add_option("--vfatList", type="string", dest="vfatList", default=None,
                     help="Comma separated list of VFATs to consider, e.g. '12,13'", metavar="vfatList")
     
@@ -110,8 +115,6 @@ if __name__ == '__main__':
     # Loop Over inputs
     fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
     strIndepVar = ""
-    #strChamberName = ""
-    #listDataPtTuples[i] = (cName, scandate, indepVar)
     listDataPtTuples = []
     for i,line in enumerate(fileScanDates):
         # Split the line
@@ -122,28 +125,27 @@ if __name__ == '__main__':
         if i == 0:
             strIndepVar = analysisList[2]
             continue
-
-        # On 1st iteration get indep
-        #if len(strChamberName) == 0 and i > 0:
-        #    strChamberName = analysisList[0]
-       
+        
         # Make input list for arbitraryPlotter()
         listDataPtTuples.append( (analysisList[0], analysisList[1], float(analysisList[2]) ) )
 
     # Do we make strip/channel level plot?
     vfatCh=None
     strip=None
+    strStripOrChan = "All"
     if options.strip is not None:
         if options.channels:
             vfatCh = options.strip
+            strStripOrChan = "vfatCh%i"%options.strip
         else:
             strip = options.strip
+            strStripOrChan = "ROBstr%i"%options.strip
 
     # Get the Requested Data & Store it in an output ROOT File
     strIndepVarNoBraces = strIndepVar.replace('{','').replace('}','').replace('_','')
     strRootName = elogPath + "/gemPlotterOutput_%s_vs_%s.root"%(options.branchName, strIndepVarNoBraces)
     import ROOT as r
-    outF = r.TFile(strRootName,"recreate")
+    outF = r.TFile(strRootName,options.rootOpt)
     list_Plots = []
     for vfat in list_VFATs:
         list_Data = arbitraryPlotter(
@@ -171,8 +173,8 @@ if __name__ == '__main__':
         import ROOT as r
         r.gROOT.SetBatch(True)
         grPlot = r.TGraphErrors(len(list_Data))
-        grPlot.SetTitle("VFAT%i"%vfat)
-        grPlot.SetName("g_%s_vs_%s_VFAT%i"%(options.branchName, strIndepVarNoBraces, vfat))
+        grPlot.SetTitle("VFAT%i_%s"%(vfat,strStripOrChan))
+        grPlot.SetName("g_%s_vs_%s_VFAT%i_%s"%(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan))
         grPlot.SetMarkerStyle(20)
         grPlot.SetLineWidth(2)
         for idx in range(len(list_Data)):
@@ -180,16 +182,16 @@ if __name__ == '__main__':
             grPlot.SetPointError(idx, 0., list_Data[idx][2])
 
         # Draw this plot on a canvas
-        canvPlot = r.TCanvas("canv_%s_vs_%s_VFAT%i"%(options.branchName,strIndepVarNoBraces, vfat),"VFAT%i: %s vs. %s"%(vfat,options.branchName,strIndepVarNoBraces),600,600)
+        canvPlot = r.TCanvas("canv_%s_vs_%s_VFAT%i_%s"%(options.branchName,strIndepVarNoBraces, vfat, strStripOrChan),
+                             "VFAT%i_%s: %s vs. %s"%(vfat,strStripOrChan,options.branchName,strIndepVarNoBraces),600,600)
         canvPlot.cd()
         grPlot.Draw("APE1")
         grPlot.GetXaxis().SetTitle(strIndepVar)
         grPlot.GetYaxis().SetDecimals(True)
-        #grPlot.GetYaxis().SetRangeUser(0.0,1.0)
         grPlot.GetYaxis().SetTitle(options.branchName)
         grPlot.GetYaxis().SetTitleOffset(1.2)
         canvPlot.Update()
-        strCanvName = elogPath + "/canv_%s_vs_%s_VFAT%i.png"%(options.branchName,strIndepVarNoBraces, vfat)
+        strCanvName = elogPath + "/canv_%s_vs_%s_VFAT%i_%s.png"%(options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
         canvPlot.SaveAs(strCanvName)
         
         if not options.all_plots:
@@ -201,7 +203,13 @@ if __name__ == '__main__':
         # Store
         list_Plots.append(grPlot)
 
-        dirVFAT = outF.mkdir("VFAT%i"%vfat)
+        dirVFAT = r.TDirectory()
+        if options.rootOpt.upper() == "UPDATE":
+            dirVFAT = outF.GetDirectory("VFAT%i"%vfat, False, "GetDirectory")
+        else:
+            dirVFAT = outF.mkdir("VFAT%i"%vfat)
+            pass
+
         dirVFAT.cd()
         grPlot.Write()
         canvPlot.Write()
@@ -210,7 +218,7 @@ if __name__ == '__main__':
     # Make Summary Plot
     if options.all_plots:
         from anautilities import make3x8Canvas
-        strSummaryName = "summary_%s_vs_%s"%(options.branchName, strIndepVarNoBraces)
+        strSummaryName = "summary_%s_vs_%s_%s"%(options.branchName, strIndepVarNoBraces,strStripOrChan)
         canv_summary = make3x8Canvas( strSummaryName, list_Plots, "APE1")
         
         strCanvName = "%s/%s.png"%(elogPath,strSummaryName)
