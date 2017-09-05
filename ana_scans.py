@@ -12,10 +12,11 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   import subprocess
   from subprocess import CalledProcessError
   from anaInfo import ana_config
+  from anautilities import getDirByAnaType
   from gempython.utils.wrappers import runCommand
 
-  dataPath  = os.getenv('DATA_PATH')
-  dirPath   = ""
+  #dataPath  = os.getenv('DATA_PATH')
+  dirPath   = getDirByAnaType(anaType, cName, ztrim)
   elogPath  = "%s/%s"%(os.getenv('ELOG_PATH'),scandate)
     
   print "Analysis Requested: %s"%(anaType)
@@ -25,7 +26,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   postCmds = []
   postCmds.append(["mkdir","-p","%s"%(elogPath)])
   if anaType == "latency":
-    dirPath = "%s/%s/%s/trk/%s/"%(dataPath,cName,anaType,scandate)
+    dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "LatencyScanData.root"
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)
@@ -43,7 +44,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     
     pass
   elif anaType == "scurve":
-    dirPath = "%s/%s/%s/%s/"%(dataPath,cName,anaType,scandate)
+    dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "SCurveData.root"
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)
@@ -66,7 +67,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
                  "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
   elif anaType == "threshold":
-    dirPath = "%s/%s/%s/channel/%s/"%(dataPath,cName,anaType,scandate)
+    dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
       print "No threshold file to analyze. %s does not exist"%(filename)
@@ -77,7 +78,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
    
     if chConfigKnown:
       cmd.append("--chConfigKnown")
-      dirPath_Trim = "%s/%s/trim/z%f/%s/SCurveData_Trimmed/"%(dataPath,cName,ztrim,scandatetrim)
+      #dirPath_Trim = "%s/%s/trim/z%f/%s/SCurveData_Trimmed/"%(dataPath,cName,ztrim,scandatetrim)
+      dirPath_Trim = "%s/%s/SCurveData_Trimmed/"%(getDirByAnaType("trim", cName, ztrim),scandatetrim)
       filename_Trim = dirPath_Trim + "SCurveFitData.root"
       if not os.path.isfile(filename_Trim):
         print "No scurve fit data file to analyze. %s does not exist"%(filename_Trim)
@@ -98,7 +100,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
       pass
     pass
   elif anaType == "trim":
-    dirPath = "%s/%s/%s/z%f/%s/"%(dataPath,cName,anaType,ztrim,scandate)
+    dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "SCurveData_Trimmed.root"
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)

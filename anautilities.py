@@ -29,6 +29,33 @@ def filePathExists(searchPath, subPath):
         print "Found %s"%s(subPath)
         return True
 
+def getDirByAnaType(anaType, cName, ztrim=4):
+    from anaInfo import ana_config
+    from gempython.utils.wrappers import envCheck
+    
+    # Check anaType is understood
+    if options.anaType not in ana_config.keys():
+        print "getDirByAnaType() - Invalid analysis specificed, please select only from the list:"
+        print ana_config.keys()
+        exit(-1)
+        pass
+
+    # Check Paths
+    envCheck('DATA_PATH')
+    dataPath  = os.getenv('DATA_PATH')
+
+    dirPath = ""
+    if anaType == "latency":
+        dirPath = "%s/%s/%s/trk/"%(dataPath,cName,anaType)
+    elif anaType == "scurve":
+        dirPath = "%s/%s/%s/"%(dataPath,cName,anaType)
+    elif anaType == "threshold":
+        dirPath = "%s/%s/%s/channel/"%(dataPath,cName,anaType)
+    elif anaType == "trim":
+        dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
+
+    return dirPath
+
 def initVFATArray(array_dtype, nstrips=128):
     list_dtypeTuple = []
 
