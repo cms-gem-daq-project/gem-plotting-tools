@@ -34,7 +34,7 @@ def getDirByAnaType(anaType, cName, ztrim=4):
     from gempython.utils.wrappers import envCheck
     
     # Check anaType is understood
-    if options.anaType not in ana_config.keys():
+    if anaType not in ana_config.keys():
         print "getDirByAnaType() - Invalid analysis specificed, please select only from the list:"
         print ana_config.keys()
         exit(-1)

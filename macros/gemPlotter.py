@@ -31,7 +31,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         indepVarVal = dataPt[2]
 
         # Setup Paths
-        dirPath = getDirByAnaType(anaType, cName, ztrim=4)
+        dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         try:
@@ -44,13 +44,14 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
 
         # Get dependent variable value
         dataThisVFAT = array_VFATData[ array_VFATData['vfatN'] == vfat] #VFAT Level
+
         if vfatCh is not None and strip is None:
             dataThisVFAT = dataThisVFAT[ dataThisVFAT['vfatCH'] == vfatCh ] #VFAT Channel Level
         elif strip is not None and vfatCh is None:
-            dataThisVFAT = dataThisVFAT[ dataThisVFAT['ROBstr'] == vfatCh ] #Readout Board Strip Level
+            dataThisVFAT = dataThisVFAT[ dataThisVFAT['ROBstr'] == strip ] #Readout Board Strip Level
         
-        depVarVal = np.mean(dataThisVFAT[branchName])   #If a vfatCH/ROBstr obs & chan/strip not give will be avg over all, else a number
-        depVarValErr = np.std(dataThisVFAT[branchName]) #If a vfatCH/ROBstr obs & chan/strip not given will be stdev over all, or zero
+        depVarVal = np.asscalar(np.mean(dataThisVFAT[branchName]))   #If a vfatCH/ROBstr obs & chan/strip not give will be avg over all, else a number
+        depVarValErr = np.asscalar(np.std(dataThisVFAT[branchName])) #If a vfatCH/ROBstr obs & chan/strip not given will be stdev over all, or zero
 
         #Record this dataPt
         list_Data.append( (indepVarVal, depVarVal, depVarValErr) )
@@ -66,17 +67,19 @@ if __name__ == '__main__':
     
     import os
     
+    parser.add_option("-a","--all", action="store_true", dest="all_plots",
+                    help="vfatList is automatically set to [0,1,...,22,23]", metavar="all_plots")
     parser.add_option("--anaType", type="string", dest="anaType",
-                     help="Analysis type to be executed, from list {'latency','scurve','scurveAna','threshold','trim','trimAna'}", metavar="anaType")
+                    help="Analysis type to be executed, from list {'latency','scurve','scurveAna','threshold','trim','trimAna'}", metavar="anaType")
     parser.add_option("--branchName", type="string", dest="branchName",
-                     help="Name of TBranch where dependent variable is store", metavar="branchName")
+                    help="Name of TBranch where dependent variable is store", metavar="branchName")
     parser.add_option("-p","--print", action="store_true", dest="printData",
-                      help="Prints a comma separated table with the data to the terminal", metavar="printData")
+                    help="Prints a comma separated table with the data to the terminal", metavar="printData")
     parser.add_option("--scandate", type="string", dest="scandate", default="current",
-                      help="Specify specific date to analyze", metavar="scandate")
+                    help="Specify specific date to analyze", metavar="scandate")
     parser.add_option("--vfatList", type="string", dest="vfatList", default=None,
-                      help="Comma separated list of VFATs to consider, e.g. '12,13'", metavar="vfatList")
-
+                    help="Comma separated list of VFATs to consider, e.g. '12,13'", metavar="vfatList")
+    
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
   
@@ -87,14 +90,16 @@ if __name__ == '__main__':
 
     # Get VFAT List
     list_VFATs = []
-    if options.vfatList != None:
+    if options.all_plots:
+        list_VFATs = (x for x in range(0,24))
+    elif options.vfatList != None:
         list_VFATs = map(int, options.vfatList.split(','))
     elif options.vfat != None:
         list_VFATs.append(options.vfat)
     else:
         print "You must specify at least one VFAT to be considered"
         exit(-1)
-
+    
     # Check anaType is understood
     if options.anaType not in tree_names.keys():
         print "Invalid analysis specificed, please select only from the list:"
@@ -123,7 +128,7 @@ if __name__ == '__main__':
         #    strChamberName = analysisList[0]
        
         # Make input list for arbitraryPlotter()
-        listDataPtTuples.append( (analysisList[0], analysisList[1], analysisList[2] ) )
+        listDataPtTuples.append( (analysisList[0], analysisList[1], float(analysisList[2]) ) )
 
     # Do we make strip/channel level plot?
     vfatCh=None
@@ -131,21 +136,23 @@ if __name__ == '__main__':
     if options.strip is not None:
         if options.channels:
             vfatCh = options.strip
-        else
+        else:
             strip = options.strip
 
     # Get the Requested Data & Store it in an output ROOT File
     strIndepVarNoBraces = strIndepVar.replace('{','').replace('}','').replace('_','')
     strRootName = elogPath + "/gemPlotterOutput_%s_vs_%s.root"%(options.branchName, strIndepVarNoBraces)
+    import ROOT as r
     outF = r.TFile(strRootName,"recreate")
-    for vfat in options.vfatList:
+    list_Plots = []
+    for vfat in list_VFATs:
         list_Data = arbitraryPlotter(
                 options.anaType, 
                 listDataPtTuples, 
                 tree_names[options.anaType][0], 
                 tree_names[options.anaType][1], 
                 options.branchName, 
-                options.vfat, 
+                vfat, 
                 vfatCh, 
                 strip)
 
@@ -164,7 +171,8 @@ if __name__ == '__main__':
         import ROOT as r
         r.gROOT.SetBatch(True)
         grPlot = r.TGraphErrors(len(list_Data))
-        grPlot.SetName("g_%s_vs_%s_VFAT%i"%(options.branchName, strIndepVarNoBraces, vfat)
+        grPlot.SetTitle("VFAT%i"%vfat)
+        grPlot.SetName("g_%s_vs_%s_VFAT%i"%(options.branchName, strIndepVarNoBraces, vfat))
         grPlot.SetMarkerStyle(20)
         grPlot.SetLineWidth(2)
         for idx in range(len(list_Data)):
@@ -177,22 +185,44 @@ if __name__ == '__main__':
         grPlot.Draw("APE1")
         grPlot.GetXaxis().SetTitle(strIndepVar)
         grPlot.GetYaxis().SetDecimals(True)
-        grPlot.GetYaxis().SetRangeUser(0.0,1.0)
+        #grPlot.GetYaxis().SetRangeUser(0.0,1.0)
         grPlot.GetYaxis().SetTitle(options.branchName)
         grPlot.GetYaxis().SetTitleOffset(1.2)
         canvPlot.Update()
-        strCanvName = elogPath + "/canv_%s_vs_%s_VFAT%i"%(options.branchName,strIndepVarNoBraces, vfat)
+        strCanvName = elogPath + "/canv_%s_vs_%s_VFAT%i.png"%(options.branchName,strIndepVarNoBraces, vfat)
         canvPlot.SaveAs(strCanvName)
         
+        if not options.all_plots:
+            print ""
+            print "To view your plot, execute:"
+            print ("eog " + strCanvName)
+            print ""
+
+        # Store
+        list_Plots.append(grPlot)
+
+        dirVFAT = outF.mkdir("VFAT%i"%vfat)
+        dirVFAT.cd()
+        grPlot.Write()
+        canvPlot.Write()
+        pass
+
+    # Make Summary Plot
+    if options.all_plots:
+        from anautilities import make3x8Canvas
+        strSummaryName = "summary_%s_vs_%s"%(options.branchName, strIndepVarNoBraces)
+        canv_summary = make3x8Canvas( strSummaryName, list_Plots, "APE1")
+        
+        strCanvName = "%s/%s.png"%(elogPath,strSummaryName)
+        canv_summary.SaveAs(strCanvName)
+        
+        outF.cd()
+        canv_summary.Write()
+
         print ""
         print "To view your plot, execute:"
         print ("eog " + strCanvName)
         print ""
-
-        outF.cd()
-        grPlot.Write()
-        canvPlot.Write()
-        pass
 
     print ""
     print "Your plot is stored in a TFile, to open it execute:"

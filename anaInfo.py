@@ -14,9 +14,9 @@ ana_config = {
 tree_names = {
         "latency":("LatencyScanData.root","latTree"),
         "scurve":("SCurveData.root","scurveTree"),
-        "scurveAna":("SCurveData/SCurveFitData.root","scurveFitTree")
+        "scurveAna":("SCurveData/SCurveFitData.root","scurveFitTree"),
         "threshold":("ThresholdScanData.root","thrTree"),
-        "trim":("SCurveData_Trimmed.root","scurveTree")
+        "trim":("SCurveData_Trimmed.root","scurveTree"),
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
         }
 
