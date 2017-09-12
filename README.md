@@ -32,7 +32,7 @@ source $BUILD_HOME/gem-plotting-tools/setup/paths.sh
 See extensive documentation written on the [GEM DOC Twiki Page](https://twiki.cern.ch/twiki/bin/view/CMS/GEMDOCDoc#How_to_Produce_Scan_Plots).
 
 ## Using the Arbitray Plotter - gemPlotter.py
-An arbitrary plotter `gemPlotter.py` has been created to help you plot results from python ultra scans. The following subsections describe first the input arguments, the structure of the input file, the calling syntax, and then helper scripts.
+An arbitrary plotter `gemPlotter.py` has been created to help you plot results from python ultra scans. The following subsections describe first the input arguments, the structure of the input file, and the calling syntax.
 
 ### Command Line Arguments
 The following table shows the mandatory inputs that must be supplied to execute the script:
@@ -136,6 +136,12 @@ Additional VFATs could be plotted by either:
 - Making successive calls of the above command and using the `--rootOpt=UPDATE`,
 - Using the `--vfatList` argument instead of the `--vfat` argument, or
 - Using the `-a` argument to make all VFATs.
+
+To automatically extend this to all channels execute:
+
+```
+gemPlotterAllChannels.sh <InFile> <anaType> <branchName>
+```
 
 ### Making a 2D Plot
 To make a 2D plot for a given VFAT execute:
