@@ -8,8 +8,6 @@ develop|[![Build Status](https://travis-ci.org/jsturdy/gem-plotting-tools.svg?br
 
 Table of Contents
 =================
-##
-1. Setup:
 
    * [gem-plotting-tools](#gem-plotting-tools)
       * [Setup:](#setup)
