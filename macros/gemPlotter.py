@@ -52,7 +52,8 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         except Exception as e:
             print '%s may not exist in %s, please cross check'%(treeName,filename)
             print e
-            exit(os.EX_NOTFOUND)
+            #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
+            exit(os.EX_DATAERR)
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -63,7 +64,8 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                exit(os.EX_NOTFOUND)
+                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
+                exit(os.EX_DATAERR)
 
         # Get dependent variable value
         arrayVFATData = rp.tree2array(dataTree,listNames)
@@ -139,7 +141,8 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         except Exception as e:
             print '%s may not exist in %s, please cross check'%(treeName,filename)
             print e
-            exit(os.EX_NOTFOUND)
+            #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
+            exit(os.EX_DATAERR)
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -150,7 +153,8 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                exit(os.EX_NOTFOUND)
+                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
+                exit(os.EX_DATAERR)
 
         # Get dependent variable value - VFAT Level
         arrayVFATData = rp.tree2array(dataTree,listNames)
