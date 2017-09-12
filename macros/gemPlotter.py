@@ -249,9 +249,6 @@ if __name__ == '__main__':
                 listIndepVarLowEdge.append(listIndepVarVals[i] - 0.5 * arraydeltaIndepVar[i-1])
         listIndepVarLowEdge.append(listIndepVarVals[len(listIndepVarVals)-1] + 0.5 * arraydeltaIndepVar[len(arraydeltaIndepVar)-1])
 
-        #print "len(listDataPtTuples) = %i"%len(listDataPtTuples)
-        #print "len(listIndepVarLowEdge) = %i"%len(listIndepVarLowEdge)
-
     # Loop over the vfats in listVFATs and make the requested plot for each
     strIndepVarNoBraces = strIndepVar.replace('{','').replace('}','').replace('_','')
     strRootName = elogPath + "/gemPlotterOutput_%s_vs_%s.root"%(options.branchName, strIndepVarNoBraces)
