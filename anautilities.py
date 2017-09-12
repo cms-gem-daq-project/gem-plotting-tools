@@ -6,17 +6,9 @@ By: Brian Dorney (brian.l.dorney@cern.ch)
 """
 
 def filePathExists(searchPath, subPath, debug=False):
-    import glob
-
-    dirs        = glob.glob(searchPath)
-    foundDir    = False
-
-    for path in dirs:
-        if path.rfind(subPath) > 0:
-            foundDir = True
-            pass
-        pass
-    if not foundDir:
+    import os
+    
+    if not os.path.exists("%s/%s"%(searchPath, subPath)):
         if debug:
             print "Unable to find %s in location: %s"%(subPath, searchPath)
         return False
