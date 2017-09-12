@@ -14,7 +14,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCH
     """
   
-    from anautilities import getDirByAnaType
+    from anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import root_numpy as rp
@@ -37,20 +37,24 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
 
         # Setup Paths
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
+        if not filePathExists(dirPath, scandate):
+            print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
+            print 'Please cross-check, exiting!'
+            exit(-10)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         # Get TTree
         try:
             dataFile = r.TFile(filename, "READ")
             dataTree = dataFile.Get(treeName)
+            knownBranches = dataTree.GetListOfBranches()
         except Exception as e:
-            print '%s does not seem to exist'%filename
+            print '%s may not exist in %s, please cross check'%(treeName,filename)
             print e
-            exit(-10)
+            exit(-20)
             pass
 
         # Check to make sure listNames are present in dataTree
-        knownBranches = dataTree.GetListOfBranches()
         for testBranch in listNames:
             if testBranch not in knownBranches:
                 print "Branch %s not in TTree %s of file %s"%(branchName, treeName, filename)
@@ -58,7 +62,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                exit(-20)
+                exit(-30)
 
         # Get dependent variable value
         arrayVFATData = rp.tree2array(dataTree,listNames)
@@ -93,7 +97,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     vfat - vfat number that plots should be made for
     """
   
-    from anautilities import getDirByAnaType
+    from anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import root_numpy as rp
@@ -119,20 +123,24 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
 
         # Setup Paths
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
+        if not filePathExists(dirPath, scandate):
+            print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
+            print 'Please cross-check, exiting!'
+            exit(-10)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         # Get TTree
         try:
             dataFile = r.TFile(filename, "READ")
             dataTree = dataFile.Get(treeName)
+            knownBranches = dataTree.GetListOfBranches()
         except Exception as e:
-            print '%s does not seem to exist'%filename
+            print '%s may not exist in %s, please cross check'%(treeName,filename)
             print e
             exit(-10)
             pass
 
         # Check to make sure listNames are present in dataTree
-        knownBranches = dataTree.GetListOfBranches()
         for testBranch in listNames:
             if testBranch not in knownBranches:
                 print "Branch %s not in TTree %s of file %s"%(branchName, treeName, filename)
@@ -231,6 +239,9 @@ if __name__ == '__main__':
     strIndepVar = ""
     listDataPtTuples = []
     for i,line in enumerate(fileScanDates):
+        if line[0] == "#":
+            continue
+
         # Split the line
         line = line.strip('\n')
         analysisList = line.rsplit('\t') #chamber name, scandate, independent var

@@ -68,7 +68,7 @@ This should be a `tab` deliminited text file.  The first line of this file shoul
 ChamberName scandate    <Indep. Variable Name>
 ```
 
-Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in `mapping/chamberInfo.py`.  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against and is assumed to be numeric.
+Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in `mapping/chamberInfo.py`.  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against and is assumed to be numeric.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
 
 A complete example for a single detector is given as:
 

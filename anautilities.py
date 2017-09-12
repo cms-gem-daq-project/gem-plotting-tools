@@ -5,7 +5,7 @@ Utilities for vfatqc scans
 By: Brian Dorney (brian.l.dorney@cern.ch)
 """
 
-def filePathExists(searchPath, subPath):
+def filePathExists(searchPath, subPath, debug=False):
     import glob
 
     dirs        = glob.glob(searchPath)
@@ -17,10 +17,12 @@ def filePathExists(searchPath, subPath):
             pass
         pass
     if not foundDir:
-        print "Unable to find %s in location: %s"%(subPath, searchPath)
+        if debug:
+            print "Unable to find %s in location: %s"%(subPath, searchPath)
         return False
     else:
-        print "Found %s"%s(subPath)
+        if debug:
+            print "Found %s"%s(subPath)
         return True
 
 def getDirByAnaType(anaType, cName, ztrim=4):
