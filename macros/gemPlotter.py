@@ -209,7 +209,7 @@ if __name__ == '__main__':
         listVFATs.append(options.vfat)
     else:
         print "You must specify at least one VFAT to be considered"
-        exit(-1)
+        exit(-3)
     
     # Check anaType is understood
     if options.anaType not in tree_names.keys():
@@ -218,8 +218,16 @@ if __name__ == '__main__':
         exit(-2)
         pass
     
+    # Check input file
+    try:
+        fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
+    except Exception as e:
+        print '%s does not seem to exist'%(options.filename)
+        print e
+        exit(-1)
+        pass
+    
     # Loop Over inputs
-    fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
     strIndepVar = ""
     listDataPtTuples = []
     for i,line in enumerate(fileScanDates):
