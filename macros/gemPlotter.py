@@ -17,6 +17,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     from anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
+    import os
     import root_numpy as rp
 
     # Make branches to load
@@ -40,7 +41,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
             print 'Please cross-check, exiting!'
-            exit(-10)
+            exit(os.EX_DATAERR)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         # Get TTree
@@ -51,7 +52,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         except Exception as e:
             print '%s may not exist in %s, please cross check'%(treeName,filename)
             print e
-            exit(-20)
+            exit(os.EX_NOTFOUND)
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -62,7 +63,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                exit(-30)
+                exit(os.EX_NOTFOUND)
 
         # Get dependent variable value
         arrayVFATData = rp.tree2array(dataTree,listNames)
@@ -100,6 +101,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     from anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
+    import os
     import root_numpy as rp
 
     # Make branches to load
@@ -126,7 +128,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
             print 'Please cross-check, exiting!'
-            exit(-10)
+            exit(os.EX_DATAERR)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         # Get TTree
@@ -137,7 +139,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         except Exception as e:
             print '%s may not exist in %s, please cross check'%(treeName,filename)
             print e
-            exit(-10)
+            exit(os.EX_NOTFOUND)
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -148,7 +150,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                exit(-20)
+                exit(os.EX_NOTFOUND)
 
         # Get dependent variable value - VFAT Level
         arrayVFATData = rp.tree2array(dataTree,listNames)
@@ -217,13 +219,13 @@ if __name__ == '__main__':
         listVFATs.append(options.vfat)
     else:
         print "You must specify at least one VFAT to be considered"
-        exit(-3)
+        exit(os.EX_USAGE)
     
     # Check anaType is understood
     if options.anaType not in tree_names.keys():
         print "Invalid analysis specificed, please select only from the list:"
         print tree_names.keys()
-        exit(-2)
+        exit(os.EX_USAGE)
         pass
     
     # Check input file
@@ -232,7 +234,7 @@ if __name__ == '__main__':
     except Exception as e:
         print '%s does not seem to exist'%(options.filename)
         print e
-        exit(-1)
+        exit(os.EX_NOINPUT)
         pass
     
     # Loop Over inputs

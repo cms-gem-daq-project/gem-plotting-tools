@@ -20,16 +20,17 @@ def filePathExists(searchPath, subPath, debug=False):
 def getDirByAnaType(anaType, cName, ztrim=4):
     from anaInfo import ana_config
     
+    import os
+
     # Check anaType is understood
     if anaType not in ana_config.keys():
         print "getDirByAnaType() - Invalid analysis specificed, please select only from the list:"
         print ana_config.keys()
-        exit(-1)
+        exit(os.EX_USAGE)
         pass
 
     # Check Paths
     from gempython.utils.wrappers import envCheck
-    import os
     envCheck('DATA_PATH')
     dataPath  = os.getenv('DATA_PATH')
 
