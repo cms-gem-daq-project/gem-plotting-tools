@@ -39,19 +39,34 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
+        # Get TTree
         try:
-            arrayVFATData = rp.root2array(filename,treeName,listNames)
-            pass
+            dataFile = r.TFile(filename, "READ")
+            dataTree = dataFile.Get(treeName)
         except Exception as e:
             print '%s does not seem to exist'%filename
-            print 'Better double check scandate %s'%scandate
             print e
             exit(-10)
             pass
 
+        # Check to make sure listNames are present in dataTree
+        knownBranches = dataTree.GetListOfBranches()
+        for testBranch in listNames:
+            if testBranch not in knownBranches:
+                print "Branch %s not in TTree %s of file %s"%(branchName, treeName, filename)
+                print "Existing Branches are:"
+                for realBranch in knownBranches:
+                    print realBranch
+                print "Please try again using one of the existing branches"
+                exit(-20)
+
         # Get dependent variable value
+        arrayVFATData = rp.tree2array(dataTree,listNames)
         dataThisVFAT = arrayVFATData[ arrayVFATData['vfatN'] == vfat] #VFAT Level
 
+        # Close the TFile
+        dataFile.Close()
+        
         if vfatCH is not None and strip is None:
             dataThisVFAT = dataThisVFAT[ dataThisVFAT['vfatCH'] == vfatCH ] #VFAT Channel Level
         elif strip is not None and vfatCH is None:
@@ -106,18 +121,33 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
+        # Get TTree
         try:
-            arrayVFATData = rp.root2array(filename,treeName,listNames)
-            pass
+            dataFile = r.TFile(filename, "READ")
+            dataTree = dataFile.Get(treeName)
         except Exception as e:
             print '%s does not seem to exist'%filename
-            print 'Better double check scandate %s'%scandate
             print e
             exit(-10)
             pass
 
+        # Check to make sure listNames are present in dataTree
+        knownBranches = dataTree.GetListOfBranches()
+        for testBranch in listNames:
+            if testBranch not in knownBranches:
+                print "Branch %s not in TTree %s of file %s"%(branchName, treeName, filename)
+                print "Existing Branches are:"
+                for realBranch in knownBranches:
+                    print realBranch
+                print "Please try again using one of the existing branches"
+                exit(-20)
+
         # Get dependent variable value - VFAT Level
+        arrayVFATData = rp.tree2array(dataTree,listNames)
         dataThisVFAT = arrayVFATData[ arrayVFATData['vfatN'] == vfat] #VFAT Level
+
+        # Close the TFile
+        dataFile.Close()
 
         # Get the data for each strip and store it as a tuple in the list to be returned
         for chan in range(0,128):
@@ -263,7 +293,6 @@ if __name__ == '__main__':
         else:
             dirVFAT = outF.mkdir("VFAT%i"%vfat)
             pass
-        dirVFAT.cd()
 
         # Make the output canvas, use a temp name and temp title for now
         strCanvName = ""
@@ -323,6 +352,7 @@ if __name__ == '__main__':
             hPlot2D.GetYaxis().SetTitleOffset(1.2)
             
             # Store the plot
+            dirVFAT.cd()
             hPlot2D.Write()
             listPlots.append(hPlot2D)
         else:
@@ -370,6 +400,7 @@ if __name__ == '__main__':
             grPlot.GetYaxis().SetTitleOffset(1.2)
         
             # Store the plot
+            dirVFAT.cd()
             grPlot.Write()
             listPlots.append(grPlot)
             pass
@@ -383,6 +414,7 @@ if __name__ == '__main__':
         # Store the Canvas
         canvPlot.Update()
         canvPlot.SaveAs(strCanvName)
+        dirVFAT.cd()
         canvPlot.Write()
         pass
 
