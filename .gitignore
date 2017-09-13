@@ -18,5 +18,6 @@
 #Don't ignore requirements.txt
 !requirements.txt
 
-#Don't ignore setup
+#Don't ignore select scripts
+!macros/gemPlotterAllChannels.sh
 !setup/paths.sh
