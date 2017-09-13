@@ -203,7 +203,7 @@ if options.performFit:
     grVFATSigOverBkg.GetYaxis().SetRangeUser(0,20)
     grVFATSigOverBkg.GetXaxis().SetRangeUser(-0.5,24.5)
     grVFATSigOverBkg.Draw("APE1")
-    canv_SigOverBkg.SaveAs(filename+'/SignalOverSigPBkg.png')
+    canv_SigOverBkg.SaveAs(filename+'/SignalOverBkg.png')
 
 #Store - Signal
 if options.performFit:

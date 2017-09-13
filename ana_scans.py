@@ -45,8 +45,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     postCmds.append(["cp","%s/LatencyScanData/MaxHitsPerLatByVFAT.png"%(dirPath),
                  "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)])
     if latFit:
-        postCmds.append(["cp","%s/LatencyScanData/SignalOverSigPBkg.png"%(dirPath),
-                 "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)])
+        postCmds.append(["cp","%s/LatencyScanData/SignalOverBkg.png"%(dirPath),
+                 "%s/SignalOverBkg_%s.png"%(elogPath,cName)])
         postCmds.append(["cp","%s/LatencyScanData/SignalNoBkg.png"%(dirPath),
                  "%s/SignalNoBkg_%s.png"%(elogPath,cName)])
 
