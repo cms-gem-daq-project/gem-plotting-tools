@@ -67,16 +67,28 @@ latFitMin_Sig = latMin
 latFitMax_Sig = latMax
 if options.latSigRange is not None:
     listLatValues = map(lambda val: float(val), options.latSigRange.split(","))
-    latFitMin_Sig = min(listLatValues)
-    latFitMax_Sig = max(listLatValues)
+    if len(listLatValues) != 2:
+        print "You must specify exactly two values for determining the latency signal range"
+        print "I was given:", listLatValues
+        print "Please cross-check"
+        exit(os.EX_USAGE)
+    else: 
+        latFitMin_Sig = min(listLatValues)
+        latFitMax_Sig = max(listLatValues)
 
 # Set Latency Fitting Bounds - Noise
 latFitMin_Noise = latFitMin_Sig - 1
 latFitMax_Noise = latFitMax_Sig + 1
 if options.latNoiseRange is not None:
     listLatValues = map(lambda val: float(val), options.latNoiseRange.split(","))
-    latFitMin_Noise = min(listLatValues)
-    latFitMax_Noise = max(listLatValues)
+    if len(listLatValues) != 2:
+        print "You must specify exactly two values for determining the latency noise range"
+        print "I was given:", listLatValues
+        print "Please cross-check"
+        exit(os.EX_USAGE)
+    else: 
+        latFitMin_Noise = min(listLatValues)
+        latFitMax_Noise = max(listLatValues)
 
 #Make output plots
 from math import sqrt
