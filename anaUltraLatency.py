@@ -22,7 +22,7 @@ parser.add_option("--latNoiseRange", type="string", dest="latNoiseRange", defaul
                   help="Comma separated pair of values defining expected noise range, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
                   metavar="latNoiseRange")
 
-parser.set_defaults(outfilename="LatencyData.root")
+parser.set_defaults(outfilename="latencyAna.root")
 
 (options, args) = parser.parse_args()
 filename = options.filename[:-5]
