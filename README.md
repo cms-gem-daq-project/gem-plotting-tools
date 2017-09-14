@@ -60,6 +60,7 @@ The following table shows the optional inputs that can be supplied when executin
 | --rootOpt | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
 | --showStat | none | Causes the statistics box to be drawn on created plots. Note only applicable when used with `--make2D`. |
 | --vfatList | Comma separated list of int's | List of VFATs that should be plotted.  May be used instead of the `--vfat` option. |
+| --ztrim | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
 ### Input File Structure
 This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
