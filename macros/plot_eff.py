@@ -127,6 +127,9 @@ if __name__ == '__main__':
     strIndepVar = ""
     strChamberName = ""
     for i,line in enumerate(fileScanDates):
+        if line[0] == "#":
+            continue
+        
         # Split the line
         line = line.strip('\n')
         analysisList = line.rsplit('\t') #chamber name, scandate, independent var
