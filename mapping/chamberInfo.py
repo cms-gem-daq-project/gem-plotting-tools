@@ -36,7 +36,7 @@ GEBtype = {
 
 chamber_vfatMask = {
     #Coffin Setup
-    #0:0x"
+    #0:0x0
     #Cosmic Stand
     #0:0xF40400
     #Point 5

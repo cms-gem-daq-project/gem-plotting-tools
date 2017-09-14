@@ -7,6 +7,19 @@ ana_config = {
         "trim":"anaUltraScurve.py"
         }
 
+# key values match ana_config
+# stores a tuple where:
+#   [0] -> path of root file inside scandate/ 
+#   [1] -> name of TTree inside root file
+tree_names = {
+        "latency":("LatencyScanData.root","latTree"),
+        "scurve":("SCurveData.root","scurveTree"),
+        "scurveAna":("SCurveData/SCurveFitData.root","scurveFitTree"),
+        "threshold":("ThresholdScanData.root","thrTree"),
+        "trim":("SCurveData_Trimmed.root","scurveTree"),
+        "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
+        }
+
 class MaskReason:
     """Enum-like class to represent the reasons for which a channel was masked.
     Reasons are bitmasks. Example usage:

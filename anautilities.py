@@ -5,31 +5,50 @@ Utilities for vfatqc scans
 By: Brian Dorney (brian.l.dorney@cern.ch)
 """
 
-# Imports
-import sys, os
-import numpy as np
-import ROOT as r
-#import root_numpy as rp
-
-def filePathExists(searchPath, subPath):
-    import glob
-
-    dirs        = glob.glob(searchPath)
-    foundDir    = False
-
-    for path in dirs:
-        if path.rfind(subPath) > 0:
-            foundDir = True
-            pass
-        pass
-    if not foundDir:
-        print "Unable to find %s in location: %s"%(subPath, searchPath)
+def filePathExists(searchPath, subPath, debug=False):
+    import os
+    
+    if not os.path.exists("%s/%s"%(searchPath, subPath)):
+        if debug:
+            print "Unable to find %s in location: %s"%(subPath, searchPath)
         return False
     else:
-        print "Found %s"%s(subPath)
+        if debug:
+            print "Found %s"%s(subPath)
         return True
 
+def getDirByAnaType(anaType, cName, ztrim=4):
+    from anaInfo import ana_config
+    
+    import os
+
+    # Check anaType is understood
+    if anaType not in ana_config.keys():
+        print "getDirByAnaType() - Invalid analysis specificed, please select only from the list:"
+        print ana_config.keys()
+        exit(os.EX_USAGE)
+        pass
+
+    # Check Paths
+    from gempython.utils.wrappers import envCheck
+    envCheck('DATA_PATH')
+    dataPath  = os.getenv('DATA_PATH')
+
+    dirPath = ""
+    if anaType == "latency":
+        dirPath = "%s/%s/%s/trk/"%(dataPath,cName,anaType)
+    elif anaType == "scurve":
+        dirPath = "%s/%s/%s/"%(dataPath,cName,anaType)
+    elif anaType == "threshold":
+        dirPath = "%s/%s/%s/channel/"%(dataPath,cName,anaType)
+    elif anaType == "trim":
+        dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
+
+    return dirPath
+
 def initVFATArray(array_dtype, nstrips=128):
+    import numpy as np
+    
     list_dtypeTuple = []
 
     for idx in range(0,len(array_dtype)):
@@ -43,11 +62,16 @@ def initVFATArray(array_dtype, nstrips=128):
     return np.zeros(nstrips, dtype=list_dtypeTuple)
 
 def make3x8Canvas(name, initialContent = None, drawOption = ''):
-    """Creates a 3x8 canvas for summary plots.
+    """
+    Creates a 3x8 canvas for summary plots.
 
     initialContent should be None or an array of 24 (one per VFAT) TObject that
     will be drawn on the canvas. drawOption will be passed to the Draw
-    function."""
+    function.
+    """
+
+    import ROOT as r
+    
     canv = r.TCanvas(name,name,500*8,500*3)
     canv.Divide(8,3)
     if initialContent != None:
@@ -64,7 +88,6 @@ def rejectOutliersMAD(arrayData, thresh=3.5):
     arrayOutliers = isOutlierMAD(arrayData, thresh)
     return arrayData[arrayOutliers != True]
 
-
 #Use MAD to reject outliers, but consider only high or low tail
 def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
     arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
@@ -73,6 +96,8 @@ def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
 #Use inter-quartile range (IQR) to reject outliers
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierIQR(arrayData):
+    import numpy as np
+    
     dMin    = np.min(arrayData,     axis=0)
     dMax    = np.max(arrayData,     axis=0)
     median  = np.median(arrayData,  axis=0)
@@ -85,6 +110,8 @@ def isOutlierIQR(arrayData):
 #Use inter-quartile range (IQR) to reject outliers, but consider only high or low tail
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierIQROneSided(arrayData, rejectHighTail=True):
+    import numpy as np
+    
     dMin    = np.min(arrayData,     axis=0)
     dMax    = np.max(arrayData,     axis=0)
     median  = np.median(arrayData,  axis=0)
@@ -101,6 +128,8 @@ def isOutlierIQROneSided(arrayData, rejectHighTail=True):
 #See: https://github.com/joferkington/oost_paper_code/blob/master/utilities.py
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierMAD(arrayData, thresh=3.5):
+    import numpy as np
+    
     median = np.median(arrayData, axis=0)
     diff = np.abs(arrayData - median)
     med_abs_deviation = np.median(diff)
@@ -114,6 +143,8 @@ def isOutlierMAD(arrayData, thresh=3.5):
 #Use MAD to reject outliers, but consider only high or low tail
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
+    import numpy as np
+    
     median = np.median(arrayData, axis=0)
     diff = arrayData - median
     med_abs_deviation = np.median(np.abs(diff))
