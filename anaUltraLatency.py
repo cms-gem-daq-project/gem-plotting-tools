@@ -168,6 +168,7 @@ for vfat in dict_hVFATHitsVsLat:
     dict_grNHitsVFAT[vfat].SetLineWidth(2)
     dict_grNHitsVFAT[vfat].GetXaxis().SetRangeUser(latMin, latMax)
     dict_grNHitsVFAT[vfat].GetXaxis().SetTitle("Lat")
+    dict_grNHitsVFAT[vfat].GetYaxis().SetRangeUser(0, nTrig)
     dict_grNHitsVFAT[vfat].GetYaxis().SetTitle("N")
     dict_grNHitsVFAT[vfat].Draw("APE1")
     if options.performFit:
