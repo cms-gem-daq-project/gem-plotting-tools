@@ -253,6 +253,14 @@ if __name__ == '__main__':
         line = line.strip('\n')
         analysisList = line.rsplit('\t') #chamber name, scandate, independent var
 
+        if len(analysisList) != 3:
+            print "Input format incorrect"
+            print "I was expecting a tab-delimited file with each line having 3 entries"
+            print "But I received:"
+            print "\t%s"%(line)
+            print "Exitting"
+            exit(os.EX_USAGE)
+
         # On 1st iteration get independent variable name
         if i == 0:
             strIndepVar = analysisList[2]
@@ -307,7 +315,7 @@ if __name__ == '__main__':
 
     # Loop over the vfats in listVFATs and make the requested plot for each
     strIndepVarNoBraces = strIndepVar.replace('{','').replace('}','').replace('_','')
-    strRootName = elogPath + "/gemPlotterOutput_%s_vs_%s.root"%(options.branchName, strIndepVarNoBraces)
+    strRootName = "%s/gemPlotterOutput_%s_vs_%s.root"%(elogPath,options.branchName, strIndepVarNoBraces)
     r.gROOT.SetBatch(True)
     outF = r.TFile(strRootName,options.rootOpt)
     listPlots = []
@@ -368,7 +376,7 @@ if __name__ == '__main__':
                 r.gStyle.SetOptStat(0000000)
                 
             # Draw this plot on a canvas
-            strCanvName = elogPath + "/canv_%s_vs_%s_Obs%s_VFAT%i.png"%(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat)
+            strCanvName = "%s/canv_%s_vs_%s_Obs%s_VFAT%i.png"%(elogPath, strStripOrChan, strIndepVarNoBraces, options.branchName, vfat)
             canvPlot.SetName("canv_%s_vs_%s_Obs%s_VFAT%i.png"%(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat))
             canvPlot.SetTitle("VFAT%i: %s vs. %s - Obs %s"%(vfat,strStripOrChan,strIndepVarNoBraces, options.branchName))
             canvPlot.SetRightMargin(0.15)
@@ -416,7 +424,7 @@ if __name__ == '__main__':
                 grPlot.SetPointError(idx, 0., listData[idx][2])
 
             # Draw this plot on a canvas
-            strCanvName = elogPath + "/canv_%s_vs_%s_VFAT%i_%s.png"%(options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
+            strCanvName = "%s/canv_%s_vs_%s_VFAT%i_%s.png"%(elogPath, options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
             canvPlot.SetName("canv_%s_vs_%s_VFAT%i_%s"%(options.branchName,strIndepVarNoBraces, vfat, strStripOrChan))
             canvPlot.SetTitle("VFAT%i_%s: %s vs. %s"%(vfat,strStripOrChan,options.branchName,strIndepVarNoBraces))
             canvPlot.cd()
