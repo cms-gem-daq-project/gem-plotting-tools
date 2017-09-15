@@ -109,27 +109,27 @@ if __name__ == '__main__':
     parser.add_option("--anaType", type="string", dest="anaType",
                     help="Analysis type to be executed, from list {'latency','scurve','scurveAna','threshold','trim','trimAna'}", metavar="anaType")
     parser.add_option("--axisMaxX", type="float", dest="axisMaxX", default=None,
-                    help="Maximum value for axis depicting branchName", metavar="axisMaxX")
+                    help="Maximum value for X-axis range", metavar="axisMaxX")
     parser.add_option("--axisMinX", type="float", dest="axisMinX", default=None,
-                    help="Minimum value for axis depicting branchName", metavar="axisMinX")
+                    help="Minimum value for X-axis range", metavar="axisMinX")
     parser.add_option("--axisMaxY", type="float", dest="axisMaxY", default=None,
-                    help="Maximum value for axis depicting branchName", metavar="axisMaxY")
+                    help="Maximum value for Y-axis range", metavar="axisMaxY")
     parser.add_option("--axisMinY", type="float", dest="axisMinY", default=None,
-                    help="Minimum value for axis depicting branchName", metavar="axisMinY")
+                    help="Minimum value for Y-axis range", metavar="axisMinY")
     parser.add_option("--drawLeg", action="store_true", dest="drawLeg",
                     help="When used with --summary option draws a TLegend on the output plot", metavar="drawLeg")
     parser.add_option("--fitFunc", type="string", dest="fitFunc", default=None,
                     help="Fit function to be applied to all plots", metavar="fitFunc")
     parser.add_option("--fitGuess", type="string", dest="fitGuess", default=None,
-                    help="Fit function to be applied to all plots", metavar="fitGuess")
+                    help="Initial guess for params defined in --fitFunc, note the order of params here should match that of --fitFunc", metavar="fitGuess")
     parser.add_option("--fitOpt", type="string", dest="fitOpt", default="QR",
                     help="Option to be used for fitting", metavar="fitOpt")
     parser.add_option("--fitRange", type="string", dest="fitRange", default=None,
-                    help="Range the fit function is defined on", metavar="fitRange")
+                    help="Comma separated pair of floats which define the range the fit function is valid on", metavar="fitRange")
     parser.add_option("--rootOpt", type="string", dest="rootOpt", default="RECREATE",
                     help="Option for the output TFile, e.g. {'RECREATE','UPDATE'}", metavar="rootOpt")
     parser.add_option("--showStat", action="store_true", dest="showStat",
-                    help="Draws the statistics box for 2D plots", metavar="showStat")
+                    help="Draws the statistics box", metavar="showStat")
     parser.add_option("--summary", action="store_true", dest="summary",
                     help="Make a summary canvas with all created plots drawn on it", metavar="summary")
     parser.add_option("--treeExpress", type="string", dest="treeExpress", default=None,
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     parser.add_option("--treeSel", type="string", dest="treeSel", default="",
                     help="Selection to be used by the TTree::Draw() method", metavar="treeSel")
     parser.add_option("--treeDrawOpt", type="string", dest="treeDrawOpt", default="",
-                    help="Draw expression to be passed to the TTree::Draw() method", metavar="treeDrawOpt")
+                    help="Draw option to be used for the procued plots", metavar="treeDrawOpt")
     parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
                     help="Specify the p value of the trim", metavar="ztrim")
     
