@@ -5,16 +5,20 @@ Utilities for vfatqc scans
 By: Brian Dorney (brian.l.dorney@cern.ch)
 """
 
-def filePathExists(searchPath, subPath, debug=False):
+def filePathExists(searchPath, subPath=None, debug=False):
     import os
     
-    if not os.path.exists("%s/%s"%(searchPath, subPath)):
+    testPath = searchPath
+    if subPath is not None:
+        testPath = "%s/%s"%(searchPath, subPath)
+
+    if not os.path.exists(testPath):
         if debug:
-            print "Unable to find %s in location: %s"%(subPath, searchPath)
+            print "Unable to find location: %s"%(testPath)
         return False
     else:
         if debug:
-            print "Found %s"%s(subPath)
+            print "Found %s"%s(testPath)
         return True
 
 def getDirByAnaType(anaType, cName, ztrim=4):
