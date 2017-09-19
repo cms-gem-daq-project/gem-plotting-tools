@@ -6,21 +6,27 @@ Table of Contents
    * [gem-plotting-tools](#gem-plotting-tools)
       * [Setup:](#setup)
       * [Analyzing Scans:](#analyzing-scans)
-      * [Using the Arbitray Plotter - gemPlotter.py](#using-the-arbitray-plotter---gemplotterpy)
-         * [Command Line Arguments](#command-line-arguments)
-         * [Input File Structure](#input-file-structure)
-         * [Making a 1D Plot - Channel Level](#making-a-1d-plot---channel-level)
-         * [Making a 1D Plot - VFAT Level](#making-a-1d-plot---vfat-level)
-         * [Making a 2D Plot](#making-a-2d-plot)
+      * [Arbitray Plotting Tools](#arbitray-plotting-tools)
+         * [gemPlotter.py](#gemplotterpy)
+            * [gemPlotter.py Arguments](#gemplotterpy-arguments)
+            * [gemPlotter.py Input File](#gemplotterpy-input-file)
+            * [gemPlotter.py Example: Making a 1D Plot - Channel Level](#gemplotterpy-example-making-a-1d-plot---channel-level)
+            * [gemPlotter.py Example: Making a 1D Plot - VFAT Level](#gemplotterpy-example-making-a-1d-plot---vfat-level)
+            * [gemPlotter.py Example: Making a 2D Plot](#gemplotterpy-example-making-a-2d-plot)
+         * [gemTreeDrawWrapper.py](#gemtreedrawwrapperpy)
+            * [gemTreeDrawWrapper.py Arguments](#gemtreedrawwrapperpy-arguments)
+            * [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file)
+            * [gemTreeDrawWrapper.py Example: Making a Plot](#gemtreedrawwrapperpy-example-making-a-plot)
+            * [gemTreeDrawWrapper.py Example: Fitting a Plot](#gemtreedrawwrapperpy-example-fitting-a-plot)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Setup:
 The following `$SHELL` variables should be defined:
 
-- $BUILD_HOME
-- $DATA_PATH
-- $ELOG_PATH
+- `$BUILD_HOME`
+- `$DATA_PATH`
+- `$ELOG_PATH`
 
 Then execute:
 
@@ -31,18 +37,28 @@ source $BUILD_HOME/gem-plotting-tools/setup/paths.sh
 ## Analyzing Scans:
 See extensive documentation written on the [GEM DOC Twiki Page](https://twiki.cern.ch/twiki/bin/view/CMS/GEMDOCDoc#How_to_Produce_Scan_Plots).
 
-## Using the Arbitray Plotter - gemPlotter.py
-An arbitrary plotter `gemPlotter.py` has been created to help you plot results from python ultra scans. The following subsections describe first the input arguments, the structure of the input file, and the calling syntax.
+## Arbitray Plotting Tools
+There are two tools for helping you to make arbitrary plots from python scan data:
 
-### Command Line Arguments
+- `gemPlotter.py`
+- `gemTreeDrawWrapper.py`
+
+The first tool is for plotting from multiple different scandates. The second tool is for making a given plot from a list of scandates, for each scandate.
+
+### gemPlotter.py
+The `gemPlotter.py` tool is for making plots of an observable stored in one of the `TTree` objects produced by the (ana-) ultra scan scripts vs an arbitrary indepdent variable specified by the user.  Here each data point is from a different scandate.  This is useful if you run mulitple scans in which only a single parameter is changed (e.g. applied high voltage, or `VThreshold1`) and you want to track the dependency on this parameter.
+
+Each plot produced will be stored as an output `*.png` file. Additionally an output `TFile` will be produced which will contain each of the plots, stored as `TGraph` objects, and canvases produced.
+
+#### gemPlotter.py Arguments
 The following table shows the mandatory inputs that must be supplied to execute the script:
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| --anaType | string | Analysis type to be executed, see `tree_names.keys()` of `anaInfo.py` for possible inputs |
-| --branchName | string | Name of TBranch where dependent variable is found, note that this TBranch should be found in the `TTree` that corresponds to the value given to the `--anaType` argument |
-| -i, --infilename | string | physical filename of the input file to be passed to `gemPlotter.py`.  See [Input File Structure](#input-file-structure) for details on the format and contents of this file. |
-| -v, --vfat | int | Specify VFAT to plot |
+| `--anaType` | string | Analysis type to be executed, see `tree_names.keys()` of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/anaInfo.py) for possible inputs |
+| `--branchName` | string | Name of TBranch where dependent variable is found, note that this TBranch should be found in the `TTree` that corresponds to the value given to the `--anaType` argument |
+| `-i`, `--infilename` | string | physical filename of the input file to be passed to `gemPlotter.py`.  See [gemPlotter.py Input File](#gemplotterpy-input-file) for details on the format and contents of this file. |
+| `-v`, `--vfat` | int | Specify VFAT to plot |
 
 Note for those `anaType` values which have the substring `Ana` in their names it is expected that the user has already run `ana_scans.py` on the corresponding `scandate` to produce the necessary input file for `gemPlotter.py`.
 
@@ -50,18 +66,19 @@ The following table shows the optional inputs that can be supplied when executin
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| -a, --all | none | When providing this flag data from all 24 VFATs will be plotted.  Additionally a summary plot in the typical 3x8 grid will be created showing the results of all 24 VFATs. May be used instead of the `--vfat` option. |
-| --axisMax | float | Maximum value for the axis depicting `--branchName`. |
-| --axisMin | float | Minimum value for the axis depicting `--branchName`. |
-| -c, --channels | none | When providing this flag the `--strip` option is interpreted as VFAT channel number instead of readout board (ROB) strip number. |
-| -s, --strip | int | Specific ROB strip number to plot for `--branchName`.  Note for ROB strip level `--branchName` values (e.g. `trimDAC`) if this option is *not* provided the data point (error bar) will represent the mean (standard deviation) of `--branchName` from all strips. |
-| --make2D | none| When providing this flag a 2D plot of ROB strip/vfat channel vs. independent variable will be plotted whose z-axis value is `--branchName`. |
-| -p, --print | none | Prints a comma separated table of the plot's data to the terminal.  The format of this table will be compatible with the `genericPlotter` executable of the [CMS_GEM_Analysis_Framework](https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#4eiviii-header-parameters---data). | 
-| --rootOpt | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
-| --showStat | none | Causes the statistics box to be drawn on created plots. Note only applicable when used with `--make2D`. |
-| --vfatList | Comma separated list of int's | List of VFATs that should be plotted.  May be used instead of the `--vfat` option. |
+| `-a`, `--all` | none | When providing this flag data from all 24 VFATs will be plotted.  Additionally a summary plot in the typical 3x8 grid will be created showing the results of all 24 VFATs. May be used instead of the `--vfat` option. |
+| `--axisMax` | float | Maximum value for the axis depicting `--branchName`. |
+| `--axisMin` | float | Minimum value for the axis depicting `--branchName`. |
+| `-c`, `--channels` | none | When providing this flag the `--strip` option is interpreted as VFAT channel number instead of readout board (ROB) strip number. |
+| `-s`, `--strip` | int | Specific ROB strip number to plot for `--branchName`.  Note for ROB strip level `--branchName` values (e.g. `trimDAC`) if this option is *not* provided the data point (error bar) will represent the mean (standard deviation) of `--branchName` from all strips. |
+| `--make2D` | none| When providing this flag a 2D plot of ROB strip/vfat channel vs. independent variable will be plotted whose z-axis value is `--branchName`. |
+| `-p`, `--print` | none | Prints a comma separated table of the plot's data to the terminal.  The format of this table will be compatible with the `genericPlotter` executable of the [CMS_GEM_Analysis_Framework](https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter). | 
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--showStat` | none | Causes the statistics box to be drawn on created plots. Note only applicable when used with `--make2D`. |
+| `--vfatList` | Comma separated list of int's | List of VFATs that should be plotted.  May be used instead of the `--vfat` option. |
+| `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
-### Input File Structure
+#### gemPlotter.py Input File
 This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
 
 ```
@@ -99,7 +116,7 @@ Here the `ChamberName` is different for each line and `--branchName` will be plo
 - minus (plus) given by m (p) corresponds to a negative (positive) number, and
 - L1(2) is a whole (half) integer number.
 
-### Making a 1D Plot - Channel Level
+#### gemPlotter.py Example: Making a 1D Plot - Channel Level
 To make a 1D plot for a given strip of a given VFAT execute:
 
 ```
@@ -117,7 +134,7 @@ Additional VFATs could be plotted by either:
 - Using the `--vfatList` argument instead of the `--vfat` argument, or
 - Using the `-a` argument to make all VFATs.
 
-### Making a 1D Plot - VFAT Level
+#### gemPlotter.py Example: Making a 1D Plot - VFAT Level
 To make a 1D plot for a given VFAT execute:
 
 ```
@@ -143,7 +160,7 @@ To automatically extend this to all channels execute:
 gemPlotterAllChannels.sh <InFile> <anaType> <branchName>
 ```
 
-### Making a 2D Plot
+#### gemPlotter.py Example: Making a 2D Plot
 To make a 2D plot for a given VFAT execute:
 
 ```
@@ -163,3 +180,91 @@ Additional VFATs could be plotted by either:
 - Making successive calls of the above command and using the `--rootOpt=UPDATE`,
 - Using the `--vfatList` argument instead of the `--vfat` argument, or
 - Using the `-a` argument to make all VFATs.
+
+### gemTreeDrawWrapper.py
+The `gemTreeDrawWrapper.py` tool is for making a given 'Y vs. X' plot for each scandate of interest.  Here *Y* and *X* are quantities stored in `TBranches` of one of the `TTree` objects procued by the (ana-) ultra scan scripts.  This is designed to complement `gemPlotter.py` and should speed up plotting in general.  This tool is essesntially a wrapper for the `TTree::Draw()` method.  To make full use of this tool you should familiarize yourself with the `TTree::Draw()` [documentation](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45).
+
+Additionally `gemTreeDrawWrapper.py` can also fit produced plots with a function defined at runtime through the command line arguments.
+
+Each plot produced will be stored as an output `*.png` file. Additionally an output `TFile` will be produced which will contain each of the plots, stored as `TGraph` objects, canvases, and fits produced. 
+
+#### gemTreeDrawWrapper.py Arguments
+The following table shows the mandatory inputs that must be supplied to execute the script:
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `--anaType` | string | Analysis type to be executed, see `tree_names.keys()` of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/anaInfo.py) for possible inputs |
+| `-i`, `--infilename` | string | physical filename of the input file to be passed to `gemTreeDrawWrapper.py`.  See [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file) for details on the format and contents of this file. |
+| `--treeExpress` | string | Expression to be drawn, corresponds to the `varexp` argument of [TTree::Draw()](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45). |
+
+Note for those `anaType` values which have the substring `Ana` in their names it is expected that the user has already run `ana_scans.py` on the corresponding `scandate` to produce the necessary input file for `gemTreeDrawWrapper.py`.
+
+The following table shows the optional inputs that can be supplied when executing the script:
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `--axisMaxX` | float | Maximum value for X-axis range. |
+| `--axisMinX` | float | Minimum value for X-axis range, note this parameter will default to 0 `--axisMaxX` is given. | 
+| `--axisMaxY` | float | Maximum value for Y-axis range. |
+| `--axisMinY` | float | Minimum value for Y-axis range, note this parameter will default to 0 `--axisMaxY` is given. | 
+| `--drawLeg` | none | When used with `--summary` option draws a TLegend on the output plot. |
+| `--fitFunc` | string | Expression following the [TFormula syntax](https://root.cern.ch/doc/master/classTFormula.html) for defining a TF1 to be fit to the plot. |
+| `--fitGuess` | string | Initial guess for fit parameters defined in `--fitFunc`. Note, order of params here should match that of `--fitFunc`. |
+| `--fitOpt` | string | Option to be used when fitting, a complete list can be found [here](https://root.cern.ch/doc/master/classTH1.html#a7e7d34c91d5ebab4fc9bba3ca47dabdd). |
+| `--fitRange | Comma separated list of float's | Defines the range the fit function is valid on. |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--showStat` | none | Causes the statistics box to be drawn on created plots. |
+| `--summary` | none | Make a summary canvas with all created plots drawn on it. |
+| `--treeSel` | string | Selection to be used when making the plot, corresponds to the `selection` argument of [TTree::Draw()](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45). |
+| `--treeDrawOpt` | string | Draw option to be used for the procued plots. |
+| `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
+
+#### gemTreeDrawWrapper.py Input File
+This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
+
+```
+ChamberName scandate
+```
+
+Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in `mapping/chamberInfo.py`.  The next column is for `scandate` values.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
+
+A complete example for a single detector is given as:
+
+```
+ChamberName scandate
+GE11-VI-L-CERN-0001    2017.08.11.16.30
+GE11-VI-L-CERN-0001    2017.08.14.20.54
+GE11-VI-L-CERN-0001    2017.08.30.15.03
+GE11-VI-L-CERN-0001    2017.08.30.21.39
+GE11-VI-L-CERN-0001    2017.08.31.08.28
+GE11-VI-L-CERN-0001    2017.08.31.15.46
+GE11-VI-L-CERN-0001    2017.09.05.11.41
+GE11-VI-L-CERN-0001    2017.09.12.14.24
+GE11-VI-L-CERN-0001    2017.09.13.16.45
+```
+
+#### gemTreeDrawWrapper.py Example: Making a Plot
+For example to make a plot from a latency scan, `Nhits` vs. `lat` for VFAT12, use the following example:
+
+```
+gemTreeDrawWrapper.py -ilistOfScanDates_TreeDraw.txt --anaType=latency --summary --treeExpress="Nhits:lat" --treeDrawOpt=APE1 --treeSel="vfatN==12" --axisMaxY=1000 --axisMinX=39 --axisMaxX=49 --drawLeg
+```
+
+This will produce one `Nhits` vs. `lat` plot for VFAT12 for each (ChamberName,scandate) pair found in `listOfScanDates_TreeDraw.txt`.  Additionally it will make one summary plot with a legend drawn which contains all of the produced plots.
+
+#### gemTreeDrawWrapper.py Example: Fitting a Plot
+For example to plot and fit an scurve from an scurve scan, `Nhits` vs `vcal`, for VFAT12 channel 45, use the following example:
+
+```
+gemTreeDrawWrapper.py -ilistOfScanDates_TreeDraw.txt --anaType=scurve --treeExpress="Nhits:vcal" --treeDrawOpt=APE1 --treeSel="vfatN==12 && vfatCH==45" --fitFunc="500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500" --fitRange=70,150 --fitOpt="RM" --fitGuess=110,10,10
+```
+
+Here the fit that will be applied will be equivalent too:
+```
+myFunc = r.TF1(strName,"500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500",70,150)
+myFunc.SetParameter(0,110)
+myFunc.SetParameter(0,10)
+myFunc.SetParameter(0,10)
+```
+
+The fit option that will be used will be `RM`.  This fit will be applied to the scurve generated from VFAT12 channel 45 for each (ChamberName,scandate) pair found in `listOfScanDates_TreeDraw.txt`.
