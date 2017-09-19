@@ -136,7 +136,7 @@ vthr_list = []
 trim_list = []
 trimrange_list = []
 lines = []
-def overlay_fit(VFAT, CHAN):
+def overlay_fit(VFAT, CHAN, NEVT=1000):
     Scurve = r.TH1D('Scurve','Scurve for VFAT %i channel %i;VCal [DAC units]'%(VFAT, CHAN),255,-0.5,254.5)
     strip = chanToStripLUT[VFAT][CHAN]
     pan_pin = chanToPanPinLUT[VFAT][CHAN]
@@ -148,7 +148,7 @@ def overlay_fit(VFAT, CHAN):
     param0 = scanFits[0][VFAT][CHAN]
     param1 = scanFits[1][VFAT][CHAN]
     param2 = scanFits[2][VFAT][CHAN]
-    fitTF1 =  r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
+    fitTF1 = r.TF1('myERF','%f*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+%f'%(NEVT/2.,NEVT/2.),1,253)
     fitTF1.SetParameter(0, param0)
     fitTF1.SetParameter(1, param1)
     fitTF1.SetParameter(2, param2)
@@ -341,9 +341,9 @@ if options.SaveFile:
             Nhigh[0] = int(scanFits[4][vfat][chan])
             #Filling the arrays for plotting later
             if options.drawbad:
-                if (Chi2 > 1000.0 or Chi2 < 1.0):
-                    overlay_fit(vfat, chan)
-                    print "Chi2 is, %d"%(Chi2)
+                if (chi2[0] > 1000.0 or chi2[0] < 1.0):
+                    overlay_fit(vfat, chan, fitter.Nev)
+                    print "Chi2 is, %d"%(chi2[0])
                     pass
                 pass
             myT.Fill()
