@@ -185,6 +185,8 @@ if __name__ == '__main__':
     
     parser.add_option("-a","--all", action="store_true", dest="all_plots",
                     help="vfatList is automatically set to [0,1,...,22,23]", metavar="all_plots")
+    parser.add_option("--alphaLabels", action="store_true", dest="alphaLabels",
+                    help="Draw output plot using alphanumeric lables instead of pure floating point", metavar="alphaLabels")
     parser.add_option("--axisMax", type="float", dest="axisMax", default=255,
                     help="Maximum value for axis depicting branchName", metavar="axisMax")
     parser.add_option("--axisMin", type="float", dest="axisMin", default=0,
@@ -258,7 +260,7 @@ if __name__ == '__main__':
             print "I was expecting a tab-delimited file with each line having 3 entries"
             print "But I received:"
             print "\t%s"%(line)
-            print "Exitting"
+            print "Exiting"
             exit(os.EX_USAGE)
 
         # On 1st iteration get independent variable name
@@ -267,14 +269,21 @@ if __name__ == '__main__':
             continue
         
         # Make input list for arbitraryPlotter()
-        listDataPtTuples.append( (analysisList[0], analysisList[1], float(analysisList[2]) ) )
+        if options.alphaLabels:
+            listDataPtTuples.append( (analysisList[0], analysisList[1], analysisList[2]) )
+        else:
+            try:
+                listDataPtTuples.append( (analysisList[0], analysisList[1], float(analysisList[2]) ) )
+            except Exception as e:
+                print("Non-numeric input given, maybe you ment to call with option '--alphaLabels'?")
+                print("Exiting")
+                exit(os.EX_USAGE)
     
     # Do we make strip/channel level plot?
     vfatCH=None
     strip=None
     strDrawOpt = "APE1"
     strStripOrChan = "All"
-    listIndepVarLowEdge = [] #Only used if options.make2D is True
     if options.strip is not None:
         # Set the strip or channel name
         if options.channels:
@@ -292,7 +301,12 @@ if __name__ == '__main__':
         else:
             strStripOrChan = "ROBstr"
         
-        # Get a list of indep variable values & difference between values
+    # Get difference between independent variable values
+    listIndepVarLowEdge = [] #used if either options.alphaLabels or options.make2D is true
+    if options.alphaLabels:
+        for i in range(0,len(listDataPtTuples)+1):
+            listIndepVarLowEdge.append(i)
+    elif options.make2D:
         listIndepVarVals = []
         arraydeltaIndepVar = np.zeros(len(listDataPtTuples)) #Difference between i and i+1 indepVar
         for i in range(0,len(listDataPtTuples)):
@@ -364,7 +378,12 @@ if __name__ == '__main__':
             hPlot2D.SetXTitle(strIndepVar)
             hPlot2D.SetYTitle(strStripOrChan)
             hPlot2D.SetZTitle(options.branchName)
-            
+           
+            # Do we have alphanumeric bin labels?
+            if options.alphaLabels:
+                for binX,item in enumerate(listDataPtTuples):
+                    hPlot2D.GetXaxis().SetBinLabel(binX+1,item[2])
+
             # Fill the plot
             for idx in range(len(listData)):
                 hPlot2D.Fill(listData[idx][0],listData[idx][1],listData[idx][2])
@@ -414,31 +433,48 @@ if __name__ == '__main__':
                 print ""
 
             # Make the plot
-            grPlot = r.TGraphErrors(len(listData))
-            grPlot.SetTitle("VFAT%i_%s"%(vfat,strStripOrChan))
-            grPlot.SetName("g_%s_vs_%s_VFAT%i_%s"%(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan))
-            grPlot.SetMarkerStyle(20)
-            grPlot.SetLineWidth(2)
-            for idx in range(len(listData)):
-                grPlot.SetPoint(idx, listData[idx][0], listData[idx][1])
-                grPlot.SetPointError(idx, 0., listData[idx][2])
+            thisPlot = r.TGraphErrors(len(listData))
+            if options.alphaLabels:
+                strDrawOpt = "PE1v"
+                
+                binsIndepVarLowEdge = array.array('d',listIndepVarLowEdge)
+                thisPlot = r.TH1F("h_%s_vs_%s_VFAT%i_%s"%(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan),
+                                  "VFAT%i_%s"%(vfat,strStripOrChan),
+                                  len(listIndepVarLowEdge)-1, binsIndepVarLowEdge)
+           
+                for binX,item in enumerate(listDataPtTuples):
+                    thisPlot.GetXaxis().SetBinLabel(binX+1,item[2])
+                for idx in range(len(listData)):
+                    thisPlot.Fill(listData[idx][0], listData[idx][1])
+                    
+                    if thisPlot.GetXaxis().GetBinLabel(idx+1) == listDataPtTuples[idx][2]:
+                        thisPlot.SetBinError(idx+1, listData[idx][2])
+            else:
+                thisPlot.SetTitle("VFAT%i_%s"%(vfat,strStripOrChan))
+                thisPlot.SetName("g_%s_vs_%s_VFAT%i_%s"%(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan))
+                for idx in range(len(listData)):
+                    thisPlot.SetPoint(idx, listData[idx][0], listData[idx][1])
+                    thisPlot.SetPointError(idx, 0., listData[idx][2])
 
             # Draw this plot on a canvas
+            thisPlot.SetMarkerStyle(20)
+            thisPlot.SetLineWidth(2)
             strCanvName = "%s/canv_%s_vs_%s_VFAT%i_%s.png"%(elogPath, options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
             canvPlot.SetName("canv_%s_vs_%s_VFAT%i_%s"%(options.branchName,strIndepVarNoBraces, vfat, strStripOrChan))
             canvPlot.SetTitle("VFAT%i_%s: %s vs. %s"%(vfat,strStripOrChan,options.branchName,strIndepVarNoBraces))
             canvPlot.cd()
-            grPlot.Draw(strDrawOpt)
-            grPlot.GetXaxis().SetTitle(strIndepVar)
-            grPlot.GetYaxis().SetDecimals(True)
-            grPlot.GetYaxis().SetRangeUser(options.axisMin, options.axisMax)
-            grPlot.GetYaxis().SetTitle(options.branchName)
-            grPlot.GetYaxis().SetTitleOffset(1.2)
+            thisPlot.Draw(strDrawOpt)
+            thisPlot.GetXaxis().SetTitle(strIndepVar)
+            thisPlot.GetXaxis().SetLabelSize(0.04)
+            thisPlot.GetYaxis().SetDecimals(True)
+            thisPlot.GetYaxis().SetRangeUser(options.axisMin, options.axisMax)
+            thisPlot.GetYaxis().SetTitle(options.branchName)
+            thisPlot.GetYaxis().SetTitleOffset(1.2)
         
             # Store the plot
             dirVFAT.cd()
-            grPlot.Write()
-            listPlots.append(grPlot)
+            thisPlot.Write()
+            listPlots.append(thisPlot)
             pass
         
         if not options.all_plots:
