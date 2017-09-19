@@ -1,6 +1,6 @@
 #!/bin/env python
 
-def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None):
+def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4):
     """
     Provides a list of tuples for 1D data where each element is of the form: (indepVarVal, depVarVal, depVarValErr)
 
@@ -37,7 +37,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         indepVarVal = dataPt[2]
 
         # Setup Paths
-        dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
+        dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim)
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
             print 'Please cross-check, exiting!'
@@ -88,7 +88,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     # Return Data
     return listData
 
-def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, ROBstr=True):
+def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, ROBstr=True, ztrim=4):
     """
     Provides a list of tuples for 2D data where each element is of the (x,y,z) form: (indepVarVal, vfatCHOrROBstr, depVarVal)
 
@@ -126,7 +126,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         indepVarVal = dataPt[2]
 
         # Setup Paths
-        dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim=4)
+        dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim)
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
             print 'Please cross-check, exiting!'
@@ -177,7 +177,6 @@ if __name__ == '__main__':
     from anaInfo import tree_names
     from gempython.utils.wrappers import envCheck
     from macros.plotoptions import parser
-    from mapping.chamberInfo import chamber_config
     
     import array
     import numpy as np
@@ -204,7 +203,9 @@ if __name__ == '__main__':
                     help="Draws the statistics box for 2D plots", metavar="showStat")
     parser.add_option("--vfatList", type="string", dest="vfatList", default=None,
                     help="Comma separated list of VFATs to consider, e.g. '12,13'", metavar="vfatList")
-    
+    parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
+                    help="Specify the p value of the trim", metavar="ztrim")
+
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
   
@@ -251,6 +252,14 @@ if __name__ == '__main__':
         # Split the line
         line = line.strip('\n')
         analysisList = line.rsplit('\t') #chamber name, scandate, independent var
+
+        if len(analysisList) != 3:
+            print "Input format incorrect"
+            print "I was expecting a tab-delimited file with each line having 3 entries"
+            print "But I received:"
+            print "\t%s"%(line)
+            print "Exitting"
+            exit(os.EX_USAGE)
 
         # On 1st iteration get independent variable name
         if i == 0:
@@ -306,7 +315,7 @@ if __name__ == '__main__':
 
     # Loop over the vfats in listVFATs and make the requested plot for each
     strIndepVarNoBraces = strIndepVar.replace('{','').replace('}','').replace('_','')
-    strRootName = elogPath + "/gemPlotterOutput_%s_vs_%s.root"%(options.branchName, strIndepVarNoBraces)
+    strRootName = "%s/gemPlotterOutput_%s_vs_%s.root"%(elogPath,options.branchName, strIndepVarNoBraces)
     r.gROOT.SetBatch(True)
     outF = r.TFile(strRootName,options.rootOpt)
     listPlots = []
@@ -332,7 +341,8 @@ if __name__ == '__main__':
                     tree_names[options.anaType][1], 
                     options.branchName, 
                     vfat,
-                    not options.channels)
+                    not options.channels,
+                    options.ztrim)
 
             # Print to the user
             if options.printData:
@@ -366,7 +376,7 @@ if __name__ == '__main__':
                 r.gStyle.SetOptStat(0000000)
                 
             # Draw this plot on a canvas
-            strCanvName = elogPath + "/canv_%s_vs_%s_Obs%s_VFAT%i.png"%(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat)
+            strCanvName = "%s/canv_%s_vs_%s_Obs%s_VFAT%i.png"%(elogPath, strStripOrChan, strIndepVarNoBraces, options.branchName, vfat)
             canvPlot.SetName("canv_%s_vs_%s_Obs%s_VFAT%i.png"%(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat))
             canvPlot.SetTitle("VFAT%i: %s vs. %s - Obs %s"%(vfat,strStripOrChan,strIndepVarNoBraces, options.branchName))
             canvPlot.SetRightMargin(0.15)
@@ -389,7 +399,8 @@ if __name__ == '__main__':
                     options.branchName, 
                     vfat, 
                     vfatCH, 
-                    strip)
+                    strip,
+                    options.ztrim)
 
             # Print to the user
             # Using format compatible with: https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#4eiviii-header-parameters---data
@@ -413,7 +424,7 @@ if __name__ == '__main__':
                 grPlot.SetPointError(idx, 0., listData[idx][2])
 
             # Draw this plot on a canvas
-            strCanvName = elogPath + "/canv_%s_vs_%s_VFAT%i_%s.png"%(options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
+            strCanvName = "%s/canv_%s_vs_%s_VFAT%i_%s.png"%(elogPath, options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
             canvPlot.SetName("canv_%s_vs_%s_VFAT%i_%s"%(options.branchName,strIndepVarNoBraces, vfat, strStripOrChan))
             canvPlot.SetTitle("VFAT%i_%s: %s vs. %s"%(vfat,strStripOrChan,options.branchName,strIndepVarNoBraces))
             canvPlot.cd()
