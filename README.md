@@ -67,6 +67,7 @@ The following table shows the optional inputs that can be supplied when executin
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | `-a`, `--all` | none | When providing this flag data from all 24 VFATs will be plotted.  Additionally a summary plot in the typical 3x8 grid will be created showing the results of all 24 VFATs. May be used instead of the `--vfat` option. |
+| `--alphaLabels` | none | When providing this flag `gemPlotter.py` will interpret the **Indep. Variable** as a string and modify the output X axis accordingly |
 | `--axisMax` | float | Maximum value for the axis depicting `--branchName`. |
 | `--axisMin` | float | Minimum value for the axis depicting `--branchName`. |
 | `-c`, `--channels` | none | When providing this flag the `--strip` option is interpreted as VFAT channel number instead of readout board (ROB) strip number. |
@@ -85,7 +86,7 @@ This should be a `tab` deliminited text file.  The first line of this file shoul
 ChamberName scandate    <Indep. Variable Name>
 ```
 
-Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in [mapping/chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/mapping/chamberInfo.py).  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against and is assumed to be numeric.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
+Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in [mapping/chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/mapping/chamberInfo.py).  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against, if it is *not* numeric please use the `--alphaLabels` command line option.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
 
 A complete example for a single detector is given as:
 
@@ -104,17 +105,15 @@ A complete example for multiple detectors is given as:
 
 ```
 ChamberName scandate    Layer
-GEMINIm27L1 2019.09.04.20.12    -27.0
-GEMINIm27L2 2019.09.04.22.52    -27.5
-GEMINIm28L1 2019.09.05.01.33    -28.0
-GEMINIm28L2 2019.09.05.04.21    -28.5
-GEMINIp02L1 2019.09.05.07.11    2.0
-GEMINIp02L2 2019.09.05.07.11    2.5
+GEMINIm27L1 2019.09.04.20.12    GEMINIm27L1
+GEMINIm27L2 2019.09.04.22.52    GEMINIm27L2
+GEMINIm28L1 2019.09.05.01.33    GEMINIm28L1
+GEMINIm28L2 2019.09.05.04.21    GEMINIm28L2
+GEMINIp02L1 2019.09.05.07.11    GEMINIp02L1
+GEMINIp02L2 2019.09.05.07.11    GEMINIp02L2
 ```
 
-Here the `ChamberName` is different for each line and `--branchName` will be plotted against `Layer`.  Note we have provided a numerical equivalent for mXXLY and pXXLY:
-- minus (plus) given by m (p) corresponds to a negative (positive) number, and
-- L1(2) is a whole (half) integer number.
+Here the `ChamberName` is different for each line and `--branchName` will be plotted against `Layer`.  Note since the **Indep. Variable Name** is not numeric the command line option `--alphaLabels` must be used.
 
 #### gemPlotter.py Example: Making a 1D Plot - Channel Level
 To make a 1D plot for a given strip of a given VFAT execute:

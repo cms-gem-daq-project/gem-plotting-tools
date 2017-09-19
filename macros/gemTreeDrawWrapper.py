@@ -200,7 +200,7 @@ if __name__ == '__main__':
             print "I was expecting a tab-delimited file with each line having 2 entries"
             print "But I received:"
             print "\t%s"%(line)
-            print "Exitting"
+            print "Exiting"
             exit(os.EX_USAGE)
 
         # Setup the path
@@ -303,7 +303,7 @@ if __name__ == '__main__':
                     print "You must supply an initial guess for each parameter"
                     print "The initial guess values give:", listParams
                     print "Which has length %i, but I am expecting %i guesses"%(len(listParams), thisFit.GetNpar())
-                    print "Exitting"
+                    print "Exiting"
                     exit(os.EX_USAGE)
 
             # Perform the fit
