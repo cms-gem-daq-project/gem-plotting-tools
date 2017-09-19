@@ -18,9 +18,9 @@ parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                   help="Fit the latency distributions", metavar="performFit")
 parser.add_option("--latSigRange", type="string", dest="latSigRange", default=None,
                   help="Comma separated pair of values defining expected signal range, e.g. lat #epsilon [41,43] is signal", metavar="latSigRange")
-parser.add_option("--latNoiseRange", type="string", dest="latNoiseRange", default=None,
-                  help="Comma separated pair of values defining expected noise range, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
-                  metavar="latNoiseRange")
+parser.add_option("--latSigMaskRange", type="string", dest="latSigMaskRange", default=None,
+                  help="Comma separated pair of values defining the region to be masked when trying to fit the noise, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
+                  metavar="latSigMaskRange")
 
 parser.set_defaults(outfilename="latencyAna.root")
 
@@ -79,8 +79,8 @@ if options.latSigRange is not None:
 # Set Latency Fitting Bounds - Noise
 latFitMin_Noise = latFitMin_Sig - 1
 latFitMax_Noise = latFitMax_Sig + 1
-if options.latNoiseRange is not None:
-    listLatValues = map(lambda val: float(val), options.latNoiseRange.split(","))
+if options.latSigMaskRange is not None:
+    listLatValues = map(lambda val: float(val), options.latSigMaskRange.split(","))
     if len(listLatValues) != 2:
         print "You must specify exactly two values for determining the latency noise range"
         print "I was given:", listLatValues

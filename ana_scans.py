@@ -7,7 +7,7 @@
 def launchAna(args):
   return launchAnaArgs(*args)
 
-def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0, chConfigKnown=False, channels=False, panasonic=False, latFit=False, latSigRange=None, latNoiseRange=None):
+def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0, chConfigKnown=False, channels=False, panasonic=False, latFit=False, latSigRange=None, latSigMaskRange=None):
   import os
   import subprocess
   from subprocess import CalledProcessError
@@ -37,7 +37,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     
     if latFit:
         cmd.append("--fit")
-        cmd.append("--latNoiseRange=%s"%(latNoiseRange))
+        cmd.append("--latSigMaskRange=%s"%(latSigMaskRange))
         cmd.append("--latSigRange=%s"%(latSigRange))
 
     postCmds.append(["cp","%s/LatencyScanData/Summary.png"%(dirPath),
@@ -168,9 +168,9 @@ if __name__ == '__main__':
                     help="Fit the latency distributions", metavar="performLatFit")
   parser.add_option("--latSigRange", type="string", dest="latSigRange", default=None,
                     help="Comma separated pair of values defining expected signal range, e.g. lat #epsilon [41,43] is signal", metavar="latSigRange")
-  parser.add_option("--latNoiseRange", type="string", dest="latNoiseRange", default=None,
-                    help="Comma separated pair of values defining expected noise range, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
-                    metavar="latNoiseRange")
+  parser.add_option("--latSigMaskRange", type="string", dest="latSigMaskRange", default=None,
+                    help="Comma separated pair of values defining the region to be masked when trying to fit the noise, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
+                    metavar="latSigMaskRange")
   parser.add_option("--series", action="store_true", dest="series",
                     help="Run tests in series (default is false)", metavar="series")
 
@@ -197,7 +197,7 @@ if __name__ == '__main__':
                          [options.PanPin   for x in range(len(chamber_config))],
                          [options.performLatFit for x in range(len(chamber_config))],
                          [options.latSigRange for x in range(len(chamber_config))],
-                         [options.latNoiseRange for x in range(len(chamber_config))]
+                         [options.latSigMaskRange for x in range(len(chamber_config))]
                          )
               )
 
@@ -217,7 +217,7 @@ if __name__ == '__main__':
                 options.PanPin,
                 options.performLatFit,
                 options.latSigRange,
-                options.latNoiseRange
+                options.latSigMaskRange
                )
       pass
     pass
@@ -241,7 +241,7 @@ if __name__ == '__main__':
                                           [options.PanPin   for x in range(len(chamber_config))],
                                           [options.performLatFit for x in range(len(chamber_config))],
                                           [options.latSigRange for x in range(len(chamber_config))],
-                                          [options.latNoiseRange for x in range(len(chamber_config))]
+                                          [options.latSigMaskRange for x in range(len(chamber_config))]
                                           )
                            )
       # timeout must be properly set, otherwise tasks will crash
