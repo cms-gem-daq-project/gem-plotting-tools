@@ -86,7 +86,7 @@ This should be a `tab` deliminited text file.  The first line of this file shoul
 ChamberName scandate    <Indep. Variable Name>
 ```
 
-Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in `mapping/chamberInfo.py`.  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against, if it is *not* numeric please use the `--alphaLabels` command line option.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
+Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in [mapping/chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/mapping/chamberInfo.py).  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against, if it is *not* numeric please use the `--alphaLabels` command line option.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
 
 A complete example for a single detector is given as:
 
@@ -99,7 +99,7 @@ GE11-VI-L-CERN-0002 2017.09.05.04.21    40
 GE11-VI-L-CERN-0002 2017.09.05.07.11    50
 ```
 
-Here the `ChamberName` is always `GE11-VI-L-CERN-0002` and `--branchName` will be plotted against `VT_{1}` which is the **Indep. Variable Name** is `RunNo`.  Note the axis of interest will be assigned the label, with subscripts in this case, of `VT_{1}`.
+Here the `ChamberName` is always `GE11-VI-L-CERN-0002` and `--branchName` will be plotted against `VT_{1}` which is the **Indep. Variable Name**.  Note the axis of interest will be assigned the label, with subscripts in this case, of `VT_{1}`.
 
 A complete example for multiple detectors is given as:
 

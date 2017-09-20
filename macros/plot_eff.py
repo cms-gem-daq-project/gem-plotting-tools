@@ -6,33 +6,57 @@ def calcEffErr(eff, nTriggers):
     return math.sqrt( (eff * ( 1. - eff) ) / nTriggers )
 
 # Returns a tuple of (eff, sigma_eff)
-def calcEff(cName, scandate, vfatList, latBin):
+def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
+    from anautilities import getDirByAnaType
+
     import os
 
     # Setup paths
-    dataPath  = os.getenv('DATA_PATH')
-    dirPath = "%s/%s/latency/trk/%s/"%(dataPath,cName,scandate)
-    filename = dirPath + "LatencyScanData.root"
+    dirPath = "%s/%s"%(getDirByAnaType("latency",cName), scandate)
+    filename_RAW = dirPath + "/LatencyScanData.root"
+    filename_ANA = dirPath + "/LatencyScanData/latencyAna.root"
 
-    # Load data
+    # Load data - RAW
     import root_numpy as rp
     import numpy as np
     list_bNames = ["vfatN","lat","Nhits","Nev"]
     try:
-        array_VFATData = rp.root2array(filename,"latTree",list_bNames)
+        array_VFATData = rp.root2array(filename_RAW,"latTree",list_bNames)
         pass
     except Exception as e:
-        print '%s does not seem to exist'%filename
+        print '%s does not seem to exist'%filename_RAW
         print e
-        pass
+        exit(os.EX_NOINPUT)
+
+    # Load data - ANA
+    import ROOT as r
+    try:
+        anaFile = r.TFile(filename_ANA,"READ")
+    except Exception as e:
+        print '%s does not seem to exist'%filename_ANA
+        print e
+        exit(os.EX_NOINPUT)
 
     # Determine hits and triggers
     nTriggers = np.asscalar(np.unique(array_VFATData['Nev']))
     nHits = 0.0
     for vfat in vfatList:
-        vfatData = array_VFATData[ array_VFATData['vfatN'] == vfat]
-        latData = vfatData[vfatData['lat'] == latBin]
-        nHits += np.asscalar(latData['Nhits'])
+        if bkgSub:
+            try:
+                gSignalNoBkg = anaFile.Get("grVFATNSignalNoBkg")
+                vfatHits = r.Double()
+                vfatPos = r.Double()
+                gSignalNoBkg.GetPoint(vfat,vfatPos,vfatHits)
+                nHits += vfatHits
+            except Exception as e:
+                print "grVFATNSignalNoBkg not present in TFile %s"%filename_ANA
+                print "Maybe you forgot to analyze with the --fit, --latSigRange, and --latNoiseRange options?"
+                print e
+                exit(os.EX_DATAERR)
+        else:
+            vfatData = array_VFATData[ array_VFATData['vfatN'] == vfat]
+            latData = vfatData[vfatData['lat'] == latBin]
+            nHits += np.asscalar(latData['Nhits'])
 
     # Calc Eff & Error
     return (nHits / nTriggers, calcEffErr(nHits / nTriggers, nTriggers) )
@@ -56,6 +80,8 @@ if __name__ == '__main__':
     
     import os
     
+    parser.add_option("--bkgSub", action="store_true", dest="bkgSub",
+                      help="Use Background Subtracted info from fit analysis in anaUltraLatency.py", metavar="bkgSub")
     parser.add_option("--latSig", type="int", dest="latSig", default=None,
                       help="Latency bin where signal is found", metavar="latSig")
     parser.add_option("-p","--print", action="store_true", dest="printData",
@@ -81,19 +107,29 @@ if __name__ == '__main__':
         list_VFATs.append(options.vfat)
     else:
         print "You must specify at least one VFAT to be considered"
-        exit(-1)
+        exit(os.EX_USAGE)
 
     # Check that the user supplied a latency value
-    if options.latSig == None:
-        print "You must specify the latency bin of the signal peak"
-        exit(-1)
+    if options.latSig is None and not options.bkgSub:
+        print "You must specify the latency bin of the signal peak (--latSig) or ask for background subtracted analysis (--bkgSub)"
+        exit(os.EX_USAGE)
     
+    # Load inpt file
+    try:
+        fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
+    except Exception as e:
+        print '%s does not seem to exist'%options.filename
+        print e
+        exit(os.EX_NOINPUT)
+
     # Loop Over inputs
-    fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
     list_EffData = []
     strIndepVar = ""
     strChamberName = ""
     for i,line in enumerate(fileScanDates):
+        if line[0] == "#":
+            continue
+        
         # Split the line
         line = line.strip('\n')
         analysisList = line.rsplit('\t') #chamber name, scandate, independent var
@@ -107,7 +143,7 @@ if __name__ == '__main__':
         if len(strChamberName) == 0 and i > 0:
             strChamberName = analysisList[0]
         
-        tuple_eff = calcEff(analysisList[0], analysisList[1], list_VFATs, options.latSig)
+        tuple_eff = calcEff(analysisList[0], analysisList[1], list_VFATs, options.latSig, options.bkgSub)
         list_EffData.append((float(analysisList[2]), tuple_eff[0], tuple_eff[1]))
 
     # Print to the user

@@ -7,7 +7,7 @@
 def launchAna(args):
   return launchAnaArgs(*args)
 
-def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0, chConfigKnown=False, channels=False, panasonic=False):
+def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0, chConfigKnown=False, channels=False, panasonic=False, latFit=False, latSigRange=None, latSigMaskRange=None):
   import os
   import subprocess
   from subprocess import CalledProcessError
@@ -30,25 +30,33 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     filename = dirPath + "LatencyScanData.root"
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)
-      return
+      return os.EX_NOINPUT
     
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("latencyAna.root"))
     
+    if latFit:
+        cmd.append("--fit")
+        cmd.append("--latSigMaskRange=%s"%(latSigMaskRange))
+        cmd.append("--latSigRange=%s"%(latSigRange))
+
     postCmds.append(["cp","%s/LatencyScanData/Summary.png"%(dirPath),
                  "%s/LatencySumary_%s.png"%(elogPath,cName)])
     postCmds.append(["cp","%s/LatencyScanData/MaxHitsPerLatByVFAT.png"%(dirPath),
                  "%s/MaxHitsPerLatByVFAT_%s.png"%(elogPath,cName)])
-    postCmds.append(["cp","%s/LatencyScanData/SignalOverSigPBkg.png"%(dirPath),
-                 "%s/SignalOverSigPBkg_%s.png"%(elogPath,cName)])
-    
+    if latFit:
+        postCmds.append(["cp","%s/LatencyScanData/SignalOverBkg.png"%(dirPath),
+                 "%s/SignalOverBkg_%s.png"%(elogPath,cName)])
+        postCmds.append(["cp","%s/LatencyScanData/SignalNoBkg.png"%(dirPath),
+                 "%s/SignalNoBkg_%s.png"%(elogPath,cName)])
+
     pass
   elif anaType == "scurve":
     dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "SCurveData.root"
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)
-      return
+      return os.EX_NOINPUT
 
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("SCurveFitData.root"))
@@ -71,7 +79,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
       print "No threshold file to analyze. %s does not exist"%(filename)
-      return
+      return os.EX_NOINPUT
 
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("ThresholdPlots.root"))
@@ -83,7 +91,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
       filename_Trim = dirPath_Trim + "SCurveFitData.root"
       if not os.path.isfile(filename_Trim):
         print "No scurve fit data file to analyze. %s does not exist"%(filename_Trim)
-        return
+        return os.EX_NOINPUT
       
       cmd.append("--fileScurveFitTree=%s"%(filename_Trim))
       pass
@@ -104,7 +112,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     filename = dirPath + "SCurveData_Trimmed.root"
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)
-      return
+      return os.EX_NOINPUT
 
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("SCurveFitData.root"))
@@ -127,8 +135,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   try:
     log = file("%s/anaLog.log"%(dirPath),"w")
  
-    #returncode = runCommand(cmd,log)
-    returncode = runCommand(cmd)
+    returncode = runCommand(cmd,log)
     if returncode != 0:
       print "Error: command exited with non-zero code %d" % returncode
       return returncode
@@ -155,10 +162,17 @@ if __name__ == '__main__':
 
   from anaoptions import parser
 
+  parser.add_option("--anaType", type="string", dest="anaType",
+                    help="Analysis type to be executed, from list {'latency','scurve','threshold','trim'}", metavar="anaType")
+  parser.add_option("--latFit", action="store_true", dest="performLatFit",
+                    help="Fit the latency distributions", metavar="performLatFit")
+  parser.add_option("--latSigRange", type="string", dest="latSigRange", default=None,
+                    help="Comma separated pair of values defining expected signal range, e.g. lat #epsilon [41,43] is signal", metavar="latSigRange")
+  parser.add_option("--latSigMaskRange", type="string", dest="latSigMaskRange", default=None,
+                    help="Comma separated pair of values defining the region to be masked when trying to fit the noise, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
+                    metavar="latSigMaskRange")
   parser.add_option("--series", action="store_true", dest="series",
                     help="Run tests in series (default is false)", metavar="series")
-  parser.add_option("--anaType", type="string", dest="anaType",
-                     help="Analysis type to be executed, from list {'latency','scurve','threshold','trim'}", metavar="anaType")
 
   (options, args) = parser.parse_args()
 
@@ -169,8 +183,7 @@ if __name__ == '__main__':
   if options.anaType not in ana_config.keys():
     print "Invalid analysis specificed, please select only from the list:"
     print ana_config.keys()
-    exit(1)
-    pass
+    exit(os.EX_USAGE)
 
   if options.debug:
     print list(itertools.izip([options.anaType for x in range(len(chamber_config))],
@@ -181,7 +194,10 @@ if __name__ == '__main__':
                          [options.ztrim   for x in range(len(chamber_config))],
                          [options.chConfigKnown   for x in range(len(chamber_config))],
                          [options.channels   for x in range(len(chamber_config))],
-                         [options.PanPin   for x in range(len(chamber_config))]
+                         [options.PanPin   for x in range(len(chamber_config))],
+                         [options.performLatFit for x in range(len(chamber_config))],
+                         [options.latSigRange for x in range(len(chamber_config))],
+                         [options.latSigMaskRange for x in range(len(chamber_config))]
                          )
               )
 
@@ -189,15 +205,19 @@ if __name__ == '__main__':
     print "Running jobs in serial mode"
     for link in chamber_config.keys():
       chamber = chamber_config[link]
-      launchAna([options.anaType for x in range(len(chamber_config))],
-                 chamber_config.values(),
-                 [GEBtype[x]        for x in chamber_config.keys()],
-                 [options.scandate  for x in range(len(chamber_config))],
-                 [options.scandatetrim  for x in range(len(chamber_config))],
-                 [options.ztrim   for x in range(len(chamber_config))],
-                 [options.chConfigKnown   for x in range(len(chamber_config))],
-                 [options.channels   for x in range(len(chamber_config))],
-                 [options.PanPin   for x in range(len(chamber_config))]
+      GEB = GEBtype[link]
+      launchAna(options.anaType,
+                chamber,
+                GEB,
+                options.scandate,
+                options.scandatetrim,
+                options.ztrim,
+                options.chConfigKnown,
+                options.channels,
+                options.PanPin,
+                options.performLatFit,
+                options.latSigRange,
+                options.latSigMaskRange
                )
       pass
     pass
@@ -218,7 +238,10 @@ if __name__ == '__main__':
                                           [options.ztrim   for x in range(len(chamber_config))],
                                           [options.chConfigKnown   for x in range(len(chamber_config))],
                                           [options.channels   for x in range(len(chamber_config))],
-                                          [options.PanPin   for x in range(len(chamber_config))]
+                                          [options.PanPin   for x in range(len(chamber_config))],
+                                          [options.performLatFit for x in range(len(chamber_config))],
+                                          [options.latSigRange for x in range(len(chamber_config))],
+                                          [options.latSigMaskRange for x in range(len(chamber_config))]
                                           )
                            )
       # timeout must be properly set, otherwise tasks will crash
