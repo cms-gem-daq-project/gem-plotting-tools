@@ -65,23 +65,29 @@ def initVFATArray(array_dtype, nstrips=128):
 
     return np.zeros(nstrips, dtype=list_dtypeTuple)
 
-def make3x8Canvas(name, initialContent = None, drawOption = ''):
+def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = ''):
     """
     Creates a 3x8 canvas for summary plots.
 
-    initialContent should be None or an array of 24 (one per VFAT) TObject that
-    will be drawn on the canvas. drawOption will be passed to the Draw
-    function.
+    name - TName of output TCanvas
+    initialContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on the canvas.
+    initialDrawOpt - draw option to be used when drawing elements of initialContent
+    secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
+    secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
     """
 
     import ROOT as r
     
     canv = r.TCanvas(name,name,500*8,500*3)
     canv.Divide(8,3)
-    if initialContent != None:
+    if initialContent is not None:
         for vfat in range(24):
             canv.cd(vfat+1)
-            initialContent[vfat].Draw(drawOption)
+            initialContent[vfat].Draw(initialDrawOpt)
+    if secondaryContent is not None:
+        for vfat in range(24):
+            canv.cd(vfat+1)
+            secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
     canv.Update()
     return canv
 
