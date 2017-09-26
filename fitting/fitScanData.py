@@ -15,6 +15,7 @@ class ScanDataFitter(DeadChannelFinder):
         from gempython.utils.nesteddict import nesteddict as ndict
         r.gStyle.SetOptStat(0)
 
+        self.scanFuncs  = ndict()
         self.scanHistos = ndict()
         self.scanCount  = ndict()
         self.scanFits   = ndict()
@@ -28,6 +29,7 @@ class ScanDataFitter(DeadChannelFinder):
             self.scanFits[5][vfat] = np.zeros(128)
             self.scanFits[6][vfat] = np.zeros(128, dtype=bool)
             for ch in range(0,128):
+                self.scanFuncs[vfat][ch] = r.TF1('scurveFit_%i_%i_h'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',1,253)
                 self.scanHistos[vfat][ch] = r.TH1D('scurve_%i_%i_h'%(vfat,ch),'scurve_%i_%i_h'%(vfat,ch),254,0.5,254.5)
                 self.scanCount[vfat][ch] = 0
 
@@ -43,11 +45,6 @@ class ScanDataFitter(DeadChannelFinder):
             self.Nev = event.Nev
         else:
             assert self.Nev == event.Nev, 'Inconsistent S-curve tree'
-
-    def readFile(self, treeFileName):
-        inF = r.TFile(treeFileName)
-        for event in inF.scurveTree :
-            self.feed(event)
 
     def fit(self):
         r.gROOT.SetBatch(True)
@@ -92,6 +89,7 @@ class ScanDataFitter(DeadChannelFinder):
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
+                        self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_%i_%i_h'%(vfat,ch))
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
                         self.scanFits[2][vfat][ch] = fitTF1.GetParameter(2)
@@ -106,6 +104,14 @@ class ScanDataFitter(DeadChannelFinder):
                 pass
             pass
         return self.scanFits
+    
+    def getFunc(self, vfat, ch):
+        return self.scanFuncs[vfat][ch]
+
+    def readFile(self, treeFileName):
+        inF = r.TFile(treeFileName)
+        for event in inF.scurveTree :
+            self.feed(event)
 
 def fitScanData(treeFileName):
     fitter = ScanDataFitter()

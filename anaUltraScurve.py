@@ -119,6 +119,8 @@ if options.SaveFile:
     myT.Branch( 'ped_eff', ped_eff, 'ped_eff/F')
     scurve_h = r.TH1D()
     myT.Branch( 'scurve_h', scurve_h)
+    scurve_fit = r.TF1()
+    myT.Branch( 'scurve_fit', scurve_fit)
     chi2 = array( 'f', [ 0 ] )
     myT.Branch( 'chi2', chi2, 'chi2/F')
     ndf = array( 'i', [ 0 ] )
@@ -253,10 +255,11 @@ if options.SaveFile:
             pedestal[0] = scanFits[2][vfat][ch]
             # Compute values for cuts
             channelNoise[ch] = noise[0]
-            FittedFunction = r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
-            for i in range(3):
-                FittedFunction.SetParameter(i, scanFits[i][vfat][ch])
-                pass
+            #FittedFunction = r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
+            #for i in range(3):
+            #    FittedFunction.SetParameter(i, scanFits[i][vfat][ch])
+            #    pass
+            FittedFunction = fitter.getFunc(vfat,ch)
             effectivePedestals[vfat][ch] = FittedFunction.Eval(0.0)
             # Compute the value to apply MAD on for each channel
             trimValue[ch] = threshold[0] - options.ztrim * noise[0]
@@ -338,6 +341,7 @@ if options.SaveFile:
             ndf[0] = int(scanFits[5][vfat][chan])
             holder_curve = vScurves[vfat][chan]
             holder_curve.Copy(scurve_h)
+            scurve_fit = fitter.getFunc(vfat,chan).Clone('scurveFit_vfat%i_chan%i'%(vfat,chan))
             Nhigh[0] = int(scanFits[4][vfat][chan])
             #Filling the arrays for plotting later
             if options.drawbad:
