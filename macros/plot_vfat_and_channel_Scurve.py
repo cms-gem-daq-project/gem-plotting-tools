@@ -1,6 +1,7 @@
+#!/bin/env python
+
 if __name__ == '__main__':
     from macros.plotoptions import parser
-    
     (options, args) = parser.parse_args()
     
     from anautilities import overlay_scurve

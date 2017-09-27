@@ -157,10 +157,11 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     canv.Update()
     return canv
 
-def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNotROBstr=True):
+def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNotROBstr=True, debug=False):
     """
     Draws an scurve histogram and the fit to the scurve on a common canvas
-    and saves the canvas as a png file
+    and saves the canvas as a png file.  If fit_filename is supplied it 
+    will return a tuple of (histo, fit) otherwise nothing will be returned
 
     vfat - vfat number
     vfatCH - vfat channel number
@@ -183,7 +184,7 @@ def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNo
     if fit_filename is not None:
         fitFile   = r.TFile(fit_filename)
         for event in fitFile.scurveFitTree:
-            if (event.vfatN == VFAT) and ((event.vfatCH == vfatCH and vfatChNotROBstr) or (event.ROBstr == CH and not vfatChNotROBstr)):
+            if (event.vfatN == vfat) and ((event.vfatCH == vfatCH and vfatChNotROBstr) or (event.ROBstr == vfatCH and not vfatChNotROBstr)):
                 scurveHisto = event.scurve_h.Clone()
                 scurveFit = event.scurve_fit.Clone()
                 pass
@@ -199,13 +200,20 @@ def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNo
     
     scurveHisto.Draw()
     scurveFit.Draw("same")
-    canvas.SaveAs(canvas.GetName())
-    print scurveFit.GetParameter(0)
-    print scurveFit.GetParameter(1)
-    print scurveFit.GetParameter(2)
-    print scurveFit.GetParameter(3)
-    print scurveFit.GetChisquare()
-    return
+    canvas.SaveAs("%s.png"%(canvas.GetName()))
+
+    if debug:
+        print scurveFit.GetParameter(0)
+        print scurveFit.GetParameter(1)
+        print scurveFit.GetParameter(2)
+        print scurveFit.GetParameter(3)
+        print scurveFit.GetChisquare()
+        print scurveFit.GetNDF()
+    
+    if fit_filename is not None:
+        return (scurveHisto, scurveFit)
+    else:
+        return
 
 #Use Median absolute deviation (MAD) to reject outliers
 #See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data

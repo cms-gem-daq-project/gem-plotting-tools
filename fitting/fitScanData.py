@@ -29,8 +29,8 @@ class ScanDataFitter(DeadChannelFinder):
             self.scanFits[5][vfat] = np.zeros(128)
             self.scanFits[6][vfat] = np.zeros(128, dtype=bool)
             for ch in range(0,128):
-                self.scanFuncs[vfat][ch] = r.TF1('scurveFit_%i_%i_h'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',1,253)
-                self.scanHistos[vfat][ch] = r.TH1D('scurve_%i_%i_h'%(vfat,ch),'scurve_%i_%i_h'%(vfat,ch),254,0.5,254.5)
+                self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',1,253)
+                self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),254,0.5,254.5)
                 self.scanCount[vfat][ch] = 0
 
         self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
@@ -89,7 +89,7 @@ class ScanDataFitter(DeadChannelFinder):
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
-                        self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_%i_%i_h'%(vfat,ch))
+                        self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
                         self.scanFits[2][vfat][ch] = fitTF1.GetParameter(2)
