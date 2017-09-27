@@ -157,7 +157,7 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     canv.Update()
     return canv
 
-def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None):
+def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNotROBstr=True):
     """
     Draws an scurve histogram and the fit to the scurve on a common canvas
     and saves the canvas as a png file
@@ -166,18 +166,24 @@ def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None):
     vfatCH - vfat channel number
     fit_filename - TFile that holds the scurve fit data (histo & fit)
     tupleTObjects - tuple of TObjects (TH1F, TF1) first element is histo, second histo's fit
+    vfatChNotROBstr - true if plotted for vfatCh; false if plotted for readout strip
     """
     
     import os
     import ROOT as r
-    canvas = r.TCanvas('canv_SCurveFitOverlay_VFAT%i_Chan%i'%(vfat, vfatCH), 'SCurve and Fit for VFAT %i Chan %i'%(vfat,vfatCH), 500, 500)
+    
+    strCanvasName = 'canv_SCurveFitOverlay_VFAT%i_Chan%i'%(vfat, vfatCH)
+    if not vfatChNotROBstr:
+        strCanvasName = 'canv_SCurveFitOverlay_VFAT%i_Strip%i'%(vfat, vfatCH)
+
+    canvas = r.TCanvas(strCanvasName, 'SCurve and Fit for VFAT %i Chan %i'%(vfat,vfatCH), 500, 500)
     scurveHisto = r.TH1D()
     scurveFit = r.TF1()
 
     if fit_filename is not None:
         fitFile   = r.TFile(fit_filename)
         for event in fitFile.scurveFitTree:
-            if (event.vfatN == VFAT) and (event.vfatCH == CH):
+            if (event.vfatN == VFAT) and ((event.vfatCH == vfatCH and vfatChNotROBstr) or (event.ROBstr == CH and not vfatChNotROBstr)):
                 scurveHisto = event.scurve_h.Clone()
                 scurveFit = event.scurve_fit.Clone()
                 pass
