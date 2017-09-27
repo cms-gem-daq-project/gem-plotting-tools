@@ -65,44 +65,6 @@ def initVFATArray(array_dtype, nstrips=128):
 
     return np.zeros(nstrips, dtype=list_dtypeTuple)
 
-def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = ''):
-    """
-    Creates a 3x8 canvas for summary plots.
-
-    name - TName of output TCanvas
-    initialContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on the canvas.
-    initialDrawOpt - draw option to be used when drawing elements of initialContent
-    secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
-    secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
-    """
-
-    import ROOT as r
-    
-    canv = r.TCanvas(name,name,500*8,500*3)
-    canv.Divide(8,3)
-    if initialContent is not None:
-        for vfat in range(24):
-            canv.cd(vfat+1)
-            initialContent[vfat].Draw(initialDrawOpt)
-    if secondaryContent is not None:
-        for vfat in range(24):
-            canv.cd(vfat+1)
-            secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
-    canv.Update()
-    return canv
-
-#Use Median absolute deviation (MAD) to reject outliers
-#See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
-#And also: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
-def rejectOutliersMAD(arrayData, thresh=3.5):    
-    arrayOutliers = isOutlierMAD(arrayData, thresh)
-    return arrayData[arrayOutliers != True]
-
-#Use MAD to reject outliers, but consider only high or low tail
-def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
-    arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
-    return arrayData[arrayOutliers != True]
-
 #Use inter-quartile range (IQR) to reject outliers
 #Returns a boolean array with True if points are outliers and False otherwise.
 def isOutlierIQR(arrayData):
@@ -168,3 +130,85 @@ def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
             return modified_z_score > thresh
         else:
             return modified_z_score < -1.0 * thresh
+
+def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = ''):
+    """
+    Creates a 3x8 canvas for summary plots.
+
+    name - TName of output TCanvas
+    initialContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on the canvas.
+    initialDrawOpt - draw option to be used when drawing elements of initialContent
+    secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
+    secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
+    """
+
+    import ROOT as r
+    
+    canv = r.TCanvas(name,name,500*8,500*3)
+    canv.Divide(8,3)
+    if initialContent is not None:
+        for vfat in range(24):
+            canv.cd(vfat+1)
+            initialContent[vfat].Draw(initialDrawOpt)
+    if secondaryContent is not None:
+        for vfat in range(24):
+            canv.cd(vfat+1)
+            secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
+    canv.Update()
+    return canv
+
+def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None):
+    """
+    Draws an scurve histogram and the fit to the scurve on a common canvas
+    and saves the canvas as a png file
+
+    vfat - vfat number
+    vfatCH - vfat channel number
+    fit_filename - TFile that holds the scurve fit data (histo & fit)
+    tupleTObjects - tuple of TObjects (TH1F, TF1) first element is histo, second histo's fit
+    """
+    
+    import os
+    import ROOT as r
+    canvas = r.TCanvas('canv_SCurveFitOverlay_VFAT%i_Chan%i'%(vfat, vfatCH), 'SCurve and Fit for VFAT %i Chan %i'%(vfat,vfatCH), 500, 500)
+    scurveHisto = r.TH1D()
+    scurveFit = r.TF1()
+
+    if fit_filename is not None:
+        fitFile   = r.TFile(fit_filename)
+        for event in fitFile.scurveFitTree:
+            if (event.vfatN == VFAT) and (event.vfatCH == CH):
+                scurveHisto = event.scurve_h.Clone()
+                scurveFit = event.scurve_fit.Clone()
+                pass
+            pass
+    elif tupleTObjects is not None:
+        scurveHisto = tupleTObjects[0]
+        scurveFit = tupleTObjects[1]
+    else:
+        print("overlay_scurve(): Both fit_filename or tupleTObjects cannot be None")
+        print("\tYou must supply at least one of them")
+        print("\tExiting")
+        exit(os.EX_USAGE)
+    
+    scurveHisto.Draw()
+    scurveFit.Draw("same")
+    canvas.SaveAs(canvas.GetName())
+    print scurveFit.GetParameter(0)
+    print scurveFit.GetParameter(1)
+    print scurveFit.GetParameter(2)
+    print scurveFit.GetParameter(3)
+    print scurveFit.GetChisquare()
+    return
+
+#Use Median absolute deviation (MAD) to reject outliers
+#See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
+#And also: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
+def rejectOutliersMAD(arrayData, thresh=3.5):    
+    arrayOutliers = isOutlierMAD(arrayData, thresh)
+    return arrayData[arrayOutliers != True]
+
+#Use MAD to reject outliers, but consider only high or low tail
+def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
+    arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
+    return arrayData[arrayOutliers != True]

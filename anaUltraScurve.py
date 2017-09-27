@@ -134,36 +134,15 @@ vSummaryPlotsPanPin2 = ndict()
 vSummaryPlotsPruned = ndict()
 vSummaryPlotsPrunedPanPin2 = ndict()
 vScurves = []
+vScurveFits = []
 vthr_list = []
 trim_list = []
 trimrange_list = []
 lines = []
-def overlay_fit(VFAT, CHAN, NEVT=1000):
-    Scurve = r.TH1D('Scurve','Scurve for VFAT %i channel %i;VCal [DAC units]'%(VFAT, CHAN),255,-0.5,254.5)
-    strip = chanToStripLUT[VFAT][CHAN]
-    pan_pin = chanToPanPinLUT[VFAT][CHAN]
-    for event in inF.scurveTree:
-        if (event.vfatN == VFAT) and (event.vfatCH == CHAN):
-            Scurve.Fill(event.vcal, event.Nhits)
-            pass
-        pass
-    param0 = scanFits[0][VFAT][CHAN]
-    param1 = scanFits[1][VFAT][CHAN]
-    param2 = scanFits[2][VFAT][CHAN]
-    fitTF1 = r.TF1('myERF','%f*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+%f'%(NEVT/2.,NEVT/2.),1,253)
-    fitTF1.SetParameter(0, param0)
-    fitTF1.SetParameter(1, param1)
-    fitTF1.SetParameter(2, param2)
-    canvas = r.TCanvas('canvas', 'canvas', 500, 500)
-    r.gStyle.SetOptStat(1111111)
-    Scurve.Draw()
-    fitTF1.Draw('SAME')
-    canvas.Update()
-    canvas.SaveAs('Fit_Overlay_VFAT%i_Strip%i.png'%(VFAT, strip))
-    return
 
 for vfat in range(0,24):
     vScurves.append([])
+    vScurveFits.append([])
     vthr_list.append([])
     trim_list.append([])
     trimrange_list.append([])
@@ -194,6 +173,7 @@ for vfat in range(0,24):
         pass
     for chan in range (0,128):
         vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
+        vScurveFits[vfat].append(r.TH1F())
         vthr_list[vfat].append(0)
         trim_list[vfat].append(0)
         trimrange_list[vfat].append(0)
@@ -205,6 +185,7 @@ if options.SaveFile:
     pass
 
 # Fill
+print("Filling Histograms")
 for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
@@ -222,8 +203,8 @@ for event in inF.scurveTree:
             vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             pass
         pass
-    x = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
-    vScurves[event.vfatN][event.vfatCH].SetBinContent(x, event.Nhits)
+    binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
+    vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
     r.gStyle.SetOptStat(1111111)
     vthr_list[event.vfatN][event.vfatCH] = event.vthr
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
@@ -234,13 +215,30 @@ for event in inF.scurveTree:
     pass
 
 if options.SaveFile:
+    print("Fitting Histograms")
+    fitSummary = open(filename+'/fitSummary.txt','w')
+    fitSummary.write('vfatN/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
     scanFits = fitter.fit()
+    for vfat in range(0,24):
+        for chan in range(0,128):
+            vScurveFits[vfat][chan]=fitter.getFunc(vfat,chan)
+            fitSummary.write(
+                    '%i\t%i\t%f\t%f\t%f\t%f\n'%(
+                        vfat,
+                        chan,
+                        vScurveFits[vfat][chan].GetParameter(0),
+                        vScurveFits[vfat][chan].GetParameter(1),
+                        vScurveFits[vfat][chan].GetParameter(2),
+                        vScurveFits[vfat][chan].GetParameter(3)
+                        )
+                    )
+    fitSummary.close()
     pass
 
 # Determine hot channels
 import numpy as np
 if options.SaveFile:
-    print 'Determining hot channels'
+    print("Determining hot channels")
     masks = []
     maskReasons = []
     effectivePedestals = [ np.zeros(128) for vfat in range(24) ]
@@ -248,26 +246,25 @@ if options.SaveFile:
         trimValue = np.zeros(128)
         channelNoise = np.zeros(128)
         fitFailed = np.zeros(128, dtype=bool)
-        for ch in range(0, 128):
+        for chan in range(0, 128):
             # Get fit results
             threshold[0] = scanFits[0][vfat][ch]
             noise[0] = scanFits[1][vfat][ch]
             pedestal[0] = scanFits[2][vfat][ch]
+            
             # Compute values for cuts
             channelNoise[ch] = noise[0]
-            #FittedFunction = r.TF1('myERF','500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500',1,253)
-            #for i in range(3):
-            #    FittedFunction.SetParameter(i, scanFits[i][vfat][ch])
-            #    pass
-            FittedFunction = fitter.getFunc(vfat,ch)
-            effectivePedestals[vfat][ch] = FittedFunction.Eval(0.0)
+            effectivePedestals[vfat][ch] = vScurveFits[vfat][ch].Eval(0.0)
+            
             # Compute the value to apply MAD on for each channel
             trimValue[ch] = threshold[0] - options.ztrim * noise[0]
             pass
         fitFailed = np.logical_not(fitter.fitValid[vfat])
+        
         # Determine outliers
         hot = isOutlierMADOneSided(trimValue, thresh=options.zscore,
                                    rejectHighTail=False)
+        
         # Create reason array
         reason = np.zeros(128, dtype=int) # Not masked
         reason[hot] |= MaskReason.HotChannel
@@ -286,6 +283,7 @@ if options.SaveFile:
 
 # Fill pruned
 if options.SaveFile:
+    print("Pruning Hot Channels from Output Histograms")
     for event in inF.scurveTree:
         if masks[event.vfatN][event.vfatCH]:
             continue
@@ -303,6 +301,7 @@ if options.SaveFile:
 
 # Store values in ROOT file
 if options.SaveFile:
+    print("Storing Output Data")
     fitSums = {}
     for vfat in range (0,24):
         fitThr = []        
@@ -311,14 +310,16 @@ if options.SaveFile:
         panList = []
         chanList = []
         for chan in range (0, 128):
-            #Get strip and pan pin
+            # Get strip and pan pin
             strip = chanToStripLUT[vfat][chan]
             pan_pin = chanToPanPinLUT[vfat][chan]
-            #Store strip, chan and pan pin
+            
+            # Store strip, chan and pan pin
             stripList.append(float(strip))
             panList.append(float(pan_pin))
             chanList.append(float(chan))
-            #Filling the Branches
+            
+            # Filling the Branches
             param0 = scanFits[0][vfat][chan]
             param1 = scanFits[1][vfat][chan]
             param2 = scanFits[2][vfat][chan]
@@ -343,11 +344,16 @@ if options.SaveFile:
             holder_curve.Copy(scurve_h)
             scurve_fit = fitter.getFunc(vfat,chan).Clone('scurveFit_vfat%i_chan%i'%(vfat,chan))
             Nhigh[0] = int(scanFits[4][vfat][chan])
-            #Filling the arrays for plotting later
+            
+            # Filling the arrays for plotting later
             if options.drawbad:
                 if (chi2[0] > 1000.0 or chi2[0] < 1.0):
-                    overlay_fit(vfat, chan, fitter.Nev)
-                    print "Chi2 is, %d"%(chi2[0])
+                    canvas = r.TCanvas('canvas', 'canvas', 500, 500)
+                    r.gStyle.SetOptStat(1111111)
+                    scurve_h.Draw()
+                    scurve_fit.Draw('SAME')
+                    canvas.Update()
+                    canvas.SaveAs('Fit_Overlay_vfat%i_vfatCH%i.png'%(VFAT, chan))
                     pass
                 pass
             myT.Fill()
@@ -365,7 +371,7 @@ if options.SaveFile:
             fitSums[vfat].SetTitle("VFAT %i Fit Summary;Panasonic Pin;Threshold [fC]"%vfat)
             pass
         
-        fitSums[vfat].SetName("fitSum%i"%vfat)
+        fitSums[vfat].SetName("gFitSummary_VFAT%i"%(vfat))
         fitSums[vfat].SetMarkerStyle(2)
         pass
     pass
