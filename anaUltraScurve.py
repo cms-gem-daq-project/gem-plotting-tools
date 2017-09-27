@@ -210,7 +210,7 @@ for event in inF.scurveTree:
             vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             pass
         pass
-    
+
     binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
     r.gStyle.SetOptStat(1111111)
