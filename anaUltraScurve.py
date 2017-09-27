@@ -248,16 +248,16 @@ if options.SaveFile:
         fitFailed = np.zeros(128, dtype=bool)
         for chan in range(0, 128):
             # Get fit results
-            threshold[0] = scanFits[0][vfat][ch]
-            noise[0] = scanFits[1][vfat][ch]
-            pedestal[0] = scanFits[2][vfat][ch]
+            threshold[0] = scanFits[0][vfat][chan]
+            noise[0] = scanFits[1][vfat][chan]
+            pedestal[0] = scanFits[2][vfat][chan]
             
             # Compute values for cuts
-            channelNoise[ch] = noise[0]
-            effectivePedestals[vfat][ch] = vScurveFits[vfat][ch].Eval(0.0)
+            channelNoise[chan] = noise[0]
+            effectivePedestals[vfat][chan] = vScurveFits[vfat][chan].Eval(0.0)
             
             # Compute the value to apply MAD on for each channel
-            trimValue[ch] = threshold[0] - options.ztrim * noise[0]
+            trimValue[chan] = threshold[0] - options.ztrim * noise[0]
             pass
         fitFailed = np.logical_not(fitter.fitValid[vfat])
         
