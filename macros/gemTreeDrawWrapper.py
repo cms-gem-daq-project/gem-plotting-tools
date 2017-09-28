@@ -11,6 +11,8 @@ def getStringNoSpecials(inputStr):
     inputStr = inputStr.replace('(','')
     inputStr = inputStr.replace(')','')
     inputStr = inputStr.replace('/','')
+    inputStr = inputStr.replace('{','')
+    inputStr = inputStr.replace('}','')
 
     return inputStr
 
@@ -182,7 +184,7 @@ if __name__ == '__main__':
     r.gROOT.SetBatch(True)
     outF = r.TFile(strRootName,options.rootOpt)
     
-    # Loop Over inVputs
+    # Loop Over inputs
     listPlots = []
     for i,line in enumerate(fileScanDates):
         if line[0] == "#":
