@@ -1,9 +1,11 @@
 #!/bin/env python
 
 if __name__ == '__main__':
-    from anautilities import filePathExists, getDirByAnaType, overlay_scurve
-    from gempython.utils.wrappers import envCheck
+    from anaInfo import tree_names
+    from anautilities import filePathExists, getDirByAnaType
+    from gempython.utils.wrappers import envCheck, runCommand
     from macros.plotoptions import parser
+    from macros.scurvePlottingUtitilities import overlay_scurve
    
     import os
     import ROOT as r
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         pass
     
     # Make output TFile
-    strRootName = elogPath + "/gemSCurveAnaToolkit.root"%(strRootName)
+    strRootName = elogPath + "/gemSCurveAnaToolkit.root"
     r.gROOT.SetBatch(True)
     outF = r.TFile(strRootName,options.rootOpt)
     
@@ -69,6 +71,7 @@ if __name__ == '__main__':
             print "\t%s"%(line)
             print "Exiting"
             exit(os.EX_USAGE)
+        tupleChamberAndScanDate = (chamberAndScanDatePair[0],chamberAndScanDatePair[1])
 
         # Setup the path
         dirPath = getDirByAnaType(options.anaType.strip("Ana"), chamberAndScanDatePair[0], options.ztrim)
@@ -80,43 +83,67 @@ if __name__ == '__main__':
         filename = "%s/%s/%s"%(dirPath, chamberAndScanDatePair[1], tree_names[options.anaType][0])
    
         # Get the Plot and Reset it's Name
-        dictPlots[chamberAndScanDatePair] = overlay_scurve(
-                                                vfat=options.vfat, 
-                                                vfatCH=options.strip, 
-                                                fit_filename=options.filename, 
-                                                vfatChNotROBstr=options.channels
-                                                )
+        dictPlots[tupleChamberAndScanDate]=overlay_scurve(
+                vfat=options.vfat,
+                vfatCH=options.strip,
+                fit_filename=filename,
+                vfatChNotROBstr=options.channels
+                )
+        
+        # Rename the image of the canvas
+        strChanOrStrip = "Chan"
+        if not options.channels:
+            strChanOrStrip = "Strip"
+        cmd = ["mv"]
+        cmd.append("canv_SCurveFitOverlay_VFAT%i_%s%i.png"%(
+            options.vfat,
+            strChanOrStrip,
+            options.strip)
+            )
+        cmd.append("canv_SCurveFitOverlay_%s_%s_VFAT%i_%s%i.png"%(
+            tupleChamberAndScanDate[0],
+            tupleChamberAndScanDate[1],
+            options.vfat,
+            strChanOrStrip,
+            options.strip)
+            )
+        runCommand(cmd)
+        print "eog %s"%(cmd[2])
 
-        # Save Plot and Canvas
+        # Save Plot
         outF.cd()
-        outDir = outF.mkdir("%s_%s",%(chamberAndScanDatePair[0],chamberAndScanDatePair[1]))
+        outDir = outF.mkdir("%s_%s"%(chamberAndScanDatePair[0],chamberAndScanDatePair[1]))
         outDir.cd()
-        dictPlots[chamberAndScanDatePair][0].SetName(
+        dictPlots[tupleChamberAndScanDate][0].SetName(
                 "%s_%s_%s"%(
-                    dictPlots[chamberAndScanDatePair][0].GetName(),
-                    chamberAndScanDatePair[0],
-                    chamberAndScanDatePair[1])
+                    dictPlots[tupleChamberAndScanDate][0].GetName(),
+                    tupleChamberAndScanDate[0],
+                    tupleChamberAndScanDate[1])
                 )
-        dictPlots[chamberAndScanDatePair][0].Write()
-        dictPlots[chamberAndScanDatePair][1].SetName(
+        dictPlots[tupleChamberAndScanDate][0].Write()
+        dictPlots[tupleChamberAndScanDate][1].SetName(
                 "%s_%s_%s"%(
-                    dictPlots[chamberAndScanDatePair][1].GetName(),
-                    chamberAndScanDatePair[0],
-                    chamberAndScanDatePair[1])
+                    dictPlots[tupleChamberAndScanDate][1].GetName(),
+                    tupleChamberAndScanDate[0],
+                    tupleChamberAndScanDate[1])
                 )
-        dictPlots[chamberAndScanDatePair][1].Write()
+        dictPlots[tupleChamberAndScanDate][1].Write()
    
     # Make Summary Plot
     if options.summary:
+        #r.gStyle.SetOptStat(0000000)
+        
         # Make the canvas
-        canvSummary = r.TCanvas("summary_gemSCurveAnaToolkit", "Summary: gemSCurveAnaToolkit", 600, 600)
+        canvSummary = r.TCanvas("summary_gemSCurveAnaToolkit", "Summary: gemSCurveAnaToolkit", 700, 700)
+        canvSummary.cd().SetGridy()
 
         # Make the Legend
-        legSummary = r.TLegend(0.55,0.65,0.9,0.9)
+        legSummary = r.TLegend(0.1,0.65,0.45,0.9)
 
         # Loop over plots
-        for i,keyPair in dictPlots.keys():
+        for i,keyPair in enumerate(dictPlots.keys()):
             # Format the histo
+            dictPlots[keyPair][0].SetStats(False)
             dictPlots[keyPair][0].SetTitle("")
             dictPlots[keyPair][0].SetMarkerStyle(20+i)
             dictPlots[keyPair][0].SetMarkerColor(r.kRed-3+i)
@@ -146,7 +173,7 @@ if __name__ == '__main__':
 
         # Save the Canvas
         outF.cd()
-        canvSummary.SaveAs("%s/summary_%s.png"%(elogPath,strCanvName))
+        canvSummary.SaveAs("%s/summary_gemSCurveAnaToolkit.png"%(elogPath))
         canvSummary.Write()
 
     print ""

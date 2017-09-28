@@ -25,6 +25,7 @@ def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNo
     scurveFit = r.TF1()
 
     if fit_filename is not None:
+        r.TH1.AddDirectory(False)
         fitFile   = r.TFile(fit_filename)
         for event in fitFile.scurveFitTree:
             if (event.vfatN == vfat) and ((event.vfatCH == vfatCH and vfatChNotROBstr) or (event.ROBstr == vfatCH and not vfatChNotROBstr)):
@@ -87,10 +88,10 @@ def plot_noise_vs_trimDAC(vfat, vfatCH, fit_filename, vfatChNotROBstr=True):
     vNoise.Draw('colz')
     canvas.Update()
     if vfatChNotROBstr:
-        canvas.SaveAs('Noise_Trim_VFAT_%i_Channel_%i.png'%(VFAT, STRIP))
+        canvas.SaveAs('Noise_Trim_VFAT_%i_Channel_%i.png'%(vfat, vfatCH))
         pass
     else:
-        canvas.SaveAs('Noise_Trim_VFAT_%i_Strip_%i.png'%(VFAT, STRIP))
+        canvas.SaveAs('Noise_Trim_VFAT_%i_Strip_%i.png'%(vfat, vfatCH))
         pass
     return
 
@@ -106,14 +107,14 @@ def plot_vfat_summary(vfat, fit_filename, vfatChNotROBstr=True):
     fitF = r.TFile(fit_filename)
     Scurve = r.TH1D()
     if vfatChNotROBstr:
-        vSum = r.TH2D('vSum', 'vSum for VFAT %i; Channels; VCal [DAC units]'%VFAT, 128, -0.5, 127.5, 256, -0.5, 255.5)
+        vSum = r.TH2D('vSum', 'vSum for VFAT %i; Channels; VCal [DAC units]'%vfat, 128, -0.5, 127.5, 256, -0.5, 255.5)
         pass
     else:
-        vSum = Tr.H2D('vSum', 'vSum for VFAT %i; Strips; VCal [DAC units]'%VFAT, 128, -0.5, 127.5, 256, -0.5, 255.5)
+        vSum = Tr.H2D('vSum', 'vSum for VFAT %i; Strips; VCal [DAC units]'%vfat, 128, -0.5, 127.5, 256, -0.5, 255.5)
         pass
     vSum.GetYaxis().SetTitleOffset(1.5)
     for event in fitF.scurveFitTree:
-        if (event.vfatN == VFAT):
+        if (event.vfatN == vfat):
             Scurve = ((event.scurve_h).Clone())
             for valX in range(0, 256):
                 valY = Scurve.FindBin(valX)
@@ -130,6 +131,6 @@ def plot_vfat_summary(vfat, fit_filename, vfatChNotROBstr=True):
     r.gStyle.SetOptStat(0)
     vSum.Draw('colz')
     canvas.Update()
-    canvas.SaveAs('Summary_VFAT_%i.png'%VFAT)
+    canvas.SaveAs('Summary_VFAT_%i.png'%vfat)
     return
 
