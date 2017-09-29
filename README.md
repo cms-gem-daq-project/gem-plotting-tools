@@ -6,6 +6,12 @@ Table of Contents
    * [gem-plotting-tools](#gem-plotting-tools)
       * [Setup:](#setup)
       * [Analyzing Scans:](#analyzing-scans)
+         * [Analyzing Python Ultra Scan Data](#analyzing-python-ultra-scan-data)
+            * [plot_eff.py](#plot_effpy)
+            * [plot_eff.py Arguments](#plot_effpy-arguments)
+            * [plot_eff.py Input File](#plot_effpy-input-file)
+            * [plot_eff.py Example](#plot_effpy-example)
+         * [Analyzing xDAQ Scan Data](#analyzing-xdaq-scan-data)
       * [Arbitray Plotting Tools](#arbitray-plotting-tools)
          * [gemPlotter.py](#gemplotterpy)
             * [gemPlotter.py Arguments](#gemplotterpy-arguments)
@@ -18,6 +24,11 @@ Table of Contents
             * [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file)
             * [gemTreeDrawWrapper.py Example: Making a Plot](#gemtreedrawwrapperpy-example-making-a-plot)
             * [gemTreeDrawWrapper.py Example: Fitting a Plot](#gemtreedrawwrapperpy-example-fitting-a-plot)
+      * [Scurve Plotting Tools](#scurve-plotting-tools)
+         * [gemSCurveAnaToolkit.py](#gemscurveanatoolkitpy)
+            * [gemSCurveAnaToolkit.py Arguments](#gemscurveanatoolkitpy-arguments)
+            * [gemSCurveAnaToolkit.py Input File](#gemscurveanatoolkitpy-input-file)
+            * [gemSCurveAnaToolkit.py Example: Making a Plot](#gemscurveanatoolkitpy-example-making-a-plot)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -35,7 +46,62 @@ source $BUILD_HOME/gem-plotting-tools/setup/paths.sh
 ```
 
 ## Analyzing Scans:
+Analysis is broken down into either analyzing data taken with the python ultra scan tools or with xdaq.
+
+### Analyzing Python Ultra Scan Data
+The following tools exist to help you to analyze scans taken with the ultra tools in the [vfatqc-python-scripts](https://github.com/cms-gem-daq-project/vfatqc-python-scripts) repository:
+
+- `ana_scans.py`,
+- `anaUltraLatency.py`,
+- `anaUltraScurve.py`, and
+- `anaUltraThreshold.py`.
+
 See extensive documentation written on the [GEM DOC Twiki Page](https://twiki.cern.ch/twiki/bin/view/CMS/GEMDOCDoc#How_to_Produce_Scan_Plots).
+
+#### plot_eff.py
+For some test stands where you have configured the input L1A to pass only through a specific point of a detector you can use the data taken by `ultraLatency.py` to calculate the efficiency of the detector.  To help you perform this analysis the `plot_eff.py` tool has been created.
+
+#### plot_eff.py Arguments
+The following table shows the mandatory inputs that must be supplied to execute the script:
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| ` --latSig` | int | Latency bin for which efficiency should be determined from. |
+| `-i`, `--infilename` | string | physical filename of the input file to be passed to `plot_eff.py`.  The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemplotterpy-input-file) for more details. |
+| `-p`, `--print` | none | Prints a comma separated table of the plot's data to the terminal.  The format of this table will be compatible with the `genericPlotter` executable of the [CMS_GEM_Analysis_Framework](https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter). | 
+| `-v`, `--vfat` | int | Specify VFAT to use when calculating the efficiency. |
+
+The following table shows the optional inputs that can be supplied when executing the script:
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| ` --bkgSub` | none | Background subtraction is used to determine the efficiency instead of a single latency bin. May be used instead of the `--latSig` option. |
+| `--vfatList` | Comma separated list of int's | List of VFATs to use when calculating the efficiency.  May be used instead of the `--vfat` option. |
+
+Note if the `--bkgSub` option is used then you **must** first call `anaUltraLatency.py` for each of the scandates given in the `--infilename`.
+
+#### plot_eff.py Input File
+The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemplotterpy-input-file) for more details.
+
+#### plot_eff.py Example
+To calculate the efficiency using VFATs 12 & 13 in latency bin 39 for a list of scandates defined in `listOfScanDates.txt` call:
+
+```
+plot_eff.py --infilename=listOfScanDates.txt --vfatList=12,13 --latSig=39 --print
+```
+
+To calculate the efficiency using VFAT4 using background subtraction first call `anaUltraLatency.py` on each of the scandates given in `listOfScanDates.txt` and then call:
+
+```
+plot_eff.py --infilename=listOfScanDates.txt -v4 --bkgSub --print
+```
+
+### Analyzing xDAQ Scan Data
+The following tools exist to help you to analyze scans taken with xDAQ:
+
+- `anaXDAQLatency.py`
+
+See documentation written on the [GEM DOC Twiki Page](https://twiki.cern.ch/twiki/bin/viewauth/CMS/GEMDOCDoc#How_to_Produce_Scan_Plots_Ta_AN1).
 
 ## Arbitray Plotting Tools
 There are two tools for helping you to make arbitrary plots from python scan data:
@@ -267,3 +333,76 @@ myFunc.SetParameter(0,10)
 ```
 
 The fit option that will be used will be `RM`.  This fit will be applied to the scurve generated from VFAT12 channel 45 for each (ChamberName,scandate) pair found in `listOfScanDates_TreeDraw.txt`.
+
+## Scurve Plotting Tools
+
+The following tools exist for helping to understand scurve data:
+
+1. `gemSCurveAnaToolkit.py`
+2. `plot_noise_vs_trim.py`
+3. `plot_vfat_and_channel_Scurve.py`
+4. `plot_vfat_summary.py`
+5. `summary_plots.py`
+
+These tools can all by found in the `macros/` subdirectory and are designed to be run on `TFile` objects containing the `scurveFitTree` `TTree` object (e.g. produced by `anaUltraScurve.py`).  The first tool `gemSCurveAnaToolkit.py` is for plotting the same (vfat,channel/ROBstr) scurve from a list of scandates and it is described in a dedicated subsection below. The rest of the tools above are for making plots from a single input file; the plots made by tools 2-4 are:
+
+- `plot_noise_vs_trim.py`: Plots a channel/strip's scurve width (e.g. `noise`) vs. trimDAC as a `TH2D` on a `TCanvas`, 
+- `plot_vfat_and_channel_Scurve.py`: Plots a channel/strip's scurve as a `TH1D` and its `TF1` on a `TCanvas`, and
+- `plot_vfat_summary.py`: Plots all scurves from a given VFAT as a `TH2D` on a `TCanvas`.
+
+Tool 5 `summary_plots.py` produces the following plots from a single input file for a given VFAT depending on the command line argument supplied:
+
+- Plot of channel/strip scurve mean as a `TH1D`,
+- Plot of channel/strip scurve width as a `TH1D`,
+- Plot of channel/strip scurve pedestal as a `TH1D`,
+- Plot of Chi<sup>2</sup> of the channel/strip scurve fits as a `TH1D`,
+- Plot of channel/strip scurve mean vs. scurve width as a `TH2D`, and
+- Plot of channel/strip scurve width vs. trimDAC as a `TH2D`.
+
+The command line options for tools 2-5 are:
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `-c`, `--channels` | none | Make plots vs VFAT channels instead of ROB strips. |
+| `-i`, `--infilename` | string | Physical filename of the input file.  Note this must be a `TFile` which contains the `scurveFitTree` `TTree` object. |
+| `-s`, `--strip` | int | If the `-c` option is (not) supplied this will be the VFAT channel (ROB strip) the plot will be made for. |
+| `-v`, `--vfat` | int | The VFAT to plot. |
+
+Additionally tool 5 `summary_plots.py` has the following additional command line options:
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `-a`, `--all` | none | Equivalent to supplying `-f` and `-x` options. |
+| `-f`, `--fit` | none | Make fit parameter plots. |
+| `-x`, `--chi2` | none | Make Chi2 plots. |
+
+Note that for tool 5 `summary_plots.py` you must supply at least one of these additional options {`-a`,`-f`,`-x`}.
+
+### gemSCurveAnaToolkit.py
+The `gemSCurveAnaToolkit.py` tool is for plotting scurves and their fits from a given (vfat, vfatCH/ROBstr) from a list of scandates that correspond to `TFile` objects which contain the `scurveFitTree` `TTree` (e.g. files produced by `anaUltraScurve.py`). Each plot produced will be stored as an output `*.png` file. Additionally an output `TFile` will be produced which will contain each of the scurves and their fits.
+
+#### gemSCurveAnaToolkit.py Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `-c`, `--channels` | none | Make plots vs VFAT channels instead of ROB strips. |
+| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `gemSCurveAnaToolkit.py`.  The format of this input file is the same as for the `gemTreeDrawWrapper.py` tool, see [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file) for more details. |
+| `-s`, `--strip` | int | If the `-c` option is (not) supplied this will be the VFAT channel (ROB strip) the plot will be made for. |
+| `-v`, `--vfat` | int | The VFAT to plot. |
+| `--anaType` | string | Analysis type to be executed, taken from the list {'scurveAna','trimAna'}. |
+| `--drawLeg` | none | When used with `--summary` option draws a TLegend on the output plot. |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--summary` | none | Make a summary canvas with all created plots drawn on it. |
+| `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
+
+#### gemSCurveAnaToolkit.py Input File
+The format of this input file is the same as for the `gemTreeDrawWrapper.py` tool, see [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file) for more details.
+
+#### gemSCurveAnaToolkit.py Example: Making a Plot
+To plot the scurves, and their fits, for VFAT0 channel 29 from a set of scandates defined in `listOfScanDates_Scurve.txt` taken by `ultraScurve.py` and analyzed with `anaUltraScurve.py` you would call:
+
+```
+gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg 
+```
+
+This will produce a `*.png` file for each of the scandates defined in `listOfScanDates_Scurve.txt` and one `*.png` file showing all the scurves with their fits drawn on it as a summary.  Additionally an output `TFile` will be produced containing each of the scurves and their fits.

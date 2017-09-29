@@ -1,3 +1,5 @@
+#!/bin/env python
+
 import os
 from gempython.utils.nesteddict import nesteddict as ndict
 from macros.plotoptions import parser

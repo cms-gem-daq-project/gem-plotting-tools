@@ -13,6 +13,7 @@ def getStringNoSpecials(inputStr):
     inputStr = inputStr.replace('/','')
     inputStr = inputStr.replace('{','')
     inputStr = inputStr.replace('}','')
+    inputStr = inputStr.replace('#','')
 
     return inputStr
 
