@@ -1,12 +1,28 @@
 #!/bin/env python
 
-# Returns binomial error on eff
 def calcEffErr(eff, nTriggers):
+    """
+    Returns the binomial error on the input efficiency
+
+    eff - input efficency value (from 0.0 to 1.0)
+    nTriggers - the number of triggers used when obtaining eff
+    """
+
     import math
     return math.sqrt( (eff * ( 1. - eff) ) / nTriggers )
 
 # Returns a tuple of (eff, sigma_eff)
 def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
+    """
+    Returns a tuple of (eff, sigma_eff)
+    
+    cName - chamber name, i.e. the value of a given key of the chamber_config dict
+    scandate - scandate of the ultraLatency.py measurement
+    vfatList - list of vfats to use for calculating the efficiency
+    latBin - latency bin to determine the eff for
+    bkgSub - Perform background subtraction
+    """
+    
     from anautilities import getDirByAnaType
 
     import os
@@ -61,19 +77,23 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     # Calc Eff & Error
     return (nHits / nTriggers, calcEffErr(nHits / nTriggers, nTriggers) )
 
-# Here --infilename should be a tab delimited file
-#   the first row of this file should be column headings
-#   the subsequent rows of this file should be data lines
-#   Example:
-#       ChamberName scandate    EffGain
-#       GEMINIm27L1 2017.08.29.18.11    5000
-#       GEMINIm27L1 2017.08.29.18.19    7500
-#       GEMINIm27L1 2017.08.29.18.33    10000
-#       GEMINIm27L1 2017.08.29.18.06    15000
-#       GEMINIm27L1 2017.08.30.08.22    20000
-#
-#   Then this will make a plot of Eff vs. EffGain from the data supplied
 if __name__ == '__main__':
+    """
+    Here --infilename should be a tab delimited file
+    the first row of this file should be column headings
+    the subsequent rows of this file should be data lines
+    
+    Example:
+          ChamberName scandate    EffGain
+          GEMINIm27L1 2017.08.29.18.11    5000
+          GEMINIm27L1 2017.08.29.18.19    7500
+          GEMINIm27L1 2017.08.29.18.33    10000
+          GEMINIm27L1 2017.08.29.18.06    15000
+          GEMINIm27L1 2017.08.30.08.22    20000
+    
+    Then this will make a plot of Eff vs. EffGain from the data supplied
+    """
+
     from gempython.utils.wrappers import envCheck
     from macros.plotoptions import parser
     from mapping.chamberInfo import chamber_config, GEBtype
@@ -86,8 +106,6 @@ if __name__ == '__main__':
                       help="Latency bin where signal is found", metavar="latSig")
     parser.add_option("-p","--print", action="store_true", dest="printData",
                       help="Prints a comma separated table with the data to the terminal", metavar="printData")
-    parser.add_option("--scandate", type="string", dest="scandate", default="current",
-                      help="Specify specific date to analyze", metavar="scandate")
     parser.add_option("--vfatList", type="string", dest="vfatList", default=None,
                       help="Comma separated list of VFATs to consider, e.g. '12,13'", metavar="vfatList")
 
@@ -169,8 +187,9 @@ if __name__ == '__main__':
         grEffPlot.SetPointError(idx, 0., list_EffData[idx][2])
 
     # Draw this plot on a canvas
-    strIndepVarNoBrances = strIndepVar.replace('{','').replace('}','').replace('_','')
-    canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVarNoBrances),"%s: Eff vs. %s"%(strChamberName,strIndepVarNoBrances),600,600)
+    from macros.gemTreeDrawWrapper import getStringNoSpecials
+    strIndepVarNoBraces = getStringNoSpecials(strIndepVar).replace('_','')
+    canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVarNoBraces),"%s: Eff vs. %s"%(strChamberName,strIndepVarNoBraces),600,600)
     canvEff.cd()
     grEffPlot.Draw("APE1")
     grEffPlot.GetXaxis().SetTitle(strIndepVar)
@@ -179,7 +198,7 @@ if __name__ == '__main__':
     grEffPlot.GetYaxis().SetTitle("Efficiency")
     grEffPlot.GetYaxis().SetTitleOffset(1.2)
     canvEff.Update()
-    strCanvName = elogPath + "/%s_Eff_vs_%s.png"%(strChamberName,strIndepVarNoBrances)
+    strCanvName = elogPath + "/%s_Eff_vs_%s.png"%(strChamberName,strIndepVarNoBraces)
     canvEff.SaveAs(strCanvName)
     
     print ""
@@ -188,7 +207,7 @@ if __name__ == '__main__':
     print ""
 
     # Make an output ROOT file
-    strRootName = elogPath + "/%s_Eff_vs_%s.root"%(strChamberName,strIndepVarNoBrances)
+    strRootName = elogPath + "/%s_Eff_vs_%s.root"%(strChamberName,strIndepVarNoBraces)
     outF = r.TFile(strRootName,"recreate")
     grEffPlot.Write()
     canvEff.Write()

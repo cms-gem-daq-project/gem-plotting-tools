@@ -1,13 +1,8 @@
 from macros.plotoptions import parser
 
-parser.add_option("-o","--overlay", action="store_true", dest="overlay_fit",
-                  help="Make overlay of fit result on scurve", metavar="overlay_fit")
-
 (options, args) = parser.parse_args()
 
 filename = options.filename
-overlay_fit = options.overlay_fit
-channel_yes = options.channels
 vfat = options.vfat
 strip = options.strip
 
@@ -29,7 +24,7 @@ canvas.cd()
 i = 0
 for thresh in thr:
     for event in fitF.scurveFitTree:
-        if (event.vthr == thresh) and (event.vfatN == vfat) and (event.vfatstrip == strip):
+        if (event.vthr == thresh) and (event.vfatN == vfat) and (event.ROBstr == strip):
             Scurves.append((event.scurve_h).Clone())
             pass
         pass

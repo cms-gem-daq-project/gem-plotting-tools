@@ -15,6 +15,7 @@ class ScanDataFitter(DeadChannelFinder):
         from gempython.utils.nesteddict import nesteddict as ndict
         r.gStyle.SetOptStat(0)
 
+        self.scanFuncs  = ndict()
         self.scanHistos = ndict()
         self.scanCount  = ndict()
         self.scanFits   = ndict()
@@ -28,7 +29,8 @@ class ScanDataFitter(DeadChannelFinder):
             self.scanFits[5][vfat] = np.zeros(128)
             self.scanFits[6][vfat] = np.zeros(128, dtype=bool)
             for ch in range(0,128):
-                self.scanHistos[vfat][ch] = r.TH1D('scurve_%i_%i_h'%(vfat,ch),'scurve_%i_%i_h'%(vfat,ch),254,0.5,254.5)
+                self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',1,253)
+                self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),254,0.5,254.5)
                 self.scanCount[vfat][ch] = 0
 
         self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
@@ -44,18 +46,13 @@ class ScanDataFitter(DeadChannelFinder):
         else:
             assert self.Nev == event.Nev, 'Inconsistent S-curve tree'
 
-    def readFile(self, treeFileName):
-        inF = r.TFile(treeFileName)
-        for event in inF.scurveTree :
-            self.feed(event)
-
     def fit(self):
         r.gROOT.SetBatch(True)
         r.gStyle.SetOptStat(0)
 
         random = r.TRandom3()
         random.SetSeed(0)
-        fitTF1 = r.TF1('myERF','%f*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+%f'%(self.Nev/2.,self.Nev/2.),1,253)
+        fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',1,253)
         for vfat in range(0,24):
             print 'fitting vfat %i'%vfat
             for ch in range(0,128):
@@ -67,12 +64,19 @@ class ScanDataFitter(DeadChannelFinder):
                 while(stepN < 15):
                     rand = random.Gaus(10, 5)
                     if (rand < 0.0 or rand > 100): continue
+                    # Provide an initial guess
                     fitTF1.SetParameter(0, 8+stepN*8)
                     fitTF1.SetParameter(1,rand)
                     fitTF1.SetParameter(2,8+stepN*8)
+                    fitTF1.SetParameter(3, self.Nev/2.)
+
+                    # Set Parameter Limits
                     fitTF1.SetParLimits(0, 0.01, 300.0)
                     fitTF1.SetParLimits(1, 0.0, 100.0)
                     fitTF1.SetParLimits(2, 0.0, 300.0)
+                    fitTF1.SetParLimits(3, 0.0, self.Nev * 2.)
+
+                    # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
                     if fitEmpty:
@@ -85,6 +89,7 @@ class ScanDataFitter(DeadChannelFinder):
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
+                        self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
                         self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
                         self.scanFits[2][vfat][ch] = fitTF1.GetParameter(2)
@@ -99,6 +104,14 @@ class ScanDataFitter(DeadChannelFinder):
                 pass
             pass
         return self.scanFits
+    
+    def getFunc(self, vfat, ch):
+        return self.scanFuncs[vfat][ch]
+
+    def readFile(self, treeFileName):
+        inF = r.TFile(treeFileName)
+        for event in inF.scurveTree :
+            self.feed(event)
 
 def fitScanData(treeFileName):
     fitter = ScanDataFitter()
