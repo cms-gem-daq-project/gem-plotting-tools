@@ -17,6 +17,7 @@ tree_names = {
         "scurve":("SCurveData.root","scurveTree"),
         "scurveAna":("SCurveData/SCurveFitData.root","scurveFitTree"),
         "threshold":("ThresholdScanData.root","thrTree"),
+        "thresholdAna":("ThresholdScanData/ThresholdPlots.root","thrAnaTree"),
         "trim":("SCurveData_Trimmed.root","scurveTree"),
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
         }

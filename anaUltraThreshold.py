@@ -14,7 +14,7 @@ parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree"
 parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                   help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
 
-parser.set_defaults(outfilename="VThreshold1Data_Trimmed.root")
+parser.set_defaults(outfilename="ThresholdPlots.root")
 
 (options, args) = parser.parse_args()
 filename = options.filename[:-5]
@@ -280,19 +280,24 @@ for vfat in range(0,24):
             break
         pass
     pass
-outF.Close()
-txt_vfat = open(filename+"/vfatConfig.txt", 'w')
 
 print "trimRange:"
 print trimRange
 print "vt1:"
 print vt1
 
+txt_vfat = open(filename+"/vfatConfig.txt", 'w')
 txt_vfat.write("vfatN/I:vt1/I:trimRange/I\n")
 for vfat in range(0,24):
     txt_vfat.write('%i\t%i\t%i\n'%(vfat, vt1[vfat],trimRange[vfat]))
     pass
 txt_vfat.close()
+
+# Make output TTree
+myT = r.TTree('thrAnaTree','Tree Holding Analyzed Threshold Data')
+myT.ReadFile(filename+"/vfatConfig.txt")
+myT.Write()
+outF.Close()
 
 #Update channel registers configuration file
 if options.chConfigKnown:
