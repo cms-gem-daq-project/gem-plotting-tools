@@ -80,13 +80,13 @@ hot_channels = []
 for vfat in range(0,24):
     hot_channels.append([])
     if not (options.channels or options.PanPin):
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'vSum%i;Strip;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+        vSum[vfat] = r.TH2D('h_VT1_vs_ROBstr_VFAT%i'%vfat,'vSum%i;Strip;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         pass
     elif options.channels:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'vSum%i;Channel;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+        vSum[vfat] = r.TH2D('h_VT1_vs_vfatCH_VFAT%i'%vfat,'vSum%i;Channel;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         pass
     elif options.PanPin:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'vSum%i;Panasonic Pin;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+        vSum[vfat] = r.TH2D('h_VT1_vs_PanPin_VFAT%i'%vfat,'vSum%i;Panasonic Pin;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         pass
     for chan in range(0,128):
         hot_channels[vfat].append(False)
@@ -252,7 +252,7 @@ for vfat in range(0,24):
     r.gStyle.SetOptStat(0)
     canv_pruned.cd(vfat+1)
     vSum[vfat].Draw('colz')
-    vSum[vfat].Write()
+    vSum[vfat].Clone("%s_Pruned"%(vSum[vfat].GetName())).Write()
     pass
 canv_pruned.SaveAs(filename+'/ThreshPrunedSummary.png')
 
@@ -265,7 +265,7 @@ for vfat in range(0,24):
     canv_proj.cd(vfat+1)
     r.gPad.SetLogy()
     vSum[vfat].ProjectionY().Draw()
-    vSum[vfat].ProjectionY().Write()
+    vSum[vfat].ProjectionY("h_VT1_VFAT%i"%vfat).Write()
     pass
 canv_proj.SaveAs(filename+'/VFATPrunedSummary.png')
 
