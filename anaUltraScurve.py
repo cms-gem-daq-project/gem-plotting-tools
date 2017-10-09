@@ -20,7 +20,7 @@ parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                   help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
 parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                   help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
-parser.set_defaults(outfilename="SCurveData.root")
+parser.set_defaults(outfilename="SCurveFitData.root")
 
 (options, args) = parser.parse_args()
 filename = options.filename[:-5]

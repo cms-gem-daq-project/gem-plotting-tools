@@ -206,7 +206,7 @@ if __name__ == '__main__':
     for link in chamber_config.keys():
       chamber = chamber_config[link]
       GEB = GEBtype[link]
-      launchAna(options.anaType,
+      launchAnaArgs(options.anaType,
                 chamber,
                 GEB,
                 options.scandate,

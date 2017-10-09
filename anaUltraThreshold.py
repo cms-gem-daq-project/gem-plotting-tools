@@ -14,7 +14,7 @@ parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree"
 parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                   help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
 
-parser.set_defaults(outfilename="VThreshold1Data_Trimmed.root")
+parser.set_defaults(outfilename="ThresholdPlots.root")
 
 (options, args) = parser.parse_args()
 filename = options.filename[:-5]
@@ -80,13 +80,13 @@ hot_channels = []
 for vfat in range(0,24):
     hot_channels.append([])
     if not (options.channels or options.PanPin):
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'vSum%i;Strip;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+        vSum[vfat] = r.TH2D('h_VT1_vs_ROBstr_VFAT%i'%vfat,'vSum%i;Strip;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         pass
     elif options.channels:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'vSum%i;Channel;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+        vSum[vfat] = r.TH2D('h_VT1_vs_vfatCH_VFAT%i'%vfat,'vSum%i;Channel;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         pass
     elif options.PanPin:
-        vSum[vfat] = r.TH2D('vSum%i'%vfat,'vSum%i;Panasonic Pin;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+        vSum[vfat] = r.TH2D('h_VT1_vs_PanPin_VFAT%i'%vfat,'vSum%i;Panasonic Pin;VThreshold1 [DAC units]'%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         pass
     for chan in range(0,128):
         hot_channels[vfat].append(False)
@@ -252,7 +252,7 @@ for vfat in range(0,24):
     r.gStyle.SetOptStat(0)
     canv_pruned.cd(vfat+1)
     vSum[vfat].Draw('colz')
-    vSum[vfat].Write()
+    vSum[vfat].Clone("%s_Pruned"%(vSum[vfat].GetName())).Write()
     pass
 canv_pruned.SaveAs(filename+'/ThreshPrunedSummary.png')
 
@@ -265,7 +265,7 @@ for vfat in range(0,24):
     canv_proj.cd(vfat+1)
     r.gPad.SetLogy()
     vSum[vfat].ProjectionY().Draw()
-    vSum[vfat].ProjectionY().Write()
+    vSum[vfat].ProjectionY("h_VT1_VFAT%i"%vfat).Write()
     pass
 canv_proj.SaveAs(filename+'/VFATPrunedSummary.png')
 
@@ -280,19 +280,24 @@ for vfat in range(0,24):
             break
         pass
     pass
-outF.Close()
-txt_vfat = open(filename+"/vfatConfig.txt", 'w')
 
 print "trimRange:"
 print trimRange
 print "vt1:"
 print vt1
 
+txt_vfat = open(filename+"/vfatConfig.txt", 'w')
 txt_vfat.write("vfatN/I:vt1/I:trimRange/I\n")
 for vfat in range(0,24):
     txt_vfat.write('%i\t%i\t%i\n'%(vfat, vt1[vfat],trimRange[vfat]))
     pass
 txt_vfat.close()
+
+# Make output TTree
+myT = r.TTree('thrAnaTree','Tree Holding Analyzed Threshold Data')
+myT.ReadFile(filename+"/vfatConfig.txt")
+myT.Write()
+outF.Close()
 
 #Update channel registers configuration file
 if options.chConfigKnown:
