@@ -230,7 +230,7 @@ if options.SaveFile:
             fitSummary.write(
                     '%i\t%i\t%i\t%f\t%f\t%f\t%f\n'%(
                         vfat,
-                        hex(dict_vfatID[vfat]),
+                        dict_vfatID[vfat],
                         chan,
                         vScurveFits[vfat][chan].GetParameter(0),
                         vScurveFits[vfat][chan].GetParameter(1),
@@ -436,7 +436,12 @@ if options.SaveFile:
     confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
     for vfat in range (0,24):
         for chan in range (0, 128):
-            confF.write('%i\t%i\t%i\t%i\t%i\n'%(vfat,hex(dict_vfatID[vfat]),chan,trim_list[vfat][chan],masks[vfat][chan]))
+            confF.write('%i\t%i\t%i\t%i\t%i\n'%(
+                vfat,
+                dict_vfatID[vfat],
+                chan,
+                trim_list[vfat][chan],
+                masks[vfat][chan]))
             pass
         pass
     confF.close()
