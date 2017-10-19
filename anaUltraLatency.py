@@ -49,6 +49,7 @@ print 'Filling Histograms'
 latMin = 1000
 latMax = -1
 nTrig = -1
+dict_vfatID = {}
 for event in inF.latTree:
     dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.lat,event.Nhits)
     if event.lat < latMin and event.Nhits > 0:
@@ -57,6 +58,9 @@ for event in inF.latTree:
     elif event.lat > latMax:
         latMax = event.lat
         pass
+
+    if int(event.vfatN) not in dict_vfatID.keys():
+        dict_vfatID[int(event.vfatN)] = int(event.vfatID)
 
     if nTrig < 0:
         nTrig = event.Nev
@@ -97,6 +101,8 @@ dirVFATPlots = outF.mkdir("VFAT_Plots")
 myT = r.TTree('latFitTree','Tree Holding FitData')
 vfatN = array( 'i', [ 0 ] )
 myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
+vfatID = array( 'i', [-1] )
+myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
 hitCountMaxLat = array( 'i', [ 0 ] )
 myT.Branch( 'hitCountMaxLat', hitCountMaxLat, 'hitCountMaxLat/I' )
 hitCountMaxLatErr = array( 'i', [ 0 ] )
@@ -132,6 +138,7 @@ if options.debug and options.performFit:
 for vfat in dict_hVFATHitsVsLat:
     # Store VFAT info
     vfatN[0] = vfat
+    vfatID[0] = dict_vfatID[vfat]
 
     # Store Max Info
     hitCountMaxLat[0] = dict_hVFATHitsVsLat[vfat].GetBinContent(dict_hVFATHitsVsLat[vfat].GetMaximumBin())
