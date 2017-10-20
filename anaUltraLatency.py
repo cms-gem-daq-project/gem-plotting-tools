@@ -49,7 +49,7 @@ print 'Filling Histograms'
 latMin = 1000
 latMax = -1
 nTrig = -1
-dict_vfatID = {}
+dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
 listOfBranches = inF.latTree.GetListOfBranches()
 for event in inF.latTree:
     dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.lat,event.Nhits)
@@ -60,11 +60,11 @@ for event in inF.latTree:
         latMax = event.lat
         pass
 
-    if int(event.vfatN) not in dict_vfatID.keys():
+    if not (dict_vfatID[event.vfatN] > 0):
         if 'vfatID' in listOfBranches:
-            dict_vfatID[int(event.vfatN)] = int(event.vfatID)
+            dict_vfatID[event.vfatN] = event.vfatID
         else:
-            dict_vfatID[int(event.vfatN)] = 0
+            dict_vfatID[event.vfatN] = 0
 
     if nTrig < 0:
         nTrig = event.Nev
