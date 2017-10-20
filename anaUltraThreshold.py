@@ -95,13 +95,14 @@ for vfat in range(0,24):
 
 print 'Filling Histograms'
 trimRange = dict((vfat,0) for vfat in range(0,24))
-dict_vfatID = {}
+dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
 listOfBranches = inF.thrTree.GetListOfBranches()
 for event in inF.thrTree :
     strip = lookup_table[event.vfatN][event.vfatCH]
     pan_pin = pan_lookup[event.vfatN][event.vfatCH]
     trimRange[int(event.vfatN)] = int(event.trimRange)
-    if event.vfatN not in dict_vfatID.keys():
+    
+    if not (dict_vfatID[event.vfatN] > 0):
         if 'vfatID' in listOfBranches:
             dict_vfatID[event.vfatN] = event.vfatID
         else:
