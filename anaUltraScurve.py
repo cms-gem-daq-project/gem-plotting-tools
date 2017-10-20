@@ -188,7 +188,7 @@ if options.SaveFile:
 
 # Fill
 print("Filling Histograms")
-dict_vfatID = {}
+dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
 listOfBranches = inF.scurveTree.GetListOfBranches()
 for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
@@ -215,7 +215,7 @@ for event in inF.scurveTree:
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
     
-    if event.vfatN not in dict_vfatID.keys():
+    if not (dict_vfatID[event.vfatN] > 0):
         if 'vfatID' in listOfBranches:
             dict_vfatID[event.vfatN] = event.vfatID
         else:
