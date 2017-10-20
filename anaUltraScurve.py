@@ -189,6 +189,7 @@ if options.SaveFile:
 # Fill
 print("Filling Histograms")
 dict_vfatID = {}
+listOfBranches = inF.scurveTree.GetListOfBranches()
 for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
@@ -206,14 +207,20 @@ for event in inF.scurveTree:
             vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             pass
         pass
+    
     binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
     r.gStyle.SetOptStat(1111111)
     vthr_list[event.vfatN][event.vfatCH] = event.vthr
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
+    
     if event.vfatN not in dict_vfatID.keys():
-        dict_vfatID[event.vfatN] = event.vfatID
+        if 'vfatID' in listOfBranches:
+            dict_vfatID[event.vfatN] = event.vfatID
+        else:
+            dict_vfatID[event.vfatN] = 0
+
     if options.SaveFile:
         fitter.feed(event)
         pass

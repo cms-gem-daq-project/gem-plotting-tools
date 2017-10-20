@@ -50,6 +50,7 @@ latMin = 1000
 latMax = -1
 nTrig = -1
 dict_vfatID = {}
+listOfBranches = inF.latTree.GetListOfBranches()
 for event in inF.latTree:
     dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.lat,event.Nhits)
     if event.lat < latMin and event.Nhits > 0:
@@ -60,7 +61,10 @@ for event in inF.latTree:
         pass
 
     if int(event.vfatN) not in dict_vfatID.keys():
-        dict_vfatID[int(event.vfatN)] = int(event.vfatID)
+        if 'vfatID' in listOfBranches:
+            dict_vfatID[int(event.vfatN)] = int(event.vfatID)
+        else:
+            dict_vfatID[int(event.vfatN)] = 0
 
     if nTrig < 0:
         nTrig = event.Nev
