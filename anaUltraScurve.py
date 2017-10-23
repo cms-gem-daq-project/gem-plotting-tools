@@ -105,8 +105,8 @@ if options.SaveFile:
     myT.Branch( 'panPin', panPin, 'panPin/I' )
     trimRange = array( 'i', [ 0 ] )
     myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
-    vthr = array( 'i', [ 0 ] )
-    myT.Branch( 'vthr', vthr, 'vthr/I' )
+    vth1 = array( 'i', [ 0 ] )
+    myT.Branch( 'vth1', vth1, 'vth1/I' )
     trimDAC = array( 'i', [ 0 ] )
     myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
     threshold = array( 'f', [ 0 ] )
@@ -135,7 +135,7 @@ vSummaryPlotsPruned = ndict()
 vSummaryPlotsPrunedPanPin2 = ndict()
 vScurves = []
 vScurveFits = []
-vthr_list = []
+vth1_list = []
 trim_list = []
 trimrange_list = []
 lines = []
@@ -143,7 +143,7 @@ lines = []
 for vfat in range(0,24):
     vScurves.append([])
     vScurveFits.append([])
-    vthr_list.append([])
+    vth1_list.append([])
     trim_list.append([])
     trimrange_list.append([])
     if options.IsTrimmed:
@@ -174,7 +174,7 @@ for vfat in range(0,24):
     for chan in range (0,128):
         vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
         vScurveFits[vfat].append(r.TH1F())
-        vthr_list[vfat].append(0)
+        vth1_list[vfat].append(0)
         trim_list[vfat].append(0)
         trimrange_list[vfat].append(0)
         pass
@@ -206,7 +206,7 @@ for event in inF.scurveTree:
     binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
     r.gStyle.SetOptStat(1111111)
-    vthr_list[event.vfatN][event.vfatCH] = event.vthr
+    vth1_list[event.vfatN][event.vfatCH] = event.vth1
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
     if options.SaveFile:
@@ -329,7 +329,7 @@ if options.SaveFile:
             ROBstr[0] = strip
             panPin[0] = pan_pin
             trimRange[0] = trimrange_list[vfat][chan] 
-            vthr[0] = vthr_list[vfat][chan]
+            vth1[0] = vth1_list[vfat][chan]
             trimDAC[0] = trim_list[vfat][chan]
             threshold[0] = param0
             fitThr.append(vToQm*param0+vToQb)
