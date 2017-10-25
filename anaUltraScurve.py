@@ -144,6 +144,9 @@ if options.SaveFile:
     myT.Branch( 'ndf', ndf, 'ndf/I')
     Nhigh = array( 'i', [ 0 ] )
     myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
+    ztrim = array( 'i', [ 0 ] )
+    ztrim[0] = options.ztrim
+    myT.Branch( 'ztrim', ztrim, 'ztrim/I')
     pass
 
 vSummaryPlots = ndict()
@@ -305,7 +308,7 @@ if options.SaveFile:
             effectivePedestals[vfat][chan] = vScurveFits[vfat][chan].Eval(0.0)
             
             # Compute the value to apply MAD on for each channel
-            trimValue[chan] = threshold[0] - options.ztrim * noise[0]
+            trimValue[chan] = threshold[0] - ztrim[0] * noise[0]
             pass
         fitFailed = np.logical_not(fitter.fitValid[vfat])
         
@@ -379,10 +382,10 @@ if options.SaveFile:
             trimRange[0] = trimrange_list[vfat][chan] 
             vthr[0] = vthr_list[vfat][chan]
             trimDAC[0] = trim_list[vfat][chan]
-            threshold[0] = param0
+            threshold[0] = calDAC2Q_Slope[vfat]*param0+calDAC2Q_Intercept[vfat]
             fitThr.append(calDAC2Q_Slope[vfat]*param0+calDAC2Q_Intercept[vfat])
-            noise[0] = param1
-            fitENC.append(calDAC2Q_Slope[vfat]*param1*options.ztrim)
+            noise[0] = calDAC2Q_Slope[vfat]*param1
+            fitENC.append(calDAC2Q_Slope[vfat]*param1*ztrim[0])
             pedestal[0] = param2
             mask[0] = masks[vfat][chan]
             maskReason[0] = maskReasons[vfat][chan]
