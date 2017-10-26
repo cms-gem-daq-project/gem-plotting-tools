@@ -50,12 +50,12 @@ latMin = 1000
 latMax = -1
 nTrig = -1
 for event in inF.latTree:
-    dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.lat,event.Nhits)
-    if event.lat < latMin and event.Nhits > 0:
-        latMin = event.lat
+    dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.latency,event.Nhits)
+    if event.latency < latMin and event.Nhits > 0:
+        latMin = event.latency
         pass
-    elif event.lat > latMax:
-        latMax = event.lat
+    elif event.latency > latMax:
+        latMax = event.latency
         pass
 
     if nTrig < 0:
