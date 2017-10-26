@@ -10,7 +10,7 @@ parser.add_option("--vt1bump", type="int", dest="vt1bump", default=0,
 parser.add_option("--dataprefix", type="string", dest="data_prefix", default="/gemdata/",
                   help="Specify Data Prefix", metavar="data_prefix")
 parser.add_option("--scanType", type="string", dest="scanType", default="scurve",
-                  help="Specify Data Prefix", metavar="scanType")
+                  help="Specify Scan Type", metavar="scanType")
 
 (options, args) = parser.parse_args()
 
@@ -28,6 +28,7 @@ vt1bump = 'vt1bump'+str(options.vt1bump)
 data_prefix = options.data_prefix
 scanType = '/'+options.scanType+'/'
 template = options.tfilename
+elog_path = os.getenv("ELOG_PATH")
 
 print "Options: vt1bump=%s, template=%s, data_prefix=%s, scanType=%s"%(vt1bump, template, data_prefix, scanType)
 
@@ -39,21 +40,21 @@ def makeInputList(chamberName):
         fout.write(line.replace("GEMINI", chamberName)) 
 
 def makePlots(chamberName, vt1bump):
-  call_command = 'sudo -u gempro -i gemPlotter.py --infilename=/gemdata/'+chamberName+'/scurve/listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
+  call_command = 'sudo -u gempro -i gemPlotter.py --infilename='+data_prefix+chamberName+scanType+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i gemPlotter.py --infilename=/gemdata/'+chamberName+'/scurve/listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
+  call_command = 'sudo -u gempro -i gemPlotter.py --infilename='+data_prefix+chamberName+scanType+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i gemPlotter.py --infilename=/gemdata/'+chamberName+'/scurve/listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
+  call_command = 'sudo -u gempro -i gemPlotter.py --infilename='+data_prefix+chamberName+scanType+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i gemPlotter.py --infilename=/gemdata/'+chamberName+'/scurve/listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32'
+  call_command = 'sudo -u gempro -i gemPlotter.py --infilename='+data_prefix+chamberName+scanType+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i gemPlotter.py --infilename=/gemdata/'+chamberName+'/scurve/listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=vthr --alphaLabels -c -a'
+  call_command = 'sudo -u gempro -i gemPlotter.py --infilename='+data_prefix+chamberName+scanType+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=vthr --alphaLabels -c -a'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i mkdir -p /nfshome0/gempro/elog/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
+  call_command = 'sudo -u gempro -i mkdir -p '+elog_path+'/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i mv /nfshome0/gempro/elog/summary*.png /nfshome0/gempro/elog/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
+  call_command = 'sudo -u gempro -i mv '+elog_path+'/summary*.png '+elog_path+'/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
   os.system(call_command)
-  call_command = 'sudo -u gempro -i mv /nfshome0/gempro/elog/gemPlotter*.root /nfshome0/gempro/elog/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
+  call_command = 'sudo -u gempro -i mv '+elog_path+'/gemPlotter*.root '+elog_path+'/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
   os.system(call_command)
   
 def main():
