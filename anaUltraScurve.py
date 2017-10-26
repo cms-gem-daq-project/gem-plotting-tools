@@ -1,6 +1,8 @@
 #!/bin/env python
+
 import os
 import numpy as np
+import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
 from optparse import OptionParser
 from array import array
 from anautilities import *
@@ -14,6 +16,9 @@ from anaoptions import parser
 
 parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
                   help="Draw fit overlays for Chi2 > 10000", metavar="drawbad")
+parser.add_option("--calFile", type="string", dest="calFile", default=None,
+                  help="File specifying CAL_DAC/VCAL to fC equations per VFAT",
+                  metavar="calFile")
 parser.add_option("-f", "--fit", action="store_true", dest="SaveFile",
                   help="Save the Fit values to Root file", metavar="SaveFile")
 parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
@@ -28,9 +33,6 @@ os.system("mkdir " + filename)
 
 print filename
 outfilename = options.outfilename
-
-vToQb = -0.8
-vToQm = 0.05
 
 import ROOT as r
 r.gROOT.SetBatch(True)
@@ -56,6 +58,21 @@ for vfat in range(0,24):
         chanToPanPinLUT[vfat].append(0)
         pass
     pass
+
+calDAC2Q_Intercept = np.zeros(24)
+calDAC2Q_Slope = np.zeros(24)
+if options.calFile is not None:
+    list_bNames = ["vfatN","slope","intercept"]
+    calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
+    calTree.ReadFile(options.calFile)
+    array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
+
+    for dataPt in array_CalData:
+        calDAC2Q_Intercept[dataPt['vfatN']] = dataPt['intercept']
+        calDAC2Q_Slope[dataPt['vfatN']] = dataPt['slope']
+else:
+    calDAC2Q_Intercept = -0.8 * np.ones(24)
+    calDAC2Q_Slope = 0.05 * np.ones(24)
 
 from gempython.utils.wrappers import envCheck
 envCheck('GEM_PLOTTING_PROJECT')
@@ -105,8 +122,8 @@ if options.SaveFile:
     myT.Branch( 'panPin', panPin, 'panPin/I' )
     trimRange = array( 'i', [ 0 ] )
     myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
-    vth1 = array( 'i', [ 0 ] )
-    myT.Branch( 'vth1', vth1, 'vth1/I' )
+    vthr = array( 'i', [ 0 ] )
+    myT.Branch( 'vthr', vthr, 'vthr/I' )
     trimDAC = array( 'i', [ 0 ] )
     myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
     threshold = array( 'f', [ 0 ] )
@@ -127,6 +144,9 @@ if options.SaveFile:
     myT.Branch( 'ndf', ndf, 'ndf/I')
     Nhigh = array( 'i', [ 0 ] )
     myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
+    ztrim = array( 'i', [ 0 ] )
+    ztrim[0] = options.ztrim
+    myT.Branch( 'ztrim', ztrim, 'ztrim/I')
     pass
 
 vSummaryPlots = ndict()
@@ -135,7 +155,7 @@ vSummaryPlotsPruned = ndict()
 vSummaryPlotsPrunedPanPin2 = ndict()
 vScurves = []
 vScurveFits = []
-vth1_list = []
+vthr_list = []
 trim_list = []
 trimrange_list = []
 lines = []
@@ -143,38 +163,70 @@ lines = []
 for vfat in range(0,24):
     vScurves.append([])
     vScurveFits.append([])
-    vth1_list.append([])
+    vthr_list.append([])
     trim_list.append([])
     trimrange_list.append([])
     if options.IsTrimmed:
         lines.append(r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat]))
         pass
     if not (options.channels or options.PanPin):
-        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
+                'VFAT %i;Strip;VCal [fC]'%vfat,
+                128,-0.5,127.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,'VFAT %i;Strip;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,
+                'VFAT %i;Strip;VCal [fC]'%vfat,
+                128,-0.5,127.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     if options.channels:
-        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
+                'VFAT %i;Channels;VCal [fC]'%vfat,
+                128,-0.5,127.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,'VFAT %i;Channels;VCal [fC]'%vfat,128,-0.5,127.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,
+                'VFAT %i;Channels;VCal [fC]'%vfat,
+                128,-0.5,127.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     if options.PanPin:
-        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
+                'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
+                64,-0.5,63.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,
+                'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
+                64,-0.5,63.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
+                'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
+                64,-0.5,63.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSummaryPlotsPrunedPanPin2[vfat] = r.TH2D('vSummaryPlotsPrunedPanPin2_%i'%vfat,'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,64,-0.5,63.5,256,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        vSummaryPlotsPrunedPanPin2[vfat] = r.TH2D('vSummaryPlotsPrunedPanPin2_%i'%vfat,
+                'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
+                64,-0.5,63.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlotsPrunedPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
     for chan in range (0,128):
         vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
         vScurveFits[vfat].append(r.TH1F())
-        vth1_list[vfat].append(0)
+        vthr_list[vfat].append(0)
         trim_list[vfat].append(0)
         trimrange_list[vfat].append(0)
         pass
@@ -190,23 +242,23 @@ for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
     if not (options.channels or options.PanPin):
-        vSummaryPlots[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
+        vSummaryPlots[event.vfatN].Fill(strip,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
         pass
     if options.channels:
-        vSummaryPlots[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
+        vSummaryPlots[event.vfatN].Fill(event.vfatCH,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
         pass
     if options.PanPin:
         if (pan_pin < 64):
-            vSummaryPlots[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlots[event.vfatN].Fill(63-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
             pass
         else:
-            vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
             pass
         pass
     binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
     r.gStyle.SetOptStat(1111111)
-    vth1_list[event.vfatN][event.vfatCH] = event.vth1
+    vthr_list[event.vfatN][event.vfatCH] = event.vthr
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
     if options.SaveFile:
@@ -236,7 +288,6 @@ if options.SaveFile:
     pass
 
 # Determine hot channels
-import numpy as np
 if options.SaveFile:
     print("Determining hot channels")
     masks = []
@@ -257,7 +308,7 @@ if options.SaveFile:
             effectivePedestals[vfat][chan] = vScurveFits[vfat][chan].Eval(0.0)
             
             # Compute the value to apply MAD on for each channel
-            trimValue[chan] = threshold[0] - options.ztrim * noise[0]
+            trimValue[chan] = threshold[0] - ztrim[0] * noise[0]
             pass
         fitFailed = np.logical_not(fitter.fitValid[vfat])
         
@@ -290,14 +341,14 @@ if options.SaveFile:
         strip = chanToStripLUT[event.vfatN][event.vfatCH]
         pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
         if not (options.channels or options.PanPin):
-            vSummaryPlotsPruned[event.vfatN].Fill(strip,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlotsPruned[event.vfatN].Fill(strip,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
         if options.channels:
-            vSummaryPlotsPruned[event.vfatN].Fill(event.vfatCH,vToQm*event.vcal+vToQb,event.Nhits)
+            vSummaryPlotsPruned[event.vfatN].Fill(event.vfatCH,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
         if options.PanPin:
             if (pan_pin < 64):
-                vSummaryPlotsPruned[event.vfatN].Fill(63-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+                vSummaryPlotsPruned[event.vfatN].Fill(63-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
             else:
-                vSummaryPlotsPrunedPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
+                vSummaryPlotsPrunedPanPin2[event.vfatN].Fill(127-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
 
 # Store values in ROOT file
 if options.SaveFile:
@@ -329,12 +380,12 @@ if options.SaveFile:
             ROBstr[0] = strip
             panPin[0] = pan_pin
             trimRange[0] = trimrange_list[vfat][chan] 
-            vth1[0] = vth1_list[vfat][chan]
+            vthr[0] = vthr_list[vfat][chan]
             trimDAC[0] = trim_list[vfat][chan]
-            threshold[0] = param0
-            fitThr.append(vToQm*param0+vToQb)
-            noise[0] = param1
-            fitENC.append(vToQm*param1*options.ztrim)
+            threshold[0] = calDAC2Q_Slope[vfat]*param0+calDAC2Q_Intercept[vfat]
+            fitThr.append(calDAC2Q_Slope[vfat]*param0+calDAC2Q_Intercept[vfat])
+            noise[0] = calDAC2Q_Slope[vfat]*param1
+            fitENC.append(calDAC2Q_Slope[vfat]*param1*ztrim[0])
             pedestal[0] = param2
             mask[0] = masks[vfat][chan]
             maskReason[0] = maskReasons[vfat][chan]
