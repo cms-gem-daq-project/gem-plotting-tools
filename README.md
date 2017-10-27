@@ -198,7 +198,7 @@ Now run the script specifying vt1bump and path to the template above like this:
 
 resulting plots will be stored under
 ```
-/nfshome0/gempro/elog/timeSeriesPlots/<chamber name>/vt1bumpX/
+$ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
 ```
 
 #### gemPlotter.py Example: Making a 1D Plot - Channel Level
