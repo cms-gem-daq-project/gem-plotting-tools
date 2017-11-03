@@ -181,6 +181,26 @@ GEMINIp02L2 2019.09.05.07.11    GEMINIp02L2
 
 Here the `ChamberName` is different for each line and `--branchName` will be plotted against `Layer`.  Note since the **Indep. Variable Name** is not numeric the command line option `--alphaLabels` must be used.
 
+#### gemPlotter.py Example: Making a time series with plotTimeSeries.py
+Prepare the template with timestamps. It should look like this (note that the second and third columns are identical):
+
+```
+ChambeName	scandate	scandate
+GEMINI	2017.10.11.11.24	2017.10.11.10.59
+GEMINI	2017.10.13.13.37	2017.10.13.12.53
+GEMINI	2017.10.16.10.56	2017.10.16.10.34
+```
+
+Now run the script specifying vt1bump and path to the template above like this:
+```
+<path>/plotTimeSeries.py --vt1bump=10 -t listOfScanDates_gemPlotter_10-24Oct2017_vt1bump10.txt
+```
+
+resulting plots will be stored under
+```
+$ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
+```
+
 #### gemPlotter.py Example: Making a 1D Plot - Channel Level
 To make a 1D plot for a given strip of a given VFAT execute:
 
