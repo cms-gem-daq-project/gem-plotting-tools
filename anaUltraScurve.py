@@ -93,6 +93,8 @@ if options.IsTrimmed:
 if options.SaveFile:
     vfatN = array( 'i', [ 0 ] )
     myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
+    vfatID = array( 'i', [-1] )
+    myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
     vfatCH = array( 'i', [ 0 ] )
     myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
     ROBstr = array( 'i', [ 0 ] )
@@ -186,6 +188,8 @@ if options.SaveFile:
 
 # Fill
 print("Filling Histograms")
+dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
+listOfBranches = inF.scurveTree.GetListOfBranches()
 for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
@@ -203,12 +207,20 @@ for event in inF.scurveTree:
             vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,vToQm*event.vcal+vToQb,event.Nhits)
             pass
         pass
+    
     binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
     vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
     r.gStyle.SetOptStat(1111111)
     vth1_list[event.vfatN][event.vfatCH] = event.vth1
     trim_list[event.vfatN][event.vfatCH] = event.trimDAC
     trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
+    
+    if not (dict_vfatID[event.vfatN] > 0):
+        if 'vfatID' in listOfBranches:
+            dict_vfatID[event.vfatN] = event.vfatID
+        else:
+            dict_vfatID[event.vfatN] = 0
+
     if options.SaveFile:
         fitter.feed(event)
         pass
@@ -217,14 +229,15 @@ for event in inF.scurveTree:
 if options.SaveFile:
     print("Fitting Histograms")
     fitSummary = open(filename+'/fitSummary.txt','w')
-    fitSummary.write('vfatN/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
+    fitSummary.write('vfatN/I:vfatID/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
     scanFits = fitter.fit()
     for vfat in range(0,24):
         for chan in range(0,128):
             vScurveFits[vfat][chan]=fitter.getFunc(vfat,chan)
             fitSummary.write(
-                    '%i\t%i\t%f\t%f\t%f\t%f\n'%(
+                    '%i\t%i\t%i\t%f\t%f\t%f\t%f\n'%(
                         vfat,
+                        dict_vfatID[vfat],
                         chan,
                         vScurveFits[vfat][chan].GetParameter(0),
                         vScurveFits[vfat][chan].GetParameter(1),
@@ -325,6 +338,7 @@ if options.SaveFile:
             param2 = scanFits[2][vfat][chan]
             ped_eff[0] = effectivePedestals[vfat][chan]
             vfatN[0] = vfat
+            vfatID[0] = dict_vfatID[vfat]
             vfatCH[0] = chan
             ROBstr[0] = strip
             panPin[0] = pan_pin
@@ -426,10 +440,15 @@ if options.SaveFile:
 
 if options.SaveFile:
     confF = open(filename+'/chConfig.txt','w')
-    confF.write('vfatN/I:vfatCH/I:trimDAC/I:mask/I\n')
+    confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
     for vfat in range (0,24):
         for chan in range (0, 128):
-            confF.write('%i\t%i\t%i\t%i\n'%(vfat,chan,trim_list[vfat][chan],masks[vfat][chan]))
+            confF.write('%i\t%i\t%i\t%i\t%i\n'%(
+                vfat,
+                dict_vfatID[vfat],
+                chan,
+                trim_list[vfat][chan],
+                masks[vfat][chan]))
             pass
         pass
     confF.close()

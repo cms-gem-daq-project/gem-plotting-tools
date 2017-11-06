@@ -95,10 +95,18 @@ for vfat in range(0,24):
 
 print 'Filling Histograms'
 trimRange = dict((vfat,0) for vfat in range(0,24))
+dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
+listOfBranches = inF.thrTree.GetListOfBranches()
 for event in inF.thrTree :
     strip = lookup_table[event.vfatN][event.vfatCH]
     pan_pin = pan_lookup[event.vfatN][event.vfatCH]
     trimRange[int(event.vfatN)] = int(event.trimRange)
+    
+    if not (dict_vfatID[event.vfatN] > 0):
+        if 'vfatID' in listOfBranches:
+            dict_vfatID[event.vfatN] = event.vfatID
+        else:
+            dict_vfatID[event.vfatN] = 0
 
     if options.channels:
         vSum[event.vfatN].Fill(event.vfatCH,event.vth1,event.Nhits)
@@ -287,9 +295,9 @@ print "vt1:"
 print vt1
 
 txt_vfat = open(filename+"/vfatConfig.txt", 'w')
-txt_vfat.write("vfatN/I:vt1/I:trimRange/I\n")
+txt_vfat.write("vfatN/I:vfatID/I:vt1/I:trimRange/I\n")
 for vfat in range(0,24):
-    txt_vfat.write('%i\t%i\t%i\n'%(vfat, vt1[vfat],trimRange[vfat]))
+    txt_vfat.write('%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],vt1[vfat],trimRange[vfat]))
     pass
 txt_vfat.close()
 
@@ -302,20 +310,20 @@ outF.Close()
 #Update channel registers configuration file
 if options.chConfigKnown:
     confF = open(filename+'/chConfig_MasksUpdated.txt','w')
-    confF.write('vfatN/I:vfatCH/I:trimDAC/I:mask/I\n')
+    confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
 
     if options.debug:
-        print 'vfatN/I:vfatCH/I:trimDAC/I:mask/I\n'
+        print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
         pass
 
     for vfat in range (0,24):
         for j in range (0, 128):
             chan = vfatCh_lookup[vfat][j]
             if options.debug:
-                print '%i\t%i\t%i\t%i\n'%(vfat,chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask']))
+                print '%i\t%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask']))
                 pass
 
-            confF.write('%i\t%i\t%i\t%i\n'%(vfat,chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask'])))
+            confF.write('%i\t%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask'])))
             pass
         pass
 
