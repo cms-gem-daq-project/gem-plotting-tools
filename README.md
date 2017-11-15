@@ -16,7 +16,7 @@ Table of Contents
          * [gemPlotter.py](#gemplotterpy)
             * [gemPlotter.py Arguments](#gemplotterpy-arguments)
             * [gemPlotter.py Input File](#gemplotterpy-input-file)
-            * [gemPlotter.py Example: Making a time series with plotTimeSeries.py](#gemPlotterpy-example-making-a-time-series-with-plottimeseriespy)
+            * [gemPlotter.py Example: Making a time series with plotTimeSeries.py](#gemplotterpy-example-making-a-time-series-with-plottimeseriespy)
             * [gemPlotter.py Example: Making a 1D Plot - Channel Level](#gemplotterpy-example-making-a-1d-plot---channel-level)
             * [gemPlotter.py Example: Making a 1D Plot - VFAT Level](#gemplotterpy-example-making-a-1d-plot---vfat-level)
             * [gemPlotter.py Example: Making a 2D Plot](#gemplotterpy-example-making-a-2d-plot)
