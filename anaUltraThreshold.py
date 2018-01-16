@@ -162,7 +162,8 @@ if options.chConfigKnown:
         list_bNames.append("ROBstr")
         pass
     elif options.channels:
-        list_bNames.append("vfatCh")
+        #list_bNames.append("vfatCh")
+        list_bNames.append("vfatCH")
         pass
     elif options.PanPin:
         list_bNames.append("panPin")
