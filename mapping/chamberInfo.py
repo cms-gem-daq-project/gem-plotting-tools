@@ -56,4 +56,27 @@ chamber_vfatDACSettings = {
     # For changing VFAT DAC settings from defaults shown in vfat_user_functions.py
     # add a line to this dictionary with the following syntax:
     #    <gtx #>: {"IPreampIn": <val>, "IPreampFeed": <val>, "IPreampOut": <val>, "IShaper": <val>, "IShaperFeed": <val>, "IComp": <val>}
+        0:{
+            #Ensure the cal pulse is off
+            "CFG_CAL_MODE":0,
+            #Correct the bug in the shaper
+            "CFG_PT":3,
+            #Updated DAC settings from Flavio
+            "CFG_BIAS_SH_I_BDIFF":150,
+            "CFG_BIAS_SH_I_BFCAS":250,
+            "CFG_BIAS_SD_I_BDIFF":255,
+            "CFG_BIAS_SD_I_BFCAS":255,
+            #Medium VFAT3 preamp gain
+            "CFG_RES_PRE":2,
+            "CFG_CAP_PRE":1,
+            #Comparator Mode - CFD
+            #"CFG_SEL_COMP_MODE":0,
+            #"CFG_FORCE_EN_ZCC":0
+            #Comparator Mode - ARM
+            "CFG_SEL_COMP_MODE":1,
+            "CFG_FORCE_EN_ZCC":0
+            #Comparator Mode - ZCC
+            #"CFG_SEL_COMP_MODE":2,
+            #"CFG_FORCE_EN_ZCC":1
+            }
     }
