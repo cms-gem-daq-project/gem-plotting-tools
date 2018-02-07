@@ -19,5 +19,5 @@ parser.add_option("--scandatetrim", type="string", dest="scandatetrim", default=
                   help="Specify the scan date of the trim run that corresponds to the chConfig.txt used in scandate", metavar="scandatetrim")
 parser.add_option("-t", "--type", type="string", dest="GEBtype", default="long",
                   help="Specify GEB (long/short)", metavar="GEBtype")
-parser.add_option("--ztrim", type="float", dest="ztrim", default=0.0,
+parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
                   help="Specify the p value of the trim", metavar="ztrim")

@@ -36,7 +36,7 @@ GEBtype = {
 
 chamber_vfatMask = {
     #Coffin Setup
-    #0:0x"
+    #0:0x0
     #Cosmic Stand
     #0:0xF40400
     #Point 5
@@ -52,20 +52,8 @@ chamber_vfatMask = {
     9:0x0
     }
     
-chamber_vfatDACSettings = {
-    #Coffin Setup
-    #0: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    #Cosmic Stand
-    #0: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    #Point 5
-    0: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    1: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    2: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    3: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    4: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    5: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    6: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    7: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    8: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,},
-    9: {"IPreampIn": 168, "IPreampFeed": 80, "IPreampOut": 150, "IShaper": 150, "IShaperFeed": 100, "IComp": 90,}
+chamber_vfatDACSettings = {    
+    # For changing VFAT DAC settings from defaults shown in vfat_user_functions.py
+    # add a line to this dictionary with the following syntax:
+    #    <gtx #>: {"IPreampIn": <val>, "IPreampFeed": <val>, "IPreampOut": <val>, "IShaper": <val>, "IShaperFeed": <val>, "IComp": <val>}
     }
