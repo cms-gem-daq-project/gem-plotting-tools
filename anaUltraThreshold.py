@@ -13,6 +13,8 @@ parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree"
                   help="TFile containing scurveFitTree", metavar="fileScurveFitTree")
 parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                   help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
+parser.add_option("--pervfat", action="store_true", dest="pervfat",
+                  help="Analysis for a per-VFAT scan (default is per-channel)", metavar="pervfat")
 
 parser.set_defaults(outfilename="ThresholdPlots.root")
 
@@ -62,7 +64,7 @@ for i, line in enumerate(intext):
     mapping = line.rsplit('\t')
     lookup_table[int(mapping[0])][int(mapping[2]) -1] = int(mapping[1])
     pan_lookup[int(mapping[0])][int(mapping[2]) -1] = int(mapping[3])
-    
+
     if not (options.channels or options.PanPin):     #Readout Strips
         vfatCh_lookup[int(mapping[0])][int(mapping[1])]=int(mapping[2]) - 1
         pass
@@ -101,7 +103,7 @@ for event in inF.thrTree :
     strip = lookup_table[event.vfatN][event.vfatCH]
     pan_pin = pan_lookup[event.vfatN][event.vfatCH]
     trimRange[int(event.vfatN)] = int(event.trimRange)
-    
+
     if not (dict_vfatID[event.vfatN] > 0):
         if 'vfatID' in listOfBranches:
             dict_vfatID[event.vfatN] = event.vfatID
@@ -133,8 +135,9 @@ for vfat in range(0,24):
     #For each channel determine the maximum thresholds
     chanMaxVT1 = np.zeros((2,vSum[vfat].GetNbinsX()))
     for chan in range(0,vSum[vfat].GetNbinsX()):
-        for thresh in range(vSum[vfat].ProjectionY("projY",chan,chan,"").GetMaximumBin(),VT1_MAX+1):
-            if(vSum[vfat].ProjectionY("projY",chan,chan,"").GetBinContent(thresh) == 0):
+        chanProj = vSum[vfat].ProjectionY("projY",chan,chan,"")
+        for thresh in range(chanProj.GetMaximumBin(),VT1_MAX+1):
+            if(chanProj.GetBinContent(thresh) == 0):
                 chanMaxVT1[0][chan]=chan
                 chanMaxVT1[1][chan]=(thresh-1)
                 dict_hMaxVT1[vfat].Fill(thresh-1)
@@ -146,7 +149,7 @@ for vfat in range(0,24):
     chanOutliers = isOutlierMADOneSided(chanMaxVT1[1,:], thresh=options.zscore)
     for chan in range(0,len(chanOutliers)):
         hot_channels[vfat][chan] = chanOutliers[chan]
-        
+
         if not chanOutliers[chan]:
             dict_hMaxVT1_NoOutlier[vfat].Fill(chanMaxVT1[1][chan])
             pass
@@ -197,7 +200,7 @@ outF.cd()
 canv = r.TCanvas('canv','canv',500*8,500*3)
 canv.Divide(8,3)
 r.gStyle.SetOptStat(0)
-print 'Saving File'
+print 'Saving Thresh Summary File'
 for vfat in range(0,24):
     r.gStyle.SetOptStat(0)
     canv.cd(vfat+1)
@@ -209,12 +212,13 @@ canv.SaveAs(filename+'/ThreshSummary.png')
 canv_proj = r.TCanvas('canv_proj', 'canv_proj', 500*8, 500*3)
 canv_proj.Divide(8,3)
 r.gStyle.SetOptStat(0)
-print 'Saving File'
+print 'Saving VFAT Summary File'
 for vfat in range(0,24):
     r.gStyle.SetOptStat(0)
     canv_proj.cd(vfat+1)
     r.gPad.SetLogy()
-    vSum[vfat].ProjectionY().Draw()
+    proj = vSum[vfat].ProjectionY()
+    proj.Draw()
     pass
 canv_proj.SaveAs(filename+'/VFATSummary.png')
 
@@ -233,19 +237,22 @@ for vfat in range(0,24):
 canv_vt1Max.SaveAs(filename+'/VT1MaxSummary.png')
 
 #Subtracting off the hot channels, so the projection shows only usable ones.
-print "Subtracting off hot channels"
-for vfat in range(0,24):
-    for chan in range(0,vSum[vfat].GetNbinsX()):
-        isHotChan = hot_channels[vfat][chan]
-       
-        if options.chConfigKnown:
-            isHotChan = (isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask'])
-            pass
+if not options.pervfat:
+    print "Subtracting off hot channels"
+    for vfat in range(0,24):
+        for chan in range(0,vSum[vfat].GetNbinsX()):
+            isHotChan = hot_channels[vfat][chan]
 
-        if isHotChan:
-            print 'VFAT %i Strip %i is noisy'%(vfat,chan)
-            for thresh in range(VT1_MAX+1):
-                vSum[vfat].SetBinContent(chan, thresh, 0)
+            if options.chConfigKnown:
+                isHotChan = (isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask'])
+                pass
+
+            if isHotChan:
+                print 'VFAT %i Strip %i is noisy'%(vfat,chan)
+                for thresh in range(VT1_MAX+1):
+                    vSum[vfat].SetBinContent(chan, thresh, 0)
+                    # vSum[vfat].SetBinError(chan, thresh, 0)
+                    pass
                 pass
             pass
         pass
@@ -255,7 +262,7 @@ for vfat in range(0,24):
 canv_pruned = r.TCanvas('canv_pruned','canv_pruned',500*8,500*3)
 canv_pruned.Divide(8,3)
 r.gStyle.SetOptStat(0)
-print 'Saving File'
+print 'Saving Pruned File'
 for vfat in range(0,24):
     r.gStyle.SetOptStat(0)
     canv_pruned.cd(vfat+1)
@@ -267,22 +274,26 @@ canv_pruned.SaveAs(filename+'/ThreshPrunedSummary.png')
 canv_proj = r.TCanvas('canv_proj_pruned', 'canv_proj_pruned', 500*8, 500*3)
 canv_proj.Divide(8,3)
 r.gStyle.SetOptStat(0)
-print 'Saving File'
+print 'Saving Pruned Projection File'
 for vfat in range(0,24):
     r.gStyle.SetOptStat(0)
     canv_proj.cd(vfat+1)
     r.gPad.SetLogy()
-    vSum[vfat].ProjectionY().Draw()
-    vSum[vfat].ProjectionY("h_VT1_VFAT%i"%vfat).Write()
+    proj = vSum[vfat].ProjectionY("h_VT1_VFAT%i"%vfat)
+    proj.Draw()
+    proj.Write()
     pass
 canv_proj.SaveAs(filename+'/VFATPrunedSummary.png')
 
 #Now determine what VT1 to use for configuration.  The first threshold bin with no entries for now.
 #Make a text file readable by TTree::ReadFile
+print 'Determining the VT1 values for each VFAT'
 vt1 = dict((vfat,0) for vfat in range(0,24))
 for vfat in range(0,24):
+    proj = vSum[vfat].ProjectionY()
+    proj.Draw()
     for thresh in range(VT1_MAX+1,0,-1):
-        if (vSum[vfat].ProjectionY().GetBinContent(thresh+1)) > 10.0:
+        if (proj.GetBinContent(thresh+1)) > 10.0:
             print 'vt1 for VFAT %i found'%vfat
             vt1[vfat]=(thresh+1)
             break
