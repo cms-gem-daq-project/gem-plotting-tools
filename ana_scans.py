@@ -74,7 +74,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     postCmds.append(["cp","%s/SCurveData/chConfig.txt"%(dirPath),
                  "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
-  elif anaType == "threshold":
+  elif "threshold" in anaType:
     dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
@@ -163,7 +163,7 @@ if __name__ == '__main__':
   from anaoptions import parser
 
   parser.add_option("--anaType", type="string", dest="anaType",
-                    help="Analysis type to be executed, from list {'latency','scurve','threshold','trim'}", metavar="anaType")
+                    help="Analysis type to be executed, from list {'latency','scurve','thresholdch','thresholdvftrig','thresholdvftrk','trim'}", metavar="anaType")
   parser.add_option("--latFit", action="store_true", dest="performLatFit",
                     help="Fit the latency distributions", metavar="performLatFit")
   parser.add_option("--latSigRange", type="string", dest="latSigRange", default=None,
