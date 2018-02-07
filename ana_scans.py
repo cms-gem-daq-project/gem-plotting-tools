@@ -74,7 +74,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     postCmds.append(["cp","%s/SCurveData/chConfig.txt"%(dirPath),
                  "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
-  elif "threshold" in anaType:
+  elif anaType == "threshold":
     dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
@@ -83,7 +83,9 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
 
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("ThresholdPlots.root"))
-   
+    if "thresholdvf" in anaType:
+      cmd.append("--pervfat")
+
     if chConfigKnown:
       cmd.append("--chConfigKnown")
       #dirPath_Trim = "%s/%s/trim/z%f/%s/SCurveData_Trimmed/"%(dataPath,cName,ztrim,scandatetrim)
