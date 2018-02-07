@@ -18,7 +18,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   #dataPath  = os.getenv('DATA_PATH')
   dirPath   = getDirByAnaType(anaType, cName, ztrim)
   elogPath  = "%s/%s"%(os.getenv('ELOG_PATH'),scandate)
-    
+
   print "Analysis Requested: %s"%(anaType)
 
   #Build Commands
@@ -31,10 +31,10 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     if not os.path.isfile(filename):
       print "No file to analyze. %s does not exist"%(filename)
       return os.EX_NOINPUT
-    
+
     cmd.append("--infilename=%s"%(filename))
     cmd.append("--outfilename=%s"%("latencyAna.root"))
-    
+
     if latFit:
         cmd.append("--fit")
         cmd.append("--latSigMaskRange=%s"%(latSigMaskRange))
@@ -74,7 +74,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     postCmds.append(["cp","%s/SCurveData/chConfig.txt"%(dirPath),
                  "%s/chConfig_%s_ztrim%2.2f.txt"%(elogPath,cName,ztrim)])
     pass
-  elif anaType == "threshold":
+  elif "threshold" in anaType:
     dirPath = "%s/%s/"%(dirPath,scandate)
     filename = dirPath + "ThresholdScanData.root"
     if not os.path.isfile(filename):
@@ -88,13 +88,13 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
 
     if chConfigKnown:
       cmd.append("--chConfigKnown")
-      #dirPath_Trim = "%s/%s/trim/z%f/%s/SCurveData_Trimmed/"%(dataPath,cName,ztrim,scandatetrim)
+      # dirPath_Trim = "%s/%s/trim/z%f/%s/SCurveData_Trimmed/"%(dataPath,cName,ztrim,scandatetrim)
       dirPath_Trim = "%s/%s/SCurveData_Trimmed/"%(getDirByAnaType("trim", cName, ztrim),scandatetrim)
       filename_Trim = dirPath_Trim + "SCurveFitData.root"
       if not os.path.isfile(filename_Trim):
         print "No scurve fit data file to analyze. %s does not exist"%(filename_Trim)
         return os.EX_NOINPUT
-      
+
       cmd.append("--fileScurveFitTree=%s"%(filename_Trim))
       pass
 
@@ -126,7 +126,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
     if panasonic:
         cmd.append("--panasonic")
         pass
-        
+
     postCmds.append(["cp","%s/SCurveData_Trimmed/Summary.png"%(dirPath),
                  "%s/SCurveSummaryTrimmed_%s_ztrim%2.2f.png"%(elogPath,cName,ztrim)])
     postCmds.append(["cp","%s/SCurveData_Trimmed/chConfig.txt"%(dirPath),
@@ -136,7 +136,7 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   #Execute Commands
   try:
     log = file("%s/anaLog.log"%(dirPath),"w")
- 
+
     returncode = runCommand(cmd,log)
     if returncode != 0:
       print "Error: command exited with non-zero code %d" % returncode
@@ -171,7 +171,7 @@ if __name__ == '__main__':
   parser.add_option("--latSigRange", type="string", dest="latSigRange", default=None,
                     help="Comma separated pair of values defining expected signal range, e.g. lat #epsilon [41,43] is signal", metavar="latSigRange")
   parser.add_option("--latSigMaskRange", type="string", dest="latSigMaskRange", default=None,
-                    help="Comma separated pair of values defining the region to be masked when trying to fit the noise, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)", 
+                    help="Comma separated pair of values defining the region to be masked when trying to fit the noise, e.g. lat #notepsilon [40,44] is noise (lat < 40 || lat > 44)",
                     metavar="latSigMaskRange")
   parser.add_option("--series", action="store_true", dest="series",
                     help="Run tests in series (default is false)", metavar="series")
