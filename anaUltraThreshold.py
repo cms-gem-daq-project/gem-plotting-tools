@@ -24,6 +24,7 @@ print filename
 outfilename = options.outfilename
 
 import ROOT as r
+r.TH1.SetDefaultSumw2(False)
 r.gROOT.SetBatch(True)
 GEBtype = options.GEBtype
 inF = r.TFile(filename+'.root')
