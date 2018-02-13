@@ -57,8 +57,12 @@ chamber_vfatDACSettings = {
     # add a line to this dictionary with the following syntax:
     #    <gtx #>: {"IPreampIn": <val>, "IPreampFeed": <val>, "IPreampOut": <val>, "IShaper": <val>, "IShaperFeed": <val>, "IComp": <val>}
         0:{
+            #Pulse Stertch
+            "CFG_PULSE_STRETCH":4,
             #Ensure the cal pulse is off
             "CFG_CAL_MODE":0,
+            #Set the Latency - 10x10 PMT on R&D Setup
+            "CFG_LATENCY":98,
             #Correct the bug in the shaper
             "CFG_PT":3,
             #Updated DAC settings from Flavio
@@ -66,15 +70,23 @@ chamber_vfatDACSettings = {
             "CFG_BIAS_SH_I_BFCAS":250,
             "CFG_BIAS_SD_I_BDIFF":255,
             "CFG_BIAS_SD_I_BFCAS":255,
+            #Provide a slight offset to the ZCC comparator baseline voltage
+            "CFG_THR_ZCC_DAC":10,
+            #High VFAT3 preamp gain
+            #"CFG_RES_PRE":1,
+            #"CFG_CAP_PRE":0,
             #Medium VFAT3 preamp gain
             "CFG_RES_PRE":2,
             "CFG_CAP_PRE":1,
+            #Low VFAT3 preamp gain
+            #"CFG_RES_PRE":4,
+            #"CFG_CAP_PRE":3,
             #Comparator Mode - CFD
-            #"CFG_SEL_COMP_MODE":0,
-            #"CFG_FORCE_EN_ZCC":0
-            #Comparator Mode - ARM
-            "CFG_SEL_COMP_MODE":1,
+            "CFG_SEL_COMP_MODE":0,
             "CFG_FORCE_EN_ZCC":0
+            #Comparator Mode - ARM
+            #"CFG_SEL_COMP_MODE":1,
+            #"CFG_FORCE_EN_ZCC":0
             #Comparator Mode - ZCC
             #"CFG_SEL_COMP_MODE":2,
             #"CFG_FORCE_EN_ZCC":1
