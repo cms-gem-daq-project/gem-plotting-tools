@@ -43,8 +43,12 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         dirPath = "%s/%s/%s/trk/"%(dataPath,cName,anaType)
     elif anaType == "scurve":
         dirPath = "%s/%s/%s/"%(dataPath,cName,anaType)
-    elif anaType == "threshold":
-        dirPath = "%s/%s/%s/channel/"%(dataPath,cName,anaType)
+    elif anaType == "thresholdch":
+        dirPath = "%s/%s/%s/channel/"%(dataPath,cName,"threshold")
+    elif anaType == "thresholdvftrig":
+        dirPath = "%s/%s/%s/vfat/trig/"%(dataPath,cName,"threshold")
+    elif anaType == "thresholdvftrk":
+        dirPath = "%s/%s/%s/vfat/trk/"%(dataPath,cName,"threshold")
     elif anaType == "trim":
         dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
 
