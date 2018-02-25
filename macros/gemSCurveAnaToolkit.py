@@ -89,7 +89,7 @@ if __name__ == '__main__':
                 fit_filename=filename,
                 vfatChNotROBstr=options.channels
                 )
-        
+
         # Rename the image of the canvas
         strChanOrStrip = "Chan"
         if not options.channels:
