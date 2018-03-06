@@ -1,5 +1,6 @@
 # Ignore everything
 *
+
 # Don't ignore git settings
 !*.gitignore
 !*.gitattributes
