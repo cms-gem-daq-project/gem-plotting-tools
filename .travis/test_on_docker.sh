@@ -18,7 +18,7 @@ yum -y install root root-\*
 
 uname -a
 
-export BUILD_HOME=$PWD
+export BUILD_HOME=/home/daqbuild
 
 cd ${BUILD_HOME}/gem-plotting-tools
 
