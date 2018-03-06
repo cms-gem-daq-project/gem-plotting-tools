@@ -1,12 +1,22 @@
 # Ignore everything
 *
+# Don't ignore git settings
+!*.gitignore
+!*.gitattributes
+
+# Don't ignore special files
+!*.md
+!*.rst
+
 # Don't ignore subdirectories
 !*/
-# Don't ignore source files, etc
-!*.gitignore
-!*.cc
-!*.C
-!*.h
+
+# Don't ignore python
 !*.py
-# ignore __init__.py files
-__init__.py
+
+#Don't ignore requirements.txt
+!requirements.txt
+
+#Don't ignore select scripts
+!macros/gemPlotterAllChannels.sh
+!setup/paths.sh
