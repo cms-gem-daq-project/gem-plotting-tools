@@ -1,6 +1,6 @@
 sudo: required
 
-language: cpp
+language: generic
 
 env:
   matrix:
@@ -29,9 +29,13 @@ before_install:
   - sudo apt-get update
   - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
   - sudo service docker restart
-  - sleep 1
+  - sleep 2
   - docker pull $DOCKER_IMAGE
   - docker ps -al
   
 script:
   - ./.travis/docker.sh ${OS_VERSION} ${PY_VER}
+
+after_success:
+  bash <(curl -s https://codecov.io/bash) &&
+  echo "Uploaded code coverage"
