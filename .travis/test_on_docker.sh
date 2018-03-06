@@ -27,7 +27,7 @@ echo Trying to test with ${pyexec}
 
 if [ -f "$pyexec" ]
 then
-    virtualenv ~/virtualenvs/${PY_VER} -p ${pyver} --system-site-packages
+    virtualenv ~/virtualenvs/${PY_VER} -p ${pyexec} --system-site-packages
     . ~/virtualenvs/${PY_VER}/bin/activate
     pip install -r requirements.txt
     pip install codecov

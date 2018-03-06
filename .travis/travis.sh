@@ -14,9 +14,9 @@ then
     docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
     # docker_image=cern/slc6-base
     ls -lZ
-    sudo docker run --rm=true -v `pwd`:/gem-plotting-tools:rw --entrypoint="/bin/bash" \
-         ${docker_image} -xec "echo Testing build on slc6;
-  . /gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER};
+    sudo docker run --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw --entrypoint="/bin/bash" \
+         ${docker_image} -ec "echo Testing build on slc6;
+  . /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER};
   echo -ne \"------\nEND gem-plotting-tools TESTS\n\";"
 elif [ "$el_version" = "7" ]
 then
@@ -25,11 +25,11 @@ then
     # docker_image=cern/cc7-base
     ls -lZ
     docker run --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
-           -v `pwd`:/gem-plotting-tools:rw $docker_image /usr/sbin/init
+           -v `pwd`:/home/daqbuild/gem-plotting-tools:rw $docker_image /usr/sbin/init
     DOCKER_CONTAINER_ID=$(docker ps | grep "gemdaq_ci_worker:cc7" | awk '{print $1}')
     docker logs $DOCKER_CONTAINER_ID
-    docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -xec "echo Testing build on cc7;
-  . /gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER};
+    docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Testing build on cc7;
+  . /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER};
   echo -ne \"------\nEND gem-plotting-tools TESTS\n\";"
     docker ps -a
     docker stop $DOCKER_CONTAINER_ID
