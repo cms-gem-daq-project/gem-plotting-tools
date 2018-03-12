@@ -107,7 +107,7 @@ if __name__ == '__main__':
     from gemplotting.anaInfo import tree_names
     from gemplotting.anautilities import filePathExists, getDirByAnaType
     from gempython.utils.wrappers import envCheck
-    from gemplotting.macros.plotoptions import parser
+    from plotoptions import parser
     
     import array
     import os

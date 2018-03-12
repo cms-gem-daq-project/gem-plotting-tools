@@ -6,8 +6,8 @@ if __name__ == '__main__':
     from gemplotting.anaInfo import tree_names
     from gemplotting.anautilities import filePathExists, getDirByAnaType
     from gempython.utils.wrappers import envCheck, runCommand
-    from gemplotting.macros.plotoptions import parser
-    from gemplotting.macros.scurvePlottingUtitilities import overlay_scurve
+    from plotoptions import parser
+    from scurvePlottingUtitilities import overlay_scurve
    
     import os
     import ROOT as r

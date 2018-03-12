@@ -22,8 +22,7 @@ def filePathExists(searchPath, subPath=None, debug=False):
         return True
 
 def getDirByAnaType(anaType, cName, ztrim=4):
-    import gempython.gemplotting as gemplotting
-    from gemplotting.anaInfo import ana_config
+    from anaInfo import ana_config
     
     import os
 

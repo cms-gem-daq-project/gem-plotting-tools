@@ -178,10 +178,12 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     return listData
 
 if __name__ == '__main__':
-    from anaInfo import tree_names
-    from gempython.utils.wrappers import envCheck
-    from macros.plotoptions import parser
+    import gempython.gemplotting as gemplotting
     
+    from gemplotting.anaInfo import tree_names
+    from gempython.utils.wrappers import envCheck
+    from plotoptions import parser
+
     import array
     import numpy as np
     import os

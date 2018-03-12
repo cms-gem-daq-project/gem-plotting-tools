@@ -1,10 +1,9 @@
 #!/bin/env python
 
 import os
-import gempython.gemplotting as gemplotting
 
 from gempython.utils.nesteddict import nesteddict as ndict    
-from gemplotting.macros.plotoptions import parser
+from plotoptions import parser
 
 parser.add_option("-a","--all", action="store_true", dest="all_plots",
                   help="Make all plots", metavar="all_plots")
