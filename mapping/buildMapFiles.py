@@ -1,6 +1,9 @@
 import os
-from mapping.channelMaps import *
-from mapping.PanChannelMaps import *
+
+import gempython.gemplotting as gemplotting
+    
+from gemplotting.mapping.channelMaps import *
+from gemplotting.mapping.PanChannelMaps import *
 
 from gempython.utils.wrappers import envCheck
 envCheck('GEM_PLOTTING_PROJECT')

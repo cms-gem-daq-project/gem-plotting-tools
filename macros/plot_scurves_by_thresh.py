@@ -1,4 +1,6 @@
-from macros.plotoptions import parser
+import gempython.gemplotting as gemplotting
+    
+from gemplotting.macros.plotoptions import parser
 
 (options, args) = parser.parse_args()
 

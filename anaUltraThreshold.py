@@ -3,11 +3,14 @@ import os
 import sys
 from optparse import OptionParser
 from array import array
-from mapping.channelMaps import *
-from mapping.PanChannelMaps import *
+
+import gempython.gemplotting as gemplotting
+
+from gemplotting.mapping.channelMaps import *
+from gemplotting.mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
-from anaoptions import parser
+from gemplotting.anaoptions import parser
 
 parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree", default="SCurveFitData.root",
                   help="TFile containing scurveFitTree", metavar="fileScurveFitTree")
@@ -123,7 +126,7 @@ for event in inF.thrTree :
 
 #Determine Hot Channels
 print 'Determining hot channels'
-from anautilities import *
+from gemplotting.anautilities import *
 import numpy as np
 import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
 dict_hMaxVT1 = {}

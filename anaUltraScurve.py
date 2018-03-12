@@ -3,14 +3,17 @@ import os
 import numpy as np
 from optparse import OptionParser
 from array import array
-from anautilities import *
-from anaInfo import *
-from fitting.fitScanData import *
-from mapping.channelMaps import *
-from mapping.PanChannelMaps import *
+
+import gempython.gemplotting as gemplotting
+
+from gemplotting.anautilities import *
+from gemplotting.anaInfo import *
+from gemplotting.fitting.fitScanData import *
+from gemplotting.mapping.channelMaps import *
+from gemplotting.mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
-from anaoptions import parser
+from gemplotting.anaoptions import parser
 
 parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
                   help="Draw fit overlays for Chi2 > 10000", metavar="drawbad")
