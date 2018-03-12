@@ -26,28 +26,28 @@ cd ${BUILD_HOME}/gem-plotting-tools
 pyexec=$(which ${PY_VER})
 echo Trying to test with ${pyexec}
 
-python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
-python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
-# if [ ${OS_VERSION}="6" ]
-# then
-pip install --user importlib
-# fi
-
-pip install --upgrade --user setuptools
-
-python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
-python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
-
-make
-
-make rpm
-
 if [ -f "$pyexec" ]
 then
     virtualenv ~/virtualenvs/${PY_VER} -p ${pyexec} --system-site-packages
     . ~/virtualenvs/${PY_VER}/bin/activate
     pip install -r requirements.txt
     pip install codecov
+    python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
+    python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
+    # if [ ${OS_VERSION}="6" ]
+    # then
+    pip install --user importlib
+    # fi
+
+    pip install --upgrade setuptools
+
+    python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
+    python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
+
+    make
+
+    make rpm
+
     coverage run python
     codecov
     bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
