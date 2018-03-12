@@ -28,8 +28,12 @@ echo Trying to test with ${pyexec}
 
 python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
 python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
+# if [ ${OS_VERSION}="6" ]
+# then
+pip install --user importlib
+# fi
 
-pip install --upgrade --user setuptools pip
+pip install --upgrade --user setuptools
 
 python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
 python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
