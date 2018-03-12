@@ -32,24 +32,20 @@ include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
 
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
 
-# need to ensure that the python only stuff is packaged into RPMs
-.PHONY: clean preprpm
 default:
 	$(MakeDir) $(PackageDir)
 	@cp -rfp macros fitting mapping $(PackageDir)
 	@echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > pkg/$(Namespace)/__init__.py
 	@cp -rfp __init__.py $(PackageDir)
 
+# need to ensure that the python only stuff is packaged into RPMs
+.PHONY: clean preprpm
 _rpmprep: preprpm
 preprpm: default
 	@cp -rfp requirements.txt README.md LICENSE $(PackageDir)
 	@cp -rfp requirements.txt README.md pkg
 	$(MakeDir) $(PackageDir)/bin
-	@cp -rfp ana_scans.py $(PackageDir)/bin
-	@cp -rfp anaUltraLatency.py $(PackageDir)/bin
-	@cp -rfp anaUltraScurve.py $(PackageDir)/bin
-	@cp -rfp anaUltraThreshold.py $(PackageDir)/bin
-	@cp -rfp anaXDAQLatency.py $(PackageDir)/bin
+	@cp -rfp ana*.py $(PackageDir)/bin
 
 clean:
 	@rm -rf $(PackageDir)/macros

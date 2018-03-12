@@ -1,16 +1,29 @@
 
 from setuptools import setup,find_packages
 
+from os import listdir
+from os.path import isfile,join
+scriptdir  = 'gempython/gemplotting/bin'
+scriptpath = '/opt/cmsgemos/bin'
+scripts    = listdir(scriptdir)
+
 def readme():
     with open('README.md') as f:
         return f.read()
 
 def getscripts():
-    from os import listdir
-    from os.path import isfile,join
-    scriptdir = 'gempython/__longpackage__/bin'
-    scripts   = listdir(scriptdir)
+    # would prefer to use this for executables, if one can control the install location
+    # to be user defined rather than /usr/bin
+    # return dict(('{0:s}/{1:s}'.format(scriptpath,x),
+    #       '{0:s}/{1:s}'.format(scriptdir,x)) for x in scripts if isfile(join(scriptdir,x)) )
     return ['{0:s}/{1:s}'.format(scriptdir,x) for x in scripts if isfile(join(scriptdir,x)) ]
+
+def getpkgdata():
+    # actual package data
+    data = dict((pkg,['*.txt','*.so']) for pkg in __pythonmodules__)
+    # hack just to get the build to work
+    data['gempython/bin'] = ['gempython/vfatqc/bin/*.py']
+    return data
 
 def getreqs():
     with open('requirements.txt') as f:
@@ -27,17 +40,18 @@ setup(name             = '__packagename__',
       # author_email     = __author_email__,
       author_email     = 'cms-gem-online-sw@cern.ch',
       # url              = __url__,
-      url              = 'https://cms-gem-daq-project.github.io/__package__',
+      url              = 'https://cms-gem-daq-project.github.io/gem-plotting-tools',
       install_requires = ['numpy>=1.7', 'root_numpy>=4.7'],
-      scripts          = getscripts(),
+      # scripts          = getscripts(),
       # build_requires   = '__build_requires__',
       # namespace_package = "gempython",
       # packages         = __pythonmodules__, # for PEP420 native namespace util
       packages           = find_packages(), # for pkgutil namespace method
       # package_dir      = {'' : ''},
-      # package_data     = dict((pkg,['*.so']) for pkg in __pythonmodules__),
+      package_data     = getpkgdata(),
       # dependency_links   = ['http://cmsgemos.web.cern.ch/cmsgemos/repo/tarball/master#egg=package-1.0']
       zip_safe         = False,
+      data_files       = [('/opt/cmsgemos/bin', ['{0:s}/{1:s}'.format(scriptdir,x) for x in scripts if isfile(join(scriptdir,x))])],
       # setup_requires   = ['setuptools_scm'],
       license          = '__license__',
 )
