@@ -12,9 +12,9 @@ echo PY_VER $PY_VER
 ls -l $PWD
 
 # Clean the yum cache
-yum -y clean all
-yum -y clean expire-cache
-yum -y install root root-\*
+# yum -y clean all
+# yum -y clean expire-cache
+# yum -y install root root-\*
 
 uname -a
 
