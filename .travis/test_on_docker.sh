@@ -26,7 +26,7 @@ cd ${BUILD_HOME}/gem-plotting-tools
 pyexec=$(which ${PY_VER})
 echo Trying to test with ${pyexec}
 
-pip install --user -U setuptools pip
+pip install --upgrade --user setuptools pip importlib
 
 make
 
