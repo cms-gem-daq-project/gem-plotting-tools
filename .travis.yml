@@ -34,7 +34,8 @@ before_install:
   - sleep 2
   - docker pull $DOCKER_IMAGE
   - docker ps -al
-  
+  - git clone https://github.com/cms-gem-daq-project/gembuild.git config
+
 script:
   - make
   - make rpm
