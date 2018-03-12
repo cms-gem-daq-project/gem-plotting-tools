@@ -3,7 +3,7 @@
 import os
 
 from gempython.utils.nesteddict import nesteddict as ndict    
-from plotoptions import parser
+from gempython.gemplotting.macros.plotoptions import parser
 
 parser.add_option("-a","--all", action="store_true", dest="all_plots",
                   help="Make all plots", metavar="all_plots")
