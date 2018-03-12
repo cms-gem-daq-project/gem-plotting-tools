@@ -26,7 +26,15 @@ cd ${BUILD_HOME}/gem-plotting-tools
 pyexec=$(which ${PY_VER})
 echo Trying to test with ${pyexec}
 
+python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
+python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
+python -c "import pkg_resources; print(pkg_resources.get_distribution('importlib'))"
+
 pip install --upgrade --user setuptools pip importlib
+
+python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
+python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
+python -c "import pkg_resources; print(pkg_resources.get_distribution('importlib'))"
 
 make
 
