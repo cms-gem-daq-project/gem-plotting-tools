@@ -4,23 +4,25 @@ language: generic
 
 env:
   matrix:
-    - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    #- OS_TYPE=centos PY_VER=python3.2 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    #- OS_TYPE=centos PY_VER=python3.3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    #- OS_TYPE=centos PY_VER=python3.5 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    - OS_TYPE=centos PY_VER=pypy  OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
-    #- OS_TYPE=centos PY_VER=pypy3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=python3.2 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=python3.3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=python3.5 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=pypy  OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
+    # - OS_TYPE=centos PY_VER=pypy3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6-extrapy
 
-    #- OS_TYPE=centos PY_VER=python2.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    #- OS_TYPE=centos PY_VER=python3.2 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    #- OS_TYPE=centos PY_VER=python3.3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    #- OS_TYPE=centos PY_VER=python3.5 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    - OS_TYPE=centos PY_VER=pypy  OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
-    #- OS_TYPE=centos PY_VER=pypy3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=python3.2 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=python3.3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=python3.5 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=pypy  OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
+    # - OS_TYPE=centos PY_VER=pypy3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7-extrapy
 
 services:
   - docker
@@ -34,6 +36,8 @@ before_install:
   - docker ps -al
   
 script:
+  - make
+  - make rpm
   - ./.travis/travis.sh ${OS_VERSION} ${PY_VER}
 
 after_success:

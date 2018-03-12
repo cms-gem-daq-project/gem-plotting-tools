@@ -26,6 +26,8 @@ git clone https://github.com/cms-gem-daq-project/gembuild.git config
 pyexec=$(which ${PY_VER})
 echo Trying to test with ${pyexec}
 
+pip install --user -U setuptools pip
+
 make
 
 make rpm
