@@ -39,7 +39,6 @@ before_install:
 script:
   - python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
   - python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
-  - python -c "import pkg_resources; print(pkg_resources.get_distribution('importlib'))"
   - make
   - make rpm
   - ./.travis/travis.sh ${OS_VERSION} ${PY_VER}
