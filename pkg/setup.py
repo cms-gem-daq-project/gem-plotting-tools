@@ -52,6 +52,7 @@ setup(name             = '__packagename__',
       # dependency_links   = ['http://cmsgemos.web.cern.ch/cmsgemos/repo/tarball/master#egg=package-1.0']
       zip_safe         = False,
       data_files       = [('/opt/cmsgemos/bin', ['{0:s}/{1:s}'.format(scriptdir,x) for x in scripts if isfile(join(scriptdir,x))])],
-      # setup_requires   = ['setuptools_scm'],
+      build_requires   = ['importlib; python_version=="2.6"','setuptools>=25.0','setuptools_scm'],
+      setup_requires   = ['importlib; python_version=="2.6"','setuptools>=25.0'],
       license          = '__license__',
 )

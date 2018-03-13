@@ -33,7 +33,6 @@ then
     pip install -r requirements.txt
     pip install codecov
     python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
-    python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
     # if [ ${OS_VERSION}="6" ]
     # then
     pip install --user importlib
