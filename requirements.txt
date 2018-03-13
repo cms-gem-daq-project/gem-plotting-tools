@@ -1,3 +1,2 @@
-#numpy>=1.10.4
-numpy>=1.7.1
-root_numpy>=4.7.2
+numpy
+root_numpy
