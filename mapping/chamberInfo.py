@@ -90,7 +90,7 @@ chamber_vfatDACSettings = {
             #Comparator Mode - ZCC
             #"CFG_SEL_COMP_MODE":2,
             #"CFG_FORCE_EN_ZCC":1
-            }
+            },
         1:{
             #Pulse Stertch
             "CFG_PULSE_STRETCH":4,
