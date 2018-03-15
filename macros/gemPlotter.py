@@ -237,7 +237,7 @@ if __name__ == '__main__':
         pass
     
     # Get info from input file
-    parsedTuple = parseListOfScanDatesFile(options.filename, listDataPtTuples, options.alphaLabels)
+    parsedTuple = parseListOfScanDatesFile(options.filename, options.alphaLabels)
     listDataPtTuples = parsedTuple[0]
     strIndepVar = parsedTuple[1]
 

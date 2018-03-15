@@ -178,7 +178,7 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     canv.Update()
     return canv
 
-def parseListOfScanDatesFile(filename, parsedListOfScanDates=None, alphaLabels=False, delim='\t'):
+def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     """
     Parses a filename which describes a list of scandates.  Two formats of the filename
     are supported, one in which there are three columns and one in which there are two.
@@ -206,8 +206,6 @@ def parseListOfScanDatesFile(filename, parsedListOfScanDates=None, alphaLabels=F
     Arguments are described as:
     
     filename - physical filename of input list of scandate files
-    parsedListOfScanDates - Optional, list of tuples where each element is (cName, anaType, scandate, ztrim).
-                            If None a new list will be created, otherwise the input list will be appended
     alphaLabels - True (False): the optional third column is understood as alphanumeric (floating point)
 
     The return value is a tuple:
@@ -226,9 +224,7 @@ def parseListOfScanDatesFile(filename, parsedListOfScanDates=None, alphaLabels=F
         exit(os.EX_NOINPUT)
         pass
 
-    if parsedListOfScanDates is None:
-        parsedListOfScanDates = []
-    
+    parsedListOfScanDates = []
     strIndepVar = ""
     indepVar = ""
     for i,line in enumerate(fileScanDates):
