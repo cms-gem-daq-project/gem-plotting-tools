@@ -136,6 +136,7 @@ if __name__ == '__main__':
         else:
             tmpChamberInfoFile.write('\t , %i:"long"\n'%(i) )
     tmpChamberInfoFile.write('}\n')
+    tmpChamberInfoFile.close()
 
     tarBallCmd.append("chamberInfo.py_tmp")
 
