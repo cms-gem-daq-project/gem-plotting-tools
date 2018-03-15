@@ -33,6 +33,7 @@ if __name__ == '__main__':
     """
     Creates a tar ball to be used with the docker for unit tests with travis
     """
+    from anaInfo import tree_names
     from anautilities import getDirByAnaType
     from gempython.utils.wrappers import runCommand
 
@@ -103,8 +104,17 @@ if __name__ == '__main__':
         if item[1] not in listOfChamberNames:
             listOfChamberNames.append(item[1])
 
-        dirPath   = "%s/%s/"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2]) # basePath/scandate
-        tarBallCmd.append(dirPath)
+        rawFile = (tree_names[item[0]])[0]
+
+        anaKey = "%sAna"%item[0]
+        if "threshold" in anaKey:
+            anaKey = "thresholdAna"
+        anaFile = (tree_names[anaKey])[0]
+
+        rawFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], rawFile ) # basePath/scandate/rawFile
+        anaFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], anaFile )# basePath/scandate/anaFile
+        tarBallCmd.append(rawFilePath)
+        tarBallCmd.append(anaFilePath)
         
     # Make the fake chamberInfo.py file
     tmpChamberInfoFile = open("chamberInfo.py_tmp", "w")
