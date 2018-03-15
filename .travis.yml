@@ -39,6 +39,44 @@ before_install:
 script:
   - ./.travis/travis.sh ${OS_VERSION} ${PY_VER}
 
+# stages:
+#   - compile
+#   - test
+#   - name: buildrpms
+#   - name: release
+#     if: branch = master
+#     tags: true
+#   - name: deploy
+#     if: branch = master
+
+# before_deploy:
+#   # Set up git user name and tag this commit
+#   - git config --local user.name "YOUR GIT USER NAME"
+#   - git config --local user.email "YOUR GIT USER EMAIL"
+#   # ?create the changelog
+#   # ?update release notes
+#   # ?run our cmsgemostag script instead?
+#   # Sign the tags
+#   - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
+
+# deploy:
+#   # deploy to Github releases
+#   provider: releases
+#   api_key:
+#     secure: "GITHUB OAUTH TOKEN"
+#   file_glob: true
+#   file:
+#     - README.md
+#     - CHANGELOG.md
+#     - docs
+#     - ./**/rpm/*.tbz2
+#     - ./**/rpm/*.tgz
+#     - ./**/rpm/*.rpm
+#   prerelease: true
+#   skip_cleanup: true
+#   on:
+#     tags: true
+
 after_success:
   - bash <(curl -s https://codecov.io/bash) &&
   - echo "Uploaded code coverage"

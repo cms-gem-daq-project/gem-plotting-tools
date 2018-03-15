@@ -11,8 +11,7 @@ el_version=$1
 if [ "$el_version" = "6" ]
 then
     echo "Running SLC6 GEM DAQ custom docker image"
-    docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:slc6
-    # docker_image=cern/slc6-base
+    docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
     ls -lZ
     sudo docker run --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw --entrypoint="/bin/bash" \
          ${docker_image} -ec "echo Testing build on slc6;
@@ -21,8 +20,7 @@ then
 elif [ "$el_version" = "7" ]
 then
     echo "Running CC7 GEM DAQ custom docker image"
-    docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker:cc7
-    # docker_image=cern/cc7-base
+    docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
     ls -lZ
     docker run --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
            -v `pwd`:/home/daqbuild/gem-plotting-tools:rw $docker_image /usr/sbin/init
