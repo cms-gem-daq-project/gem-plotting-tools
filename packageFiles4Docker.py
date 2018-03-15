@@ -21,7 +21,7 @@ def getListOfCmdTuples(filename, anaType):
         print ana_config.keys()
         exit(os.EX_USAGE)
     
-    parsedTuple = parseListOfScanDatesFile(filename)
+    parsedTuple = parseListOfScanDatesFile(filename, alphaLabels=True)
 
     ret_list_cmd_tuples = []
     for item in parsedTuple[0]:
@@ -64,21 +64,33 @@ if __name__ == '__main__':
     if options.fileListLat is not None:
         tarBallCmd.append(options.fileListLat)
         list_cmd_tuple.extend( getListOfCmdTuples(options.fileListLat, "latency") )
+        if options.debug:
+            print "info after parsing latency:"
+            print list_cmd_tuple
 
     # Add Scurve
     if options.fileListScurve is not None:
         tarBallCmd.append(options.fileListScurve)
         list_cmd_tuple.extend( getListOfCmdTuples(options.fileListScurve, "scurve") )
+        if options.debug:
+            print "info after parsing scurve:"
+            print list_cmd_tuple
 
     # Add threhsold per channel
     if options.fileListThresh is not None:
         tarBallCmd.append(options.fileListThresh)
         list_cmd_tuple.extend( getListOfCmdTuples(options.fileListThresh, "thresholdch") )
+        if options.debug:
+            print "info after parsing thresholdch:"
+            print list_cmd_tuple
 
     # Add trim
     if options.fileListTrim is not None:
         tarBallCmd.append(options.fileListTrim)
         list_cmd_tuple.extend( getListOfCmdTuples(options.fileListTrim, "trim") )
+        if options.debug:
+            print "info after parsing trim:"
+            print list_cmd_tuple
 
     if len(list_cmd_tuple) == 0:
         print("No inputs provided")
@@ -91,7 +103,7 @@ if __name__ == '__main__':
         if item[1] not in listOfChamberNames:
             listOfChamberNames.append(item[1])
 
-        dirPath   = "%s/%s/*"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2]) # basePath/scandate
+        dirPath   = "%s/%s/"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2]) # basePath/scandate
         tarBallCmd.append(dirPath)
         
     # Make the fake chamberInfo.py file
@@ -125,3 +137,5 @@ if __name__ == '__main__':
     else:
         runCommand(tarBallCmd)
         print "Your tarball can be found at %s: "%(options.tarBallName)
+        deleteTmpChamberInfo = ["rm","chamberInfo.py_tmp"]
+        runCommand(deleteTmpChamberInfo)
