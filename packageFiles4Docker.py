@@ -24,7 +24,7 @@ def getListOfCmdTuples(filename, anaType):
     parsedTuple = parseListOfScanDatesFile(filename)
 
     ret_list_cmd_tuples = []
-    for item in parsedTuple[0]
+    for item in parsedTuple[0]:
         ret_list_cmd_tuples.append( (anaType, item[0], item[1]) )
 
     return ret_list_cmd_tuples
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         if item[1] not in listOfChamberNames:
             listOfChamberNames.append(item[1])
 
-        dirPath   = "%s/%s/*"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim) item[2]) # basePath/scandate
+        dirPath   = "%s/%s/*"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2]) # basePath/scandate
         tarBallCmd.append(dirPath)
         
     # Make the fake chamberInfo.py file
@@ -125,5 +125,3 @@ if __name__ == '__main__':
     else:
         runCommand(tarBallCmd)
         print "Your tarball can be found at %s: "%(options.tarBallName)
-
-    return
