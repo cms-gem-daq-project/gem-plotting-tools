@@ -84,7 +84,7 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
 
 if __name__ == '__main__':
     from anaInfo import tree_names
-    from anautilities import filePathExists, getDirByAnaType
+    from anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from macros.plotoptions import parser
     
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         pass
     
     # Get info from input file
-    parsedTuple = parseListOfScanDatesFile(options.filename, listDataPtTuples)
+    parsedTuple = parseListOfScanDatesFile(options.filename)
     listChamberAndScanDate = parsedTuple[0]
     
     # Make output TFile
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     
     # Loop Over inputs
     listPlots = []
-    for chamberAndScanDatePair in enumerate(listChamberAndScanDate):
+    for chamberAndScanDatePair in listChamberAndScanDate:
         # Setup the path
         dirPath = getDirByAnaType(options.anaType.strip("Ana"), chamberAndScanDatePair[0], options.ztrim)
         if not filePathExists(dirPath, chamberAndScanDatePair[1]):
