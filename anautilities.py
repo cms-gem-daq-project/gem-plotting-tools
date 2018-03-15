@@ -217,9 +217,9 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
 
     # Check input file
     try:
-        fileScanDates = open(options.filename, 'r') 
+        fileScanDates = open(filename, 'r') 
     except Exception as e:
-        print '%s does not seem to exist or is not readable'%(options.filename)
+        print '%s does not seem to exist or is not readable'%(filename)
         print e
         exit(os.EX_NOINPUT)
         pass
@@ -235,11 +235,12 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
         line = line.strip('\n')
         analysisList = line.rsplit(delim) #chamber name, scandate, independent var
 
-        # Get the indepVar name
-        if i==0 and len(analysisList) == 3:
-            if i == 0:
+        # Get the indepVar name if it is present, 
+        # Always skip the first line
+        if i==0:
+            if len(analysisList) == 3:
                 strIndepVar = analysisList[2]
-                continue
+            continue
 
         cName = analysisList[0]
         scandate = analysisList[1]
