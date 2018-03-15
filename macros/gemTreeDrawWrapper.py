@@ -1,22 +1,5 @@
 #!/bin/env python
 
-def getStringNoSpecials(inputStr):
-    """
-    returns a string without special characters
-    """
-
-    inputStr = inputStr.replace('*','')
-    inputStr = inputStr.replace('-','')
-    inputStr = inputStr.replace('+','')
-    inputStr = inputStr.replace('(','')
-    inputStr = inputStr.replace(')','')
-    inputStr = inputStr.replace('/','')
-    inputStr = inputStr.replace('{','')
-    inputStr = inputStr.replace('}','')
-    inputStr = inputStr.replace('#','')
-
-    return inputStr
-
 def getPlotFromTree(filename, treeName, expression, selection=""):
     """
     Returns the type of TObject returned by TTree::Draw(expression, selection, drawOpt)
@@ -30,7 +13,7 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
     selection - string, the "selection" argument passed to TTree::Draw()
     """
   
-    from anautilities import filePathExists, getDirByAnaType
+    from anautilities import filePathExists, getStringNoSpecials, getDirByAnaType
 
     import os
     import ROOT as r

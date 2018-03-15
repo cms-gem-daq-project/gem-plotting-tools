@@ -187,7 +187,7 @@ if __name__ == '__main__':
         grEffPlot.SetPointError(idx, 0., list_EffData[idx][2])
 
     # Draw this plot on a canvas
-    from macros.gemTreeDrawWrapper import getStringNoSpecials
+    from anautilities import getStringNoSpecials
     strIndepVarNoBraces = getStringNoSpecials(strIndepVar).replace('_','')
     canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVarNoBraces),"%s: Eff vs. %s"%(strChamberName,strIndepVarNoBraces),600,600)
     canvEff.cd()

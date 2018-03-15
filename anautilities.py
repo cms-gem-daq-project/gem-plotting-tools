@@ -54,6 +54,23 @@ def getDirByAnaType(anaType, cName, ztrim=4):
 
     return dirPath
 
+def getStringNoSpecials(inputStr):
+    """
+    returns a string without special characters
+    """
+
+    inputStr = inputStr.replace('*','')
+    inputStr = inputStr.replace('-','')
+    inputStr = inputStr.replace('+','')
+    inputStr = inputStr.replace('(','')
+    inputStr = inputStr.replace(')','')
+    inputStr = inputStr.replace('/','')
+    inputStr = inputStr.replace('{','')
+    inputStr = inputStr.replace('}','')
+    inputStr = inputStr.replace('#','')
+
+    return inputStr
+
 def initVFATArray(array_dtype, nstrips=128):
     import numpy as np
     
