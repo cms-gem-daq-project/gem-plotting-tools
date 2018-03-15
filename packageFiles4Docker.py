@@ -1,3 +1,5 @@
+#!/bin/env python
+
 def getListOfCmdTuples(filename, anaType):
     """
     Returns a list of tuples where each element is:
