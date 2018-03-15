@@ -236,7 +236,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
         analysisList = line.rsplit(delim) #chamber name, scandate, independent var
 
         # Get the indepVar name
-        if i==0 and len(analysisList) = 3:
+        if i==0 and len(analysisList) == 3:
             if i == 0:
                 strIndepVar = analysisList[2]
                 continue
@@ -245,7 +245,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
         scandate = analysisList[1]
         if len(analysisList) == 2:
             indepVar = scandate
-        elif len(analysisList) = 3:
+        elif len(analysisList) == 3:
             if alphaLabels:
                 indepVar = analysisList[2]
             else:
