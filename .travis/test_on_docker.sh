@@ -31,6 +31,7 @@ if [ -f "$pyexec" ]
 then
     virtualenv ~/virtualenvs/${PY_VER} -p ${pyexec} --system-site-packages
     . ~/virtualenvs/${PY_VER}/bin/activate
+    numver=$(python -c "import distutils.sysconfig;print(distutils.sysconfig.get_python_version())")
     pip install -U -r requirements.txt
     pip install codecov
     python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
