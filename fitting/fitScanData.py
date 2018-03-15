@@ -58,6 +58,8 @@ class ScanDataFitter(DeadChannelFinder):
             for ch in range(0,128):
                 if self.isDead[vfat][ch]:
                     continue # Don't try to fit dead channels
+                elif not (self.scanHistos[vfat][ch].Integral() > 0):
+                    continue # Don't try to fit with 0 entries
                 fitChi2 = 0
                 MinChi2Temp = 99999999
                 stepN = 0
