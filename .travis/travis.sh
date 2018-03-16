@@ -39,3 +39,5 @@ elif [ "$OS_VERSION" = "8" ]
 then
     echo "Running CC8 GEM DAQ custom docker image"
 fi
+
+exit 0

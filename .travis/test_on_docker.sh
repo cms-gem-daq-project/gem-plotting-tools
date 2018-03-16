@@ -69,8 +69,10 @@ then
 
     make rpm
 
-    coverage run python
-    codecov
-    bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
+    # coverage run python
+    # codecov
+    # bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
     deactivate
 fi
+
+exit 0
