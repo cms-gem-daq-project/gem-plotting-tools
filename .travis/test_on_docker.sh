@@ -32,16 +32,16 @@ then
     virtualenv ~/virtualenvs/${PY_VER} -p ${pyexec} --system-site-packages
     . ~/virtualenvs/${PY_VER}/bin/activate
     numver=$(python -c "import distutils.sysconfig;print(distutils.sysconfig.get_python_version())")
-    ~/virtualenvs/${PY_VER}/bin/pip install --user -U pip
-    ~/virtualenvs/${PY_VER}/bin/pip install -U -r requirements.txt
-    ~/virtualenvs/${PY_VER}/bin/pip install codecov
+    pip install -U pip
+    pip install -U -r requirements.txt
+    pip install codecov
     python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
     # if [ ${OS_VERSION}="6" ]
     # then
-    ~/virtualenvs/${PY_VER}/bin/pip install --user importlib
+    pip install importlib
     # fi
 
-    ~/virtualenvs/${PY_VER}/bin/pip install -U setuptools
+    pip install -U setuptools
 
     python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
     python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"

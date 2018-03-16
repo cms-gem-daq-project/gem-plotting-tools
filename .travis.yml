@@ -35,9 +35,11 @@ before_install:
   - docker pull ${DOCKER_IMAGE}
   - docker ps -al
   - git clone https://github.com/cms-gem-daq-project/gembuild.git config
+  # - ./travis/daemonize.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE}
 
 script:
   - ./.travis/travis.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE}
+  # - docker exec -ti $
 
 # stages:
 #   - compile

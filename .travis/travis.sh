@@ -26,7 +26,7 @@ then
     ls -lZ
     docker run --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
            -v `pwd`:/home/daqbuild/gem-plotting-tools:rw ${DOCKER_IMAGE} /usr/sbin/init
-    DOCKER_CONTAINER_ID=$(docker ps | grep "gemdaq_ci_worker:cc7" | awk '{print $1}')
+    DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     docker logs $DOCKER_CONTAINER_ID
     docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Testing build on cc7;
   . /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER};
