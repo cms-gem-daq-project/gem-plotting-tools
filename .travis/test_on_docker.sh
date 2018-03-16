@@ -34,14 +34,12 @@ rootver=${ROOT_VER:0:$((${len}-7))}
 
 if [ "$OS_VERSION" = "6" ]
 then
-    ls /opt/root/slc6/gcc${gccver}/${rootver}
-    cd /opt/root/slc6/gcc${gccver}/${rootver}
+    cd /opt/root/slc6/gcc${gccver}/${rootver}/root
     ls -lZ
     . ./bin/thisroot.sh
 elif [ "$OS_VERSION" = "7" ]
 then
-    ls /opt/root/slc6/gcc${gccver}/${rootver}
-    cd /opt/root/cc7/gcc${gccver}/${rootver}
+    cd /opt/root/cc7/gcc${gccver}/${rootver}/root
     ls -lZ
     . ./bin/thisroot.sh
 fi
