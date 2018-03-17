@@ -26,7 +26,7 @@ def getpkgdata():
     return data
 
 def getreqs():
-    with open('requirements.txt') as f:
+    with open('gempython/gemplotting/requirements.txt') as f:
         reqs = f.readlines()
         return [x.strip() for x in reqs]
 
@@ -41,7 +41,7 @@ setup(name             = '__packagename__',
       author_email     = 'cms-gem-online-sw@cern.ch',
       # url              = __url__,
       url              = 'https://cms-gem-daq-project.github.io/gem-plotting-tools',
-      install_requires = getrequs(),
+      install_requires = getreqs(),
       # install_requires = ['numpy>=1.7', 'root_numpy>=4.7'],
       # scripts          = getscripts(),
       # build_requires   = '__build_requires__',
