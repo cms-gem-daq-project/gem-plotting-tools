@@ -1,4 +1,4 @@
-#!/bin/sh -xe
+#!/bin/bash -xe
 
 # Thanks to:
 # https://djw8605.github.io/2016/05/03/building-centos-packages-on-travisci/
