@@ -32,17 +32,15 @@ len=${#ROOT_VER}
 gccver=${ROOT_VER:$((${len}-3)):3}
 rootver=${ROOT_VER:0:$((${len}-7))}
 
-if [ "$OS_VERSION" = "6" ]
-then
-    cd /opt/root/slc6/gcc${gccver}/${rootver}/root
-    ls -lZ
-    . ./bin/thisroot.sh
-elif [ "$OS_VERSION" = "7" ]
-then
-    cd /opt/root/cc7/gcc${gccver}/${rootver}/root
-    ls -lZ
-    . ./bin/thisroot.sh
-fi
+cd /opt/root/${rootver}-gcc${gccver}/root
+ls -lZ
+. ./bin/thisroot.sh
+# elif [ "$OS_VERSION" = "7" ]
+# then
+#     cd /opt/root/${rootver}-gcc${gccver}/root
+#     ls -lZ
+#     . ./bin/thisroot.sh
+# fi
 
 cd ${BUILD_HOME}/gem-plotting-tools
 # git clone https://github.com/cms-gem-daq-project/gembuild.git config
@@ -56,7 +54,7 @@ then
     numver=$(python -c "import distutils.sysconfig;print(distutils.sysconfig.get_python_version())")
     pip install -U pip
     pip install -U -r requirements.txt
-    pip install -U root_numpy
+    # pip install -U root_numpy
     pip install codecov
     python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
     # if [ ${OS_VERSION}="6" ]
