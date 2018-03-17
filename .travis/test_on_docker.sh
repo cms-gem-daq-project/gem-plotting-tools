@@ -26,9 +26,6 @@ whoami
 export BUILD_HOME=/home/daqbuild
 export DATA_PATH=/data
 
-cd ${BUILD_HOME}/gem-plotting-tools
-# git clone https://github.com/cms-gem-daq-project/gembuild.git config
-
 # set up ROOT
 # v5.34.28-gcc5.1
 len=${#ROOT_VER}
@@ -46,6 +43,9 @@ then
     ls -lZ
     . ./bin/thisroot.sh
 fi
+
+cd ${BUILD_HOME}/gem-plotting-tools
+# git clone https://github.com/cms-gem-daq-project/gembuild.git config
 
 pyexec=$(which ${PY_VER})
 echo Trying to test with ${pyexec}
