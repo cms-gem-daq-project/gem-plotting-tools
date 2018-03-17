@@ -53,7 +53,7 @@ then
     . ~/virtualenvs/${PY_VER}/bin/activate
     numver=$(python -c "import distutils.sysconfig;print(distutils.sysconfig.get_python_version())")
     pip install -U pip
-    pip install -U -r requirements.txt
+    pip install -U --no-install -r requirements.txt
     # pip install -U root_numpy
     pip install codecov
     python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"

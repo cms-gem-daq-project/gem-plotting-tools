@@ -16,7 +16,7 @@ then
     echo "Running SLC6 GEM DAQ custom docker image"
     docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
     ls -lZ
-    sudo docker run --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw --entrypoint="/bin/bash" \
+    sudo docker run --user daqbuild --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw --entrypoint="/bin/bash" \
          ${DOCKER_IMAGE} -ec "echo Testing build on slc6;
   . /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER};
   echo -ne \"------\nEND gem-plotting-tools TESTS\n\";"
@@ -25,7 +25,7 @@ then
     echo "Running CC7 GEM DAQ custom docker image"
     docker_image=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
     ls -lZ
-    docker run --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
+    docker run --user daqbuild --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
            -v `pwd`:/home/daqbuild/gem-plotting-tools:rw ${DOCKER_IMAGE} /usr/sbin/init
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     docker logs $DOCKER_CONTAINER_ID
