@@ -18,7 +18,7 @@ ls -l $PWD
 # yum -y clean expire-cache
 # yum -y install root root-\*
 
-yum -y install man
+sudo yum -y install man
 
 uname -a
 whoami
