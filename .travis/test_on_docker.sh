@@ -19,6 +19,7 @@ ls -l $PWD
 # yum -y install root root-\*
 
 uname -a
+whoami
 
 export BUILD_HOME=/home/daqbuild
 export DATA_PATH=/data
