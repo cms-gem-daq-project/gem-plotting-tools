@@ -26,13 +26,15 @@ then
         echo "Starting CC7 GEM DAQ custom docker image"
         docker run --user daqbuild --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
                -v `pwd`:/home/daqbuild/gem-plotting-tools:rw ${DOCKER_IMAGE} /usr/sbin/init
-        docker logs $DOCKER_CONTAINER_ID
+        docker ps -a
+        DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
         docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Testing build on cc7; echo -ne \"------\nEND gem-plotting-tools TESTS\n\";"
     elif [ "$OS_VERSION" = "8" ]
     then
         echo "Starting CC8 GEM DAQ custom docker image"
     fi
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
+    docker logs $DOCKER_CONTAINER_ID
     docker ps -a
 else
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
@@ -41,13 +43,11 @@ else
 
     if [ "${COMMAND}" = "stop" ]
     then
-        DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
         docker ps -a
         docker stop $DOCKER_CONTAINER_ID
         docker rm -v $DOCKER_CONTAINER_ID
     elif [ "${COMMAND}" = "start" ]
     then
-        DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
         docker ps -a
     fi
 fi
