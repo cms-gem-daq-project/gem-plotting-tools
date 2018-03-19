@@ -38,6 +38,9 @@ before_install:
   - sudo apt-get update
   - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
   - sudo service docker restart
+  - sudo groupadd daqbuild -g 2055
+  - sudo useradd daqbuild -g 2055 -u 2055
+  - sudo usermod -aG daqbuild travis
   - sleep 2
   - docker pull ${DOCKER_IMAGE}
   - docker ps -al

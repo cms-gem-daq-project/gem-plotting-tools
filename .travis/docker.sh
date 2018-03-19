@@ -32,8 +32,8 @@ ping -s30 google.com"
     then
         echo "Starting CC7 GEM DAQ custom docker image"
         docker run --user daqbuild --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
-               -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z ${DOCKER_IMAGE} \
-               /bin/bash -ec "echo Testing build on cc7; \
+               -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z ${DOCKER_IMAGE} --entrypoint="/bin/bash" \
+               -ec "echo Testing build on cc7; \
 # sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
 echo -ne \"------\nEND gem-plotting-tools TESTS\n\";
 ping -s30 google.com"
