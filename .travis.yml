@@ -42,7 +42,7 @@ before_install:
   - docker pull ${DOCKER_IMAGE}
   - docker ps -al
   - git clone https://github.com/cms-gem-daq-project/gembuild.git config
-  # - ./travis/daemonize.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE}
+  - ./travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
 
 script:
   - ./.travis/travis.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} ${ROOT_VER}
@@ -89,3 +89,4 @@ script:
 after_success:
   - bash <(curl -s https://codecov.io/bash) &&
   - echo "Uploaded code coverage"
+  - ./travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
