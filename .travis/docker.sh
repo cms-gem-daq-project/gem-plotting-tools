@@ -25,7 +25,7 @@ then
         echo "Starting SLC6 GEM DAQ custom docker image"
         docker run -d --user daqbuild --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z --entrypoint="/bin/bash" \
              ${DOCKER_IMAGE} -ec "echo Testing build on slc6; \
-sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
+# sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
 echo -ne \"------\nEND gem-plotting-tools TESTS\n\";
 ping -s30 google.com"
     elif [ "$OS_VERSION" = "7" ]
@@ -34,7 +34,7 @@ ping -s30 google.com"
         docker run --user daqbuild --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
                -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z ${DOCKER_IMAGE} \
                /bin/bash -ec "echo Testing build on cc7; \
-sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
+# sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
 echo -ne \"------\nEND gem-plotting-tools TESTS\n\";
 ping -s30 google.com"
         # /usr/sbin/init

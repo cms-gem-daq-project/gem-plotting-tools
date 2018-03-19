@@ -45,6 +45,8 @@ ls -lZ
 cd ${BUILD_HOME}/gem-plotting-tools
 # git clone https://github.com/cms-gem-daq-project/gembuild.git config
 
+sudo chown $(id -u):$(id -g) -R `pwd`
+
 pyexec=$(which ${PY_VER})
 echo Trying to test with ${pyexec}
 if [ -f "$pyexec" ]
