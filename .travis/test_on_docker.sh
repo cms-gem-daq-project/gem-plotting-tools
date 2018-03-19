@@ -52,20 +52,11 @@ then
     virtualenv ~/virtualenvs/${PY_VER} -p ${pyexec} --system-site-packages
     . ~/virtualenvs/${PY_VER}/bin/activate
     numver=$(python -c "import distutils.sysconfig;print(distutils.sysconfig.get_python_version())")
-    pip install -U pip
-    pip install -U --no-install -r requirements.txt
-    # pip install -U root_numpy
-    pip install codecov
-    python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
-    # if [ ${OS_VERSION}="6" ]
-    # then
-    pip install importlib
-    # fi
-
+    pip install -U pip importlib
     pip install -U setuptools
-
-    python -c "import pkg_resources; print(pkg_resources.get_distribution('setuptools'))"
-    python -c "import pkg_resources; print(pkg_resources.get_distribution('pip'))"
+    pip install -U codecov
+    pip install -U -r requirements.txt
+    # pip install -U root_numpy
 
     make
 
