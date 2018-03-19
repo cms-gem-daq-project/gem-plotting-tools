@@ -12,6 +12,10 @@ COMMAND=$4
 
 ls -lZ
 
+sudo usermod -aG docker $USER
+
+groups
+
 # need a varaible to point to the .travis directory
 # Run tests in Container
 if [ "${COMMAND}" = "start" ]
@@ -37,7 +41,7 @@ then
 
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
-    docker logs $DOCKER_CONTAINER_ID
+    sudo docker logs $DOCKER_CONTAINER_ID
     docker ps -a
 else
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
