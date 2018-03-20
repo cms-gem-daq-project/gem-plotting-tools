@@ -23,25 +23,24 @@ then
     if [ "$OS_VERSION" = "6" ]
     then
         echo "Starting SLC6 GEM DAQ custom docker image"
-        docker run -d --user daqbuild --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z --entrypoint="/bin/bash" \
-             ${DOCKER_IMAGE} -ec "echo Testing build on slc6; \
-# sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
-echo -ne \"------\nEND gem-plotting-tools TESTS\n\";
-ping -s30 google.com"
+        # docker run -d --user daqbuild --rm=true -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z --entrypoint="/bin/bash" \
+        docker run --user daqbuild --privileged -d -ti -e "container=docker" -v \
+               `pwd`:/home/daqbuild/gem-plotting-tools:rw,z \
+               ${DOCKER_IMAGE} /bin/bash
+        DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
+        docker exec ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on slc6"
+        # sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
     elif [ "$OS_VERSION" = "7" ]
     then
         echo "Starting CC7 GEM DAQ custom docker image"
-        docker run --user daqbuild --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup \
-               -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z ${DOCKER_IMAGE} --entrypoint="/bin/bash" \
-               -ec "echo Testing build on cc7; \
-# sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
-echo -ne \"------\nEND gem-plotting-tools TESTS\n\";
-ping -s30 google.com"
-        # /usr/sbin/init
-        docker ps -a
+        docker run --user daqbuild --privileged -d -ti -e "container=docker" \
+               -v /sys/fs/cgroup:/sys/fs/cgroup \
+               -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z \
+               ${DOCKER_IMAGE} /usr/sbin/init
         DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
         echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
-        # docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Testing build on cc7; echo -ne \"------\nEND gem-plotting-tools TESTS\n\";"
+        docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on cc7"
+# sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
     elif [ "$OS_VERSION" = "8" ]
     then
         echo "Starting CC8 GEM DAQ custom docker image"
@@ -50,16 +49,15 @@ ping -s30 google.com"
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
     docker logs $DOCKER_CONTAINER_ID
-    sleep 10
+    sleep 5
     docker ps -a
 else
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
-    docker ps -a
     docker logs $DOCKER_CONTAINER_ID
 
     if [ "${COMMAND}" = "stop" ]
     then
-        docker ps -a
+        docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec 'echo -ne "------\nEND gem-plotting-tools TESTS\n";'
         docker stop $DOCKER_CONTAINER_ID
         docker rm -v $DOCKER_CONTAINER_ID
     elif [ "${COMMAND}" = "start" ]
@@ -68,7 +66,7 @@ else
     fi
 fi
 
-sleep 10
+sleep 2
 docker ps -a
 
 exit 0
