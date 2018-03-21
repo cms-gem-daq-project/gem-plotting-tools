@@ -47,9 +47,12 @@ before_install:
   - git clone https://github.com/cms-gem-daq-project/gembuild.git config
   - sudo chown :daqbuild -R .
   - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
-
+  - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
+  - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+  
 script:
-  - ./.travis/travis.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} ${ROOT_VER}
+  # - ./.travis/travis.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} ${ROOT_VER}
+  - bash -c 'DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk "{print $1}"); docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running test job;. /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}'
   # - docker exec -ti $
 
 # stages:
