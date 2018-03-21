@@ -50,10 +50,17 @@ before_install:
   - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
   
-script:
-  # - ./.travis/travis.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} ${ROOT_VER}
-  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running test job;. /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
-  # - docker exec -ti $
+jobs:
+  include:
+    - stage: setup
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
+    - stage: build
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
+    - stage: docs
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "Building documentation"
 
 # stages:
 #   - compile

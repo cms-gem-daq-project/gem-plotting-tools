@@ -27,9 +27,6 @@ then
         docker run --user daqbuild --privileged -d -ti -e "container=docker" -v \
                `pwd`:/home/daqbuild/gem-plotting-tools:rw,z \
                ${DOCKER_IMAGE} /bin/bash
-        DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
-        docker exec ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on slc6"
-        # sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
     elif [ "$OS_VERSION" = "7" ]
     then
         echo "Starting CC7 GEM DAQ custom docker image"
@@ -37,10 +34,6 @@ then
                -v /sys/fs/cgroup:/sys/fs/cgroup \
                -v `pwd`:/home/daqbuild/gem-plotting-tools:rw,z \
                ${DOCKER_IMAGE} /usr/sbin/init
-        DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
-        echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
-        docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on cc7"
-# sudo chown $(id -u):$(id -g) -R /home/daqbuild; \
     elif [ "$OS_VERSION" = "8" ]
     then
         echo "Starting CC8 GEM DAQ custom docker image"
@@ -48,9 +41,8 @@ then
 
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on docker for `cat /etc/system-release`"
     docker logs $DOCKER_CONTAINER_ID
-    sleep 5
-    docker ps -a
 else
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     docker logs $DOCKER_CONTAINER_ID
@@ -60,13 +52,12 @@ else
         docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec 'echo -ne "------\nEND gem-plotting-tools TESTS\n";'
         docker stop $DOCKER_CONTAINER_ID
         docker rm -v $DOCKER_CONTAINER_ID
-    elif [ "${COMMAND}" = "start" ]
+    elif [ "${COMMAND}" = "other" ]
     then
         docker ps -a
     fi
 fi
 
-sleep 2
 docker ps -a
 
 exit 0
