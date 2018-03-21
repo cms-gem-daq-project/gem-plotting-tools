@@ -40,7 +40,6 @@ then
     pip install -U pip importlib
     pip install -U setuptools
     pip install -U codecov
-    pip install -U codecov
     pip install -U -r requirements.txt
     pip install -U root_numpy
 

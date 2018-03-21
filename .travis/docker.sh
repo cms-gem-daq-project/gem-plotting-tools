@@ -12,13 +12,26 @@ COMMAND=$4
 
 ls -lZ
 
-sudo usermod -aG docker $USER
-
-groups
 
 # need a varaible to point to the .travis directory
 # Run tests in Container
-if [ "${COMMAND}" = "start" ]
+if [ "${COMMAND}" = "setup" ]
+then
+    sudo usermod -aG docker $USER
+    sudo groupadd daqbuild -g 2055
+    sudo useradd daqbuild -g 2055 -u 2055
+    sudo usermod -aG daqbuild travis
+    groups
+
+    sudo apt-get update
+    echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | \
+        sudo tee /etc/default/docker > /dev/null
+    sudo service docker restart
+    docker pull ${DOCKER_IMAGE}
+    docker ps -al
+    git clone https://github.com/cms-gem-daq-project/gembuild.git config
+    sudo chown :daqbuild -R .
+elif [ "${COMMAND}" = "start" ]
 then
     if [ "$OS_VERSION" = "6" ]
     then
@@ -43,6 +56,9 @@ then
     echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
     docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on docker for `cat /etc/system-release`"
     docker logs $DOCKER_CONTAINER_ID
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "sudo pip install -U pip importlib"
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "sudo pip install -U setuptools"
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "sudo pip install -U codecov"
 else
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     docker logs $DOCKER_CONTAINER_ID
