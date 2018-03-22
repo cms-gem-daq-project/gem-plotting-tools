@@ -248,7 +248,7 @@ def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
     arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
     return arrayData[arrayOutliers != True]
 
-def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=None):
+def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=None, drawOpt="colz"):
     """
     Makes an image with summary canvases drawn on it
 
@@ -259,6 +259,7 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     name               - Name of output image
     trimPt             - Optional, list of trim points the dependent variable was aligned
                          to if it is the result of trimming.  One entry per VFAT
+    drawOpt            - Draw option
     """
 
     import ROOT as r
@@ -266,7 +267,7 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
     if dictSummaryPanPin2 is None:
-        canv = make3x8Canvas('canv', dictSummary, 'colz')
+        canv = make3x8Canvas('canv', dictSummary, drawOpt)
         for vfat in range(0,24):
             canv.cd(vfat+1)
             if trimPt is not None and trimLine is not None:
@@ -289,10 +290,10 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
             for iphi in range (0,3):
                 r.gStyle.SetOptStat(0)
                 canv.cd((ieta+1 + iphi*16)%48 + 16)
-                dictSummary[ieta+(8*iphi)].Draw('colz')
+                dictSummary[ieta+(8*iphi)].Draw(drawOpt)
                 canv.Update()
                 canv.cd((ieta+9 + iphi*16)%48 + 16)
-                dictSummaryPanPin2[ieta+(8*iphi)].Draw('colz')
+                dictSummaryPanPin2[ieta+(8*iphi)].Draw(drawOpt)
                 canv.Update()
                 pass
             pass
