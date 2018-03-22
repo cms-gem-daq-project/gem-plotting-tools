@@ -48,9 +48,9 @@ then
     # bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 
     ## make tarballs and binaries
-    make
-    make rpm
-    rpm -q --filesbypkg -p rpm/*.rpm
+    # make
+    # make rpm
+    # rpm -q --filesbypkg -p rpm/*.rpm
 
     # leave virtualenv
     deactivate

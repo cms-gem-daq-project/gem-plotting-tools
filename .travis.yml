@@ -71,7 +71,6 @@ before_install:
 script:
   - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
   - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
-  - ls -laZ rpm
   - find rpm -iname '*.tar.gz' -o -iname '*.tbz2' -o -iname '*.rpm'
 
 # How to link the environments/outputs from above with the jobs below?
@@ -82,9 +81,8 @@ script:
     - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
     - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
-    
+
   script:
-    - ls -laZ rpm
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
@@ -93,7 +91,7 @@ script:
 
   after_success:
     - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
-  
+
 jobs:
   include:
     - stage: build
@@ -109,9 +107,12 @@ jobs:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Building documentation"
         - ls -laZ
       after_success:
+        - sudo pip install -U codecov
+        - coverage run python
+        - codecov
         - bash <(curl -s https://codecov.io/bash) &&
         - echo "Uploaded code coverage"
-        
+
     - stage: cleanup
       env:
         - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
