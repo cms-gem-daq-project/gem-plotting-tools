@@ -8,7 +8,7 @@ if __name__ = '__main__':
     
     from array import array
     from anautilities import getEmptyPerVFATList, getMapping
-    from anaInfo import maskReason
+    from anaInfo import mappingNames, maskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck
@@ -37,52 +37,6 @@ if __name__ = '__main__':
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
-    # Set default histogram behavior
-    r.TH1.SetDefaultSumw2(False)
-    r.gROOT.SetBatch(True)
-    r.gStyle.SetOptStat(1111111)
-
-    # Build the channel to strip mapping from the text file
-    envCheck('GEM_PLOTTING_PROJECT')
-    projectHome = os.getenv('GEM_PLOTTING_PROJECT')
-    dict_vfatChanLUT = ndict()
-    if options.extChanMapping is not None:
-        dict_vfatChanLUT = getMapping(options.extChanMapping)
-    elif GEBtype == 'long':
-        dict_vfatChanLUT = getMapping(projectHome+'/mapping/longChannelMap.txt', 'r')
-    if GEBtype == 'short':
-        dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt', 'r')
-   
-    # Set the CAL DAC to fC conversion
-    calDAC2Q_Intercept = np.zeros(24)
-    calDAC2Q_Slope = np.zeros(24)
-    if options.calFile is not None:
-        list_bNames = ["vfatN","slope","intercept"]
-        calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
-        calTree.ReadFile(options.calFile)
-        array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
-    
-        for dataPt in array_CalData:
-            calDAC2Q_Intercept[dataPt['vfatN']] = dataPt['intercept']
-            calDAC2Q_Slope[dataPt['vfatN']] = dataPt['slope']
-    else:
-        calDAC2Q_Intercept = -0.8 * np.ones(24)
-        calDAC2Q_Slope = 0.05 * np.ones(24)
-    
-    if options.IsTrimmed:
-        trimmed_text = open('scanInfo.txt', 'r')
-        trimVcal = []
-        for vfat in range(0,24):
-            trimVcal.append(0)
-            pass
-        for n, line in enumerate(trimmed_text):
-            if n == 0: continue
-            print line
-            scanInfo = line.rsplit('  ')
-            trimVcal[int(scanInfo[0])] = float(scanInfo[4])
-            pass
-        pass
-    
     # Create the output File
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
     myT = r.TTree('scurveFitTree','Tree Holding FitData')
@@ -114,7 +68,7 @@ if __name__ = '__main__':
     myT.Branch( 'pedestal', pedestal, 'pedestal/F')
     ped_eff = array( 'f', [ 0 ] )
     myT.Branch( 'ped_eff', ped_eff, 'ped_eff/F')
-    scurve_h = r.TH1D()
+    scurve_h = r.TH1F()
     myT.Branch( 'scurve_h', scurve_h)
     scurve_fit = r.TF1()
     myT.Branch( 'scurve_fit', scurve_fit)
@@ -128,6 +82,37 @@ if __name__ = '__main__':
     ztrim[0] = options.ztrim
     myT.Branch( 'ztrim', ztrim, 'ztrim/F')
     
+    # Set the CAL DAC to fC conversion
+    calDAC2Q_Intercept = np.zeros(24)
+    calDAC2Q_Slope = np.zeros(24)
+    if options.calFile is not None:
+        list_bNames = ["vfatN","slope","intercept"]
+        calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
+        calTree.ReadFile(options.calFile)
+        array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
+    
+        for dataPt in array_CalData:
+            calDAC2Q_Intercept[dataPt['vfatN']] = dataPt['intercept']
+            calDAC2Q_Slope[dataPt['vfatN']] = dataPt['slope']
+    else:
+        calDAC2Q_Intercept = -0.8 * np.ones(24)
+        calDAC2Q_Slope = 0.05 * np.ones(24)
+    
+    # Check if inputfile is trimmed
+    if options.IsTrimmed:
+        trimmed_text = open('scanInfo.txt', 'r')
+        trimVcal = []
+        for vfat in range(0,24):
+            trimVcal.append(0)
+            pass
+        for n, line in enumerate(trimmed_text):
+            if n == 0: continue
+            print line
+            scanInfo = line.rsplit('  ')
+            trimVcal[int(scanInfo[0])] = float(scanInfo[4])
+            pass
+        pass
+    
     # Create output plot containers
     vSummaryPlots = ndict()
     vSummaryPlotsPanPin2 = ndict()
@@ -140,12 +125,16 @@ if __name__ = '__main__':
     trimrange_list = getEmptyPerVFATList()
     lines = []
     
+    # Set default histogram behavior
+    r.TH1.SetDefaultSumw2(False)
+    r.gROOT.SetBatch(True)
+    r.gStyle.SetOptStat(1111111)
+
     # Initialize distributions
     for vfat in range(0,24):
         if options.IsTrimmed:
             lines.append(r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat]))
             pass
-        # vfat summary plots
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                 'VFAT %i;Channels;VCal [fC]'%vfat,
                 128,-0.5,127.5,256,
@@ -189,7 +178,7 @@ if __name__ = '__main__':
             vSummaryPlotsNoHotChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             pass
         for chan in range (0,128):
-            vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
+            vScurves[vfat].append(r.TH1F('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
             vScurveFits[vfat].append(r.TH1F())
             vthr_list[vfat].append(0)
             trim_list[vfat].append(0)
@@ -197,10 +186,28 @@ if __name__ = '__main__':
             pass
         pass
     
-    if options.SaveFile:
+    if options.performFit:
         fitter = ScanDataFitter()
         pass
-    
+   
+    # Determine chan, strip or panpin indep var
+    stripChanOrPinType = mappingNames[2]
+    if not (options.channels or options.PanPin):
+        stripChanOrPinType = mappingNames[0]
+    elif options.PanPin:
+        stripChanOrPinType = mappingNames[1]
+
+    # Build the channel to strip mapping from the text file
+    envCheck('GEM_PLOTTING_PROJECT')
+    projectHome = os.getenv('GEM_PLOTTING_PROJECT')
+    dict_vfatChanLUT = ndict()
+    if options.extChanMapping is not None:
+        dict_vfatChanLUT = getMapping(options.extChanMapping)
+    elif GEBtype == 'long':
+        dict_vfatChanLUT = getMapping(projectHome+'/mapping/longChannelMap.txt', 'r')
+    if GEBtype == 'short':
+        dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt', 'r')
+   
     # Fill
     print("Filling Histograms")
     inF = r.TFile(filename+'.root')
@@ -209,31 +216,25 @@ if __name__ = '__main__':
     dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
     listOfBranches = inF.scurveTree.GetListOfBranches()
     for event in inF.scurveTree:
-        strip = chanToStripLUT[event.vfatN][event.vfatCH]
-        pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
+        stripPinOrChan = dict_vfatChanLUT[event.vfatN][stripChanOrPinType][event.vfatCH]
         charge = calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN]
         if checkCurrentPulse:
             if event.isCurrentPulse:
                 #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
                 charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
-        if not (options.channels or options.PanPin):
-            vSummaryPlots[event.vfatN].Fill(strip,charge,event.Nhits)
-            pass
-        if options.channels:
-            vSummaryPlots[event.vfatN].Fill(event.vfatCH,charge,event.Nhits)
-            pass
         if options.PanPin:
-            if (pan_pin < 64):
-                vSummaryPlots[event.vfatN].Fill(63-pan_pin,charge,event.Nhits)
+            if (stripPinOrChan < 64):
+                vSummaryPlots[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
                 pass
             else:
-                vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,charge,event.Nhits)
+                vSummaryPlotsPanPin2[event.vfatN].Fill(127-stripPinOrChan,charge,event.Nhits)
                 pass
             pass
+        else:
+            vSummaryPlots[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
         
         binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
         vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
-        r.gStyle.SetOptStat(1111111)
         vthr_list[event.vfatN][event.vfatCH] = event.vthr
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
         trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
@@ -244,7 +245,7 @@ if __name__ = '__main__':
             else:
                 dict_vfatID[event.vfatN] = 0
     
-        if options.SaveFile:
+        if options.performFit:
             fitter.feed(event)
             pass
         pass
