@@ -75,7 +75,7 @@ if __name__ = '__main__':
     import ROOT as r
     
     from array import array
-    from anautilities import getEmptyPerVFATList, getMapping
+    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, saveSummary
     from anaInfo import mappingNames, maskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -105,47 +105,47 @@ if __name__ = '__main__':
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
-    # Create the output File
+    # Create the output File and TTree
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
     myT = r.TTree('scurveFitTree','Tree Holding FitData')
-    vfatN = array( 'i', [ 0 ] )
-    myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
-    vfatID = array( 'i', [-1] )
-    myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
-    vfatCH = array( 'i', [ 0 ] )
-    myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
-    ROBstr = array( 'i', [ 0 ] )
-    myT.Branch( 'ROBstr', ROBstr, 'ROBstr/I' )
+    chi2 = array( 'f', [ 0 ] )
+    myT.Branch( 'chi2', chi2, 'chi2/F')
     mask = array( 'i', [ 0 ] )
     myT.Branch( 'mask', mask, 'mask/I' )
     maskReason = array( 'i', [ 0 ] )
     myT.Branch( 'maskReason', maskReason, 'maskReason/I' )
-    panPin = array( 'i', [ 0 ] )
-    myT.Branch( 'panPin', panPin, 'panPin/I' )
-    trimRange = array( 'i', [ 0 ] )
-    myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
-    vthr = array( 'i', [ 0 ] )
-    myT.Branch( 'vthr', vthr, 'vthr/I' )
-    trimDAC = array( 'i', [ 0 ] )
-    myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
-    threshold = array( 'f', [ 0 ] )
-    myT.Branch( 'threshold', threshold, 'threshold/F')
-    noise = array( 'f', [ 0 ] )
-    myT.Branch( 'noise', noise, 'noise/F')
-    pedestal = array( 'f', [ 0 ] )
-    myT.Branch( 'pedestal', pedestal, 'pedestal/F')
-    ped_eff = array( 'f', [ 0 ] )
-    myT.Branch( 'ped_eff', ped_eff, 'ped_eff/F')
-    scurve_h = r.TH1F()
-    myT.Branch( 'scurve_h', scurve_h)
-    scurve_fit = r.TF1()
-    myT.Branch( 'scurve_fit', scurve_fit)
-    chi2 = array( 'f', [ 0 ] )
-    myT.Branch( 'chi2', chi2, 'chi2/F')
     ndf = array( 'i', [ 0 ] )
     myT.Branch( 'ndf', ndf, 'ndf/I')
     Nhigh = array( 'i', [ 0 ] )
     myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
+    noise = array( 'f', [ 0 ] )
+    myT.Branch( 'noise', noise, 'noise/F')
+    panPin = array( 'i', [ 0 ] )
+    myT.Branch( 'panPin', panPin, 'panPin/I' )
+    pedestal = array( 'f', [ 0 ] )
+    myT.Branch( 'pedestal', pedestal, 'pedestal/F')
+    ped_eff = array( 'f', [ 0 ] )
+    myT.Branch( 'ped_eff', ped_eff, 'ped_eff/F')
+    ROBstr = array( 'i', [ 0 ] )
+    myT.Branch( 'ROBstr', ROBstr, 'ROBstr/I' )
+    trimDAC = array( 'i', [ 0 ] )
+    myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
+    threshold = array( 'f', [ 0 ] )
+    myT.Branch( 'threshold', threshold, 'threshold/F')
+    trimRange = array( 'i', [ 0 ] )
+    myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
+    vfatCH = array( 'i', [ 0 ] )
+    myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
+    vfatID = array( 'i', [-1] )
+    myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
+    vfatN = array( 'i', [ 0 ] )
+    myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
+    vthr = array( 'i', [ 0 ] )
+    myT.Branch( 'vthr', vthr, 'vthr/I' )
+    scurve_h = r.TH1F()
+    myT.Branch( 'scurve_h', scurve_h)
+    scurve_fit = r.TF1()
+    myT.Branch( 'scurve_fit', scurve_fit)
     ztrim = array( 'f', [ 0 ] )
     ztrim[0] = options.ztrim
     myT.Branch( 'ztrim', ztrim, 'ztrim/F')
@@ -165,21 +165,6 @@ if __name__ = '__main__':
     else:
         calDAC2Q_Intercept = -0.8 * np.ones(24)
         calDAC2Q_Slope = 0.05 * np.ones(24)
-    
-    # Check if inputfile is trimmed
-    if options.IsTrimmed:
-        trimmed_text = open('scanInfo.txt', 'r')
-        trimVcal = []
-        for vfat in range(0,24):
-            trimVcal.append(0)
-            pass
-        for n, line in enumerate(trimmed_text):
-            if n == 0: continue
-            print line
-            scanInfo = line.rsplit('  ')
-            trimVcal[int(scanInfo[0])] = float(scanInfo[4])
-            pass
-        pass
     
     # Create output plot containers
     vSummaryPlots = ndict()
@@ -458,18 +443,36 @@ if __name__ = '__main__':
             fitSums[vfat].SetMarkerStyle(2)
             pass
         pass
-    
-    saveSummary(vSummaryPlots, vSummaryPlotsPanPin2)
-    if options.SaveFile:
-        saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, name='PrunedSummary')
-    
-    if options.SaveFile:
-        r.gStyle.SetOptStat(0)
-        canv = make3x8Canvas('canv', fitSums, 'ap')
-        canv.SaveAs(filename+'/fitSummary.png')
+   
+    # Check if inputfile is trimmed
+    trimVcal = None
+    if options.IsTrimmed:
+        trimmed_text = open('scanInfo.txt', 'r')
+        trimVcal = []
+        for vfat in range(0,24):
+            trimVcal.append(0)
+            pass
+        for n, line in enumerate(trimmed_text):
+            if n == 0: continue
+            print line
+            scanInfo = line.rsplit('  ')
+            trimVcal[int(scanInfo[0])] = float(scanInfo[4])
+            pass
         pass
     
-    if options.SaveFile:
+    # Save the summary plots and channel config file
+    if options.panPin:
+        saveSummary(vSummaryPlots, vSummaryPlotsPanPin2, '%s/Summary.png'%filename, trimVcal) 
+    else: 
+        saveSummary(vSummaryPlots, None, '%s/Summary.png'%filename, trimVcal)
+
+    if options.performFit:
+        saveSummary(fitSums, None, '%s/fitSummary.png'%filename, None)
+        if options.panPin:
+            saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, '%s/PrunedSummary.png'%filename, trimVcal)
+        else:
+            saveSummary(vSummaryPlotsNoHotChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
+
         confF = open(filename+'/chConfig.txt','w')
         confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
         for vfat in range (0,24):
