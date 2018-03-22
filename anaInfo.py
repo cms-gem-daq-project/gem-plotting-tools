@@ -27,6 +27,11 @@ tree_names = {
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
         }
 
+mappingNames = [
+        "Strip",
+        "PanPin"
+        ]
+
 class MaskReason:
     """Enum-like class to represent the reasons for which a channel was masked.
     Reasons are bitmasks. Example usage:

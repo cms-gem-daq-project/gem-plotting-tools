@@ -54,6 +54,69 @@ def getDirByAnaType(anaType, cName, ztrim=4):
 
     return dirPath
 
+def getMapping(mappingFileName):
+    """
+    Returns a nested dictionary, the outer dictionary uses VFAT position as the has a key,
+    the inner most dict has keys from the list anaInfo.py mappingNames.
+    
+    The inner dict stores a list whose index is ordered by ASIC channel number, accessing
+    the i^th element of this list gives either the readout strip number of readout connector
+    pin number as shown in this example:
+
+        ret_dict[vfatN]['Strip'][asic_chan] is the strip number
+        ret_dict[vfatN]['PanPin'][asic_chan] is the pin number on the readout connector
+
+    mappingFile - physical filename of file which contains the mapping information, 
+                  expected format:
+
+                        vfat/I:strip/I:channel/I:PanPin/I
+                        0	0	16	63
+                        0	1	20	62
+                        0	2	24	61
+                        ...
+                        ...
+
+                  Here these column headings are:
+                        vfat - the VFAT position on the detector (e.g. vfatN)
+                        strip - the anode strip on the readout board in an ieta row
+                        channel - the channel on the ASIC
+                        PanPin - the pin number on the panasonic connector
+    """
+    from gempython.utils.nesteddict import nesteddict
+
+    from anaInfo import mappingNames
+    import ROOT as r
+
+    # Try to get the mapping data
+    try:
+        mapFile = open(mappingFileName, 'r')
+    except IOError as e:
+        print "Exception:", e
+        print "Failed to open: '%s'"%mappingFileName
+    else:
+        listMapData = mapFile.readlines()
+    finally:
+        mapFile.close()
+
+    # strip trhe end of line character
+    listMapData = [x.strip('\n') for x in listMapData]
+
+    # setup the look up table
+    ret_mapDict = nesteddict()
+    for vfat in range(0,24):
+        for name in mappingNames:
+            ret_mapDict[vfat][name] = [0] * 128
+
+    # Set the data in the loop up table
+    for idx, line in enumerate(listMapData):
+        if idx == 0: 
+            continue # skip the header line
+        mapping = line.rsplit('\t')
+        ret_mapDict[int(mapping[0])]['Strip'][int(mapping[2]) - 1] = int(mapping[1])
+        ret_mapDict[int(mapping[0])]['PanPin'][int(mapping[2]) -1] = int(mapping[3])
+
+    return ret_mapDict
+
 def initVFATArray(array_dtype, nstrips=128):
     import numpy as np
     
