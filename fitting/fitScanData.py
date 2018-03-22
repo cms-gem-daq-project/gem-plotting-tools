@@ -1,5 +1,6 @@
 import numpy as np
 import ROOT as r
+from anaInfo import dict_calSF
 
 class DeadChannelFinder(object):
     def __init__(self):
@@ -30,7 +31,6 @@ class ScanDataFitter(DeadChannelFinder):
 
         self.isVFAT3    = isVFAT3
         self.isIPulse   = isIPulse
-        self.dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
 
         self.calDAC2Q_m = np.ones(24)
         if calDAC2Q_m is not None:
@@ -66,7 +66,7 @@ class ScanDataFitter(DeadChannelFinder):
         if self.isVFAT3: #v3 electronics
             if event.isIPulse:
                 #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
-                charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * self.dict_calSF[event.calSF] * 1e15
+                charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
                 if(event.vcal > 254):
                     self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
             else:
