@@ -71,7 +71,6 @@ before_install:
 script:
   - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
   - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
-  - find rpm -iname '*.tar.gz' -o -iname '*.tbz2' -o -iname '*.rpm'
 
 # How to link the environments/outputs from above with the jobs below?
 .build: &build_template
