@@ -19,14 +19,14 @@ if __name__ = '__main__':
     parser.add_option("--calFile", type="string", dest="calFile", default=None,
                       help="File specifying CAL_DAC/VCAL to fC equations per VFAT",
                       metavar="calFile")
+    parser.add_option("--extChanMapping", type="string", dest="extChanMapping", default=None,
+                      help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
-    parser.add_option("--extChanMapping", type="string", dest="extChanMapping", default=None,
-                      help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.set_defaults(outfilename="SCurveFitData.root")
     (options, args) = parser.parse_args()
     
@@ -186,10 +186,16 @@ if __name__ = '__main__':
             pass
         pass
     
+    # Create the fitter
+    checkCurrentPulse = ("isCurrentPulse" in inF.scurveTree.GetListOfBranches())
     if options.performFit:
-        fitter = ScanDataFitter()
+        fitter = ScanDataFitter(
+                calDAC2Q_m=calDAC2Q_Slope, 
+                calDAC2Q_b=calDAC2Q_Intercept,
+                isVFAT3=checkCurrentPulse,
+                )
         pass
-   
+
     # Determine chan, strip or panpin indep var
     stripChanOrPinType = mappingNames[2]
     if not (options.channels or options.PanPin):
@@ -208,20 +214,26 @@ if __name__ = '__main__':
     if GEBtype == 'short':
         dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt', 'r')
    
-    # Fill
+    # Loop over input data and fill histograms
     print("Filling Histograms")
     inF = r.TFile(filename+'.root')
-    checkCurrentPulse = ("isCurrentPulse" in inF.scurveTree.GetListOfBranches())
     dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
     dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
     listOfBranches = inF.scurveTree.GetListOfBranches()
     for event in inF.scurveTree:
+        # Get the channel, strip, or Pan Pin
         stripPinOrChan = dict_vfatChanLUT[event.vfatN][stripChanOrPinType][event.vfatCH]
+        
+        # Determine charge
         charge = calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN]
-        if checkCurrentPulse:
+        if checkCurrentPulse: #v3 electronics
             if event.isCurrentPulse:
                 #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
                 charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
+            else:
+                charge = calDAC2Q_Slope[event.vfatN]*(256-event.vcal)+calDAC2Q_Intercept[event.vfatN]
+        
+        # Fill Summary Histogram 
         if options.PanPin:
             if (stripPinOrChan < 64):
                 vSummaryPlots[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
@@ -239,18 +251,18 @@ if __name__ = '__main__':
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
         trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
         
+        # Store vfatID
         if not (dict_vfatID[event.vfatN] > 0):
             if 'vfatID' in listOfBranches:
                 dict_vfatID[event.vfatN] = event.vfatID
             else:
                 dict_vfatID[event.vfatN] = 0
-    
-        if options.performFit:
-            fitter.feed(event)
-            pass
-        pass
-    
-    if options.SaveFile:
+        
+        # Load the fitter with histograms now in charge units
+        fitter.feed(event)
+
+    if options.performFit:
+        # Fit Scurves        
         print("Fitting Histograms")
         fitSummary = open(filename+'/fitSummary.txt','w')
         fitSummary.write('vfatN/I:vfatID/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
@@ -270,30 +282,25 @@ if __name__ = '__main__':
                             )
                         )
         fitSummary.close()
-        pass
     
-    # Determine hot channels
-    if options.SaveFile:
+        # Determine hot channels
         print("Determining hot channels")
         masks = []
         maskReasons = []
         effectivePedestals = [ np.zeros(128) for vfat in range(24) ]
+        print "| vfatN | Dead Chan | Hot Chan | Failed Fits | High Noise | High Eff Ped |"
+        print "| :---: | :-------: | :------: | :---------: | :--------: | :----------: |"
         for vfat in range(0, 24):
             trimValue = np.zeros(128)
             channelNoise = np.zeros(128)
             fitFailed = np.zeros(128, dtype=bool)
             for chan in range(0, 128):
-                # Get fit results
-                threshold[0] = scanFits[0][vfat][chan]
-                noise[0] = scanFits[1][vfat][chan]
-                pedestal[0] = scanFits[2][vfat][chan]
-                
                 # Compute values for cuts
-                channelNoise[chan] = noise[0]
+                channelNoise[chan] = scanFits[1][vfat][chan]
                 effectivePedestals[vfat][chan] = vScurveFits[vfat][chan].Eval(0.0)
                 
                 # Compute the value to apply MAD on for each channel
-                trimValue[chan] = threshold[0] - ztrim[0] * noise[0]
+                trimValue[chan] = scanFits[0][vfat][chan] - ztrim[0] * scanFits[1][vfat][chan]
                 pass
             fitFailed = np.logical_not(fitter.fitValid[vfat])
             
@@ -310,7 +317,8 @@ if __name__ = '__main__':
             reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
             maskReasons.append(reason)
             masks.append(reason != MaskReason.NotMasked)
-            print 'VFAT %2d: %d dead, %d hot channels, %d failed fits, %d high noise, %d high eff.ped.' % (vfat,
+            print '| %i | %i | %i | %i | %i | %i |'%(
+                    vfat,
                     np.count_nonzero(fitter.isDead[vfat]),
                     np.count_nonzero(hot),
                     np.count_nonzero(fitFailed),
