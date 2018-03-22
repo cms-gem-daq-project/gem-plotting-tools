@@ -10,12 +10,11 @@ class DeadChannelFinder(object):
         self.isDead[event.vfatN][event.vfatCH] = False
 
 class ScanDataFitter(DeadChannelFinder):
-    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False, isIPulse=False):
+    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False):
         """
         calDAC2Q_m - list of slope values for "fC = m * cal_dac + b" equation, ordered by vfat position
         calDAC2Q_b - as calDAC2Q_m but for intercept b
         isVFAT3 - if using VFAT3
-        isIPulse - if using current pulse mode of vfat3
         """
 
         super(ScanDataFitter, self).__init__()
@@ -30,7 +29,6 @@ class ScanDataFitter(DeadChannelFinder):
         self.scanFitResults   = ndict()
 
         self.isVFAT3    = isVFAT3
-        self.isIPulse   = isIPulse
 
         self.calDAC2Q_m = np.ones(24)
         if calDAC2Q_m is not None:
@@ -64,7 +62,7 @@ class ScanDataFitter(DeadChannelFinder):
 
         charge = self.calDAC2Q_m[event.vfatN]*event.vcal+self.calDAC2Q_b[event.vfatN]
         if self.isVFAT3: #v3 electronics
-            if event.isIPulse:
+            if event.isCurrentPulse:
                 #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
                 charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
                 if(event.vcal > 254):
