@@ -3,7 +3,9 @@ import string
 ana_config = {
         "latency":"anaUltraLatency.py",
         "scurve":"anaUltraScurve.py",
-        "threshold":"anaUltraThreshold.py",
+        "thresholdch":"anaUltraThreshold.py",
+        "thresholdvftrk":"anaUltraThreshold.py",
+        "thresholdvftrig":"anaUltraThreshold.py",
         "trim":"anaUltraScurve.py"
         }
 
@@ -17,6 +19,9 @@ tree_names = {
         "scurve":("SCurveData.root","scurveTree"),
         "scurveAna":("SCurveData/SCurveFitData.root","scurveFitTree"),
         "threshold":("ThresholdScanData.root","thrTree"),
+        "thresholdch":("ThresholdScanData.root","thrTree"),
+        "thresholdvftrig":("ThresholdScanData.root","thrTree"),
+        "thresholdvftrk":("ThresholdScanData.root","thrTree"),
         "thresholdAna":("ThresholdScanData/ThresholdPlots.root","thrAnaTree"),
         "trim":("SCurveData_Trimmed.root","scurveTree"),
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
