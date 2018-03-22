@@ -7,7 +7,7 @@ if __name__ = '__main__':
     import ROOT as r
     
     from array import array
-    from anautilities import getMapping
+    from anautilities import getEmptyPerVFATList, getMapping
     from anaInfo import maskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -131,51 +131,36 @@ if __name__ = '__main__':
     # Create output plot containers
     vSummaryPlots = ndict()
     vSummaryPlotsPanPin2 = ndict()
-    vSummaryPlotsPruned = ndict()
-    vSummaryPlotsPrunedPanPin2 = ndict()
-    vScurves = [ [] for x in range(0,24)]
-    vScurveFits = []
-    vthr_list = []
-    trim_list = []
-    trimrange_list = []
+    vSummaryPlotsNoHotChan = ndict()
+    vSummaryPlotsNoHotChanPanPin2 = ndict()
+    vScurves = getEmptyPerVFATList()
+    vScurveFits = getEmptyPerVFATList()
+    vthr_list = getEmptyPerVFATList() 
+    trim_list = getEmptyPerVFATList() 
+    trimrange_list = getEmptyPerVFATList()
     lines = []
     
+    # Initialize distributions
     for vfat in range(0,24):
-        vScurves.append([])
-        vScurveFits.append([])
-        vthr_list.append([])
-        trim_list.append([])
-        trimrange_list.append([])
         if options.IsTrimmed:
             lines.append(r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat]))
             pass
+        # vfat summary plots
+        vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
+                'VFAT %i;Channels;VCal [fC]'%vfat,
+                128,-0.5,127.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+        vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsNoHotChan[vfat] = r.TH2D('vSummaryPlotsNoHotChan%i'%vfat,
+                'VFAT %i;Channels;VCal [fC]'%vfat,
+                128,-0.5,127.5,256,
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+        vSummaryPlotsNoHotChan[vfat].GetYaxis().SetTitleOffset(1.5)
         if not (options.channels or options.PanPin):
-            vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                    'VFAT %i;Strip;VCal [fC]'%vfat,
-                    128,-0.5,127.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-            vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,
-                    'VFAT %i;Strip;VCal [fC]'%vfat,
-                    128,-0.5,127.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
-            pass
-        if options.channels:
-            vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                    'VFAT %i;Channels;VCal [fC]'%vfat,
-                    128,-0.5,127.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-            vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,
-                    'VFAT %i;Channels;VCal [fC]'%vfat,
-                    128,-0.5,127.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
+            vSummaryPlots[vfat].SetXTitle('Strip')
+            vSummaryPlotsNoHotChan[vfat].SetXTitle('Strip')
             pass
         if options.PanPin:
             vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
@@ -184,24 +169,24 @@ if __name__ = '__main__':
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-            vSummaryPlotsPruned[vfat] = r.TH2D('vSummaryPlotsPruned%i'%vfat,
+            vSummaryPlotsNoHotChan[vfat] = r.TH2D('vSummaryPlotsNoHotChan%i'%vfat,
                     'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlotsPruned[vfat].GetYaxis().SetTitleOffset(1.5)
+            vSummaryPlotsNoHotChan[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
-            vSummaryPlotsPrunedPanPin2[vfat] = r.TH2D('vSummaryPlotsPrunedPanPin2_%i'%vfat,
+            vSummaryPlotsNoHotChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoHotChanPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlotsPrunedPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
+            vSummaryPlotsNoHotChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             pass
         for chan in range (0,128):
             vScurves[vfat].append(r.TH1D('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
@@ -345,14 +330,14 @@ if __name__ = '__main__':
                     #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
                     charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
             if not (options.channels or options.PanPin):
-                vSummaryPlotsPruned[event.vfatN].Fill(strip,charge,event.Nhits)
+                vSummaryPlotsNoHotChan[event.vfatN].Fill(strip,charge,event.Nhits)
             if options.channels:
-                vSummaryPlotsPruned[event.vfatN].Fill(event.vfatCH,charge,event.Nhits)
+                vSummaryPlotsNoHotChan[event.vfatN].Fill(event.vfatCH,charge,event.Nhits)
             if options.PanPin:
                 if (pan_pin < 64):
-                    vSummaryPlotsPruned[event.vfatN].Fill(63-pan_pin,charge,event.Nhits)
+                    vSummaryPlotsNoHotChan[event.vfatN].Fill(63-pan_pin,charge,event.Nhits)
                 else:
-                    vSummaryPlotsPrunedPanPin2[event.vfatN].Fill(127-pan_pin,charge,event.Nhits)
+                    vSummaryPlotsNoHotChanPanPin2[event.vfatN].Fill(127-pan_pin,charge,event.Nhits)
     
     # Store values in ROOT file
     if options.SaveFile:
@@ -472,7 +457,7 @@ if __name__ = '__main__':
     
     saveSummary(vSummaryPlots, vSummaryPlotsPanPin2)
     if options.SaveFile:
-        saveSummary(vSummaryPlotsPruned, vSummaryPlotsPrunedPanPin2, name='PrunedSummary')
+        saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, name='PrunedSummary')
     
     if options.SaveFile:
         r.gStyle.SetOptStat(0)
