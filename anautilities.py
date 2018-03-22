@@ -54,6 +54,16 @@ def getDirByAnaType(anaType, cName, ztrim=4):
 
     return dirPath
 
+def getEmptyPerVFATList(n_vfat=24):
+    """
+    Returns a list of lists
+    Each of the inner lists are empty
+
+    There are n_vfat inner lists
+    """
+
+    return [ [] for vfat in range(0,n_vfat) ]
+
 def getMapping(mappingFileName):
     """
     Returns a nested dictionary, the outer dictionary uses VFAT position as the has a key,

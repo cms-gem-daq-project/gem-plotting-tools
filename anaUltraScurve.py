@@ -128,11 +128,12 @@ if __name__ = '__main__':
     ztrim[0] = options.ztrim
     myT.Branch( 'ztrim', ztrim, 'ztrim/F')
     
+    # Create output plot containers
     vSummaryPlots = ndict()
     vSummaryPlotsPanPin2 = ndict()
     vSummaryPlotsPruned = ndict()
     vSummaryPlotsPrunedPanPin2 = ndict()
-    vScurves = []
+    vScurves = [ [] for x in range(0,24)]
     vScurveFits = []
     vthr_list = []
     trim_list = []
