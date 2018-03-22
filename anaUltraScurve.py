@@ -67,6 +67,40 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
 
     return
 
+def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScurves"):
+    """
+    Plots all scurves for a given vfat on a TCanvas for all vfats
+
+    vfatHistos        - container of histograms for each vfat where len(vfatHistos) = Total number of VFATs
+                        The n^th element is a 2D histogram of Hits vs. (Strip || Chan || PanPin)
+    vfatHistosPanPin2 - As vfatHistos but for the other side of the readout board connector if lutType is "PanPin"
+    obsName           - String to append the TCanvas created for each VFAT
+    """
+    canv_dict = {}
+
+    for vfat,histo in vfatHistos.iteritems():
+        canv_dict[vfat] = r.TCanvas("%s_vfat%i"%(obsName,vfat),"%s from VFAT%i"%(obsName,vfat),600,600)
+        canv_dict[vfat].cd()
+        for binX in range(1,histo.GetNbinsX()+1):
+            h_scurve = histo.ProjectionY("h_scurve",binX,binX,"")
+            h_scurve.SetLineColor(kBlue+2)
+            h_scurve.SetLineWidth(2)
+            if binX == 1:
+                h_scurve.Draw()
+            else:
+                h_scurve.Draw("same")
+        canv_dict[vfat].Update()
+    if vfatHistosPanPin2 is not None:
+        for vfat,histo in vfatHistosPanPin2.iteritems():
+            canv_dict[vfat].cd()
+            for binX in range(1,histo.GetNbinsX()+1):
+                h_scurve = histo.ProjectionY("h_scurve",binX,binX,"")
+                h_scurve.SetLineColor(kBlue+2)
+                h_scurve.SetLineWidth(2)
+                h_scurve.Draw("same")
+            canv_dict[vfat].Update()
+
+    return canv_dict
 
 if __name__ = '__main__':
     import os
@@ -516,6 +550,30 @@ if __name__ = '__main__':
         confF.close()
         pass
 
+    # Make 1D Plot for each VFAT showing all scurves
+    # Don't use the ones stored in fitter since this may not exist (e.g. options.performFit = false)
+    if options.panPin:
+        canvOfScurveHistos = canvOfScurves(vSummaryPlots,vSummaryPlotsPanPin2,"canvScurves")
+    else:
+        canvOfScurveHistos = canvOfScurves(vSummaryPlots,None,"canvScurves")
+
+    if options.performFit:
+        if options.panPin:
+            canvOfScurveHistosNoHotChan = canvOfScurves(vSummaryPlotsNoHotChan,vSummaryPlotsNoHotChanPanPin2,"canvScurvesNotHotChan")
+        else:
+            canvOfScurveHistosNoHotChan = canvOfScurves(vSummaryPlotsNoHotChan,None,"canvScurvesNoHotChan")
+        
+        canvOfScurveFits = {}
+        for vfat in range(0,24):
+            canvOfScurveFits[vfat] = r.TCanvas("canvScurveFits_vfat%i"%vfat,"Scurve Fits from VFAT%i"%vfat,600,600)
+            canvOfScurveFits[vfat].cd()
+            for chan in range (0,128):
+                if chan == 0:
+                    fitter.scanFuncs[vfat][ch].Draw()
+                else:
+                    fitter.scanFuncs[vfat][ch].Draw("same")
+            canvOfScurveFits[vfat].Update()
+
     # Save TObjects
     outF.cd()
     myT.Write()
@@ -525,6 +583,7 @@ if __name__ = '__main__':
         vSummaryPlots[vfat].Write()
         if options.panPin:
             vSummaryPlotsPanPin2.Write()
+        canvOfScurveHistos[vfat].Write()
         if options.performFit:
             vSummaryPlotsNoHotChan.Write()
             if options.panPin:
@@ -532,6 +591,8 @@ if __name__ = '__main__':
             fitSummaryPlots[vfat].Write()
             threshSummaryPlots[vfat].Write()
             encSummaryPlots[vfat].Write()
+            canvOfScurveHistosNoHotChan[vfat].Write()
+            canvOfScurveFits[vfat].Write()
             pass
     
     # Close output root file
