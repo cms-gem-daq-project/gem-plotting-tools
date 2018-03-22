@@ -26,7 +26,7 @@ class ScanDataFitter(DeadChannelFinder):
         self.scanFuncs  = ndict()
         self.scanHistos = ndict()
         self.scanCount  = ndict()
-        self.scanFits   = ndict()
+        self.scanFitResults   = ndict()
 
         self.isVFAT3    = isVFAT3
         self.isIPulse   = isIPulse
@@ -41,13 +41,13 @@ class ScanDataFitter(DeadChannelFinder):
             self.calDAC2Q_b = calDAC2Q_b
 
         for vfat in range(0,24):
-            self.scanFits[0][vfat] = np.zeros(128)
-            self.scanFits[1][vfat] = np.zeros(128)
-            self.scanFits[2][vfat] = np.zeros(128)
-            self.scanFits[3][vfat] = np.zeros(128)
-            self.scanFits[4][vfat] = np.zeros(128)
-            self.scanFits[5][vfat] = np.zeros(128)
-            self.scanFits[6][vfat] = np.zeros(128, dtype=bool)
+            self.scanFitResults[0][vfat] = np.zeros(128)
+            self.scanFitResults[1][vfat] = np.zeros(128)
+            self.scanFitResults[2][vfat] = np.zeros(128)
+            self.scanFitResults[3][vfat] = np.zeros(128)
+            self.scanFitResults[4][vfat] = np.zeros(128)
+            self.scanFitResults[5][vfat] = np.zeros(128)
+            self.scanFitResults[6][vfat] = np.zeros(128, dtype=bool)
             for ch in range(0,128):
                 self.scanCount[vfat][ch] = 0
                 self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
@@ -99,7 +99,7 @@ class ScanDataFitter(DeadChannelFinder):
                 construction then output container will have relevant
                 parameters in charge units instead of DAC units
 
-        Returns self.scanFits
+        Returns self.scanFitResults
             
                  [0][vfat][ch] = scurve mean in either DAC units or charge (threshold of comparator)
                  [1][vfat][ch] = scurve width in either DAC units or charge (noise seen by comparator)
@@ -155,12 +155,12 @@ class ScanDataFitter(DeadChannelFinder):
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
-                        self.scanFits[0][vfat][ch] = fitTF1.GetParameter(0)
-                        self.scanFits[1][vfat][ch] = fitTF1.GetParameter(1)
-                        self.scanFits[2][vfat][ch] = fitTF1.GetParameter(2)
-                        self.scanFits[3][vfat][ch] = fitChi2
-                        self.scanFits[4][vfat][ch] = self.scanCount[vfat][ch]
-                        self.scanFits[5][vfat][ch] = fitNDF
+                        self.scanFitResults[0][vfat][ch] = fitTF1.GetParameter(0)
+                        self.scanFitResults[1][vfat][ch] = fitTF1.GetParameter(1)
+                        self.scanFitResults[2][vfat][ch] = fitTF1.GetParameter(2)
+                        self.scanFitResults[3][vfat][ch] = fitChi2
+                        self.scanFitResults[4][vfat][ch] = self.scanCount[vfat][ch]
+                        self.scanFitResults[5][vfat][ch] = fitNDF
                         self.fitValid[vfat][ch] = True
                         MinChi2Temp = fitChi2
                         pass
@@ -168,7 +168,7 @@ class ScanDataFitter(DeadChannelFinder):
                     pass
                 pass
             pass
-        return self.scanFits
+        return self.scanFitResults
     
     def getFunc(self, vfat, ch):
         return self.scanFuncs[vfat][ch]
