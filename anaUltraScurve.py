@@ -1,5 +1,112 @@
 #!/bin/env python
 
+def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanPin2=None, lutType="vfatCH", chanMasks=None, calDAC2Q_m=None, calDAC2Q_b=None):
+    """
+    Fills 2D Scurve summary plots from scurveTree TTree
+
+    vfatHistos        - container of histograms for each vfat where len(vfatHistos) = Total number of VFATs
+                        The n^th element is a 2D histogram of Hits vs. (Strip || Chan || PanPin)
+    vfatChanLUT       - Nested dictionary specifying the VFAT channel to strip and PanPin mapping;
+                        see getMapping() for details on expected format
+    vfatHistosPanPin2 - As vfatHistos but for the other side of the readout board connector if lutType is "PanPin"
+    lutType           - Type of look up to be peformed in vfatChanLUT, see mappingNames of anaInfo.py for
+                        expected names
+    chanMasks         - List of numpy arrays, one numpy array per vfat, elements of the numpy array
+                        are expected to be ordered by VFAT channel number and correspond to 1 (0) for
+                        (not) masked channel, optional parameter.
+    calDAC2Q_m        - list of slope values for "fC = m * cal_dac + b" equation, ordered by vfat position
+                        if argument is None a value of 1.0 is used for all VFATs
+    calDAC2Q_b        - as calDAC2Q_m but for intercept b, but a value of 0 is used if argument is None
+    """
+    from anaInfo import dict_calSF, mappingNames
+
+    # Check if lutType is expected
+    if lutType not in mappingNames:
+        print "fill2DScurveSummaryPlots() - lutType '%s' not supported"
+        print "fill2DScurveSummaryPlots() - I was expecting one of the following: ", mappingNames
+        raise LookupError
+
+    # Set calDAC2Q slope to unity if not provided
+    if calDAC2Q_m is None:
+        calDAC2Q_m = np.ones(24)
+
+    # Set calDAC2Q intercept to zero if not provided
+    if calDAC2Q_b is None:
+        calDAC2Q_b = np.zeros(24)
+   
+    # Fill Histograms
+    checkCurrentPulse = ("isCurrentPulse" in scurveTree.GetListOfBranches())
+    for event in scurveTree:
+        if chanMasks is not None
+            if chanMasks[event.vfatN][event.vfatCH]:
+                continue
+
+        # Get the channel, strip, or Pan Pin
+        stripPinOrChan = vfatChanLUT[event.vfatN][lutType][event.vfatCH]
+        
+        # Determine charge
+        charge = calDAC2Q_m[event.vfatN]*event.vcal+calDAC2Q_b[event.vfatN]
+        if checkCurrentPulse: #v3 electronics
+            if event.isCurrentPulse:
+                #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
+                charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
+            else:
+                charge = calDAC2Q_m[event.vfatN]*(256-event.vcal)+calDAC2Q_b[event.vfatN]
+        
+        # Fill Summary Histogram 
+        if lutType is mappingNames[1] and vfatHistosPanPin2 is not None:
+            if (stripPinOrChan < 64):
+                vfatHistos[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
+                pass
+            else:
+                vfatHistosPanPin2[event.vfatN].Fill(127-stripPinOrChan,charge,event.Nhits)
+                pass
+            pass
+        else:
+            vfatHistos[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
+
+    return
+
+def saveSummary(vSummaryPlots, vSummaryPlotsPanPin2, name='Summary'):
+    import ROOT as r
+
+    legend = r.TLegend(0.75,0.7,0.88,0.88)
+    r.gStyle.SetOptStat(0)
+    if not options.PanPin:
+        canv = make3x8Canvas('canv', vSummaryPlots, 'colz')
+        for vfat in range(0,24):
+            canv.cd(vfat+1)
+            if options.IsTrimmed:
+                legend.Clear()
+                legend.AddEntry(line, 'trimVCal is %f'%(trimVcal[vfat]))
+                legend.Draw('SAME')
+                print trimVcal[vfat]
+                lines[vfat].SetLineColor(1)
+                lines[vfat].SetLineWidth(3)
+                lines[vfat].Draw('SAME')
+                pass
+            canv.Update()
+            pass
+        pass
+    else:
+        canv = r.TCanvas('canv','canv',500*8,500*3)
+        canv.Divide(8,6)
+        r.gStyle.SetOptStat(0)
+        for ieta in range(0,8):
+            for iphi in range (0,3):
+                r.gStyle.SetOptStat(0)
+                canv.cd((ieta+1 + iphi*16)%48 + 16)
+                vSummaryPlots[ieta+(8*iphi)].Draw('colz')
+                canv.Update()
+                canv.cd((ieta+9 + iphi*16)%48 + 16)
+                vSummaryPlotsPanPin2[ieta+(8*iphi)].Draw('colz')
+                canv.Update()
+                pass
+            pass
+        pass
+
+    canv.SaveAs(filename+'/%s.png' % name)
+
 if __name__ = '__main__':
     import os
     import numpy as np
@@ -210,37 +317,11 @@ if __name__ = '__main__':
     if GEBtype == 'short':
         dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt', 'r')
    
-    # Loop over input data and fill histograms
-    print("Filling Histograms")
-    inF = r.TFile(filename+'.root')
-    dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
+    # Get some of the operational settings of the ASIC
+    # Refactor this using root_numpy???
     dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
     listOfBranches = inF.scurveTree.GetListOfBranches()
     for event in inF.scurveTree:
-        # Get the channel, strip, or Pan Pin
-        stripPinOrChan = dict_vfatChanLUT[event.vfatN][stripChanOrPinType][event.vfatCH]
-        
-        # Determine charge
-        charge = calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN]
-        if checkCurrentPulse: #v3 electronics
-            if event.isCurrentPulse:
-                #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
-                charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
-            else:
-                charge = calDAC2Q_Slope[event.vfatN]*(256-event.vcal)+calDAC2Q_Intercept[event.vfatN]
-        
-        # Fill Summary Histogram 
-        if options.PanPin:
-            if (stripPinOrChan < 64):
-                vSummaryPlots[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
-                pass
-            else:
-                vSummaryPlotsPanPin2[event.vfatN].Fill(127-stripPinOrChan,charge,event.Nhits)
-                pass
-            pass
-        else:
-            vSummaryPlots[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
-        
         vthr_list[event.vfatN][event.vfatCH] = event.vthr
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
         trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
@@ -252,9 +333,23 @@ if __name__ = '__main__':
             else:
                 dict_vfatID[event.vfatN] = 0
         
-        # Load the fitter with histograms now in charge units
-        fitter.feed(event)
+        # Load the event into the fitter
+        if options.performFit:
+            fitter.feed(event)
 
+    # Loop over input data and fill histograms
+    print("Filling Histograms")
+    inF = r.TFile(filename+'.root')
+    fill2DScurveSummaryPlots(
+            scurveTree=inF.scurveTree, 
+            vfatHistos=vSummaryPlots, 
+            vfatChanLUT=dict_vfatChanLUT, 
+            vfatHistosPanPin2=vSummaryPlotsPanPin2, 
+            lutType=stripChanOrPinType, 
+            chanMasks=None, 
+            calDAC2Q_m=calDAC2Q_Slope, 
+            calDAC2Q_b=calDAC2Q_Intercept)
+    
     if options.performFit:
         # Fit Scurves        
         print("Fitting Histograms")
@@ -318,28 +413,18 @@ if __name__ = '__main__':
                     np.count_nonzero(channelNoise > 20),
                     np.count_nonzero(effectivePedestals[vfat] > 50))
     
-    # Fill pruned
-    if options.SaveFile:
-        print("Pruning Hot Channels from Output Histograms")
-        for event in inF.scurveTree:
-            if masks[event.vfatN][event.vfatCH]:
-                continue
-            strip = chanToStripLUT[event.vfatN][event.vfatCH]
-            pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
-            charge = calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN]
-            if checkCurrentPulse:
-                if event.isCurrentPulse:
-                    #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
-                    charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
-            if not (options.channels or options.PanPin):
-                vSummaryPlotsNoHotChan[event.vfatN].Fill(strip,charge,event.Nhits)
-            if options.channels:
-                vSummaryPlotsNoHotChan[event.vfatN].Fill(event.vfatCH,charge,event.Nhits)
-            if options.PanPin:
-                if (pan_pin < 64):
-                    vSummaryPlotsNoHotChan[event.vfatN].Fill(63-pan_pin,charge,event.Nhits)
-                else:
-                    vSummaryPlotsNoHotChanPanPin2[event.vfatN].Fill(127-pan_pin,charge,event.Nhits)
+    # Make Distributions w/o Hot Channels
+    if options.performFit:
+        print("Removing Hot Channels from Output Histograms")
+        fill2DScurveSummaryPlots(
+                scurveTree=inF.scurveTree, 
+                vfatHistos=vSummaryPlotsNoHotChan, 
+                vfatChanLUT=dict_vfatChanLUT, 
+                vfatHistosPanPin2=vSummaryPlotsNoHotChanPanPin2, 
+                lutType=stripChanOrPinType, 
+                chanMasks=masks, 
+                calDAC2Q_m=calDAC2Q_Slope, 
+                calDAC2Q_b=calDAC2Q_Intercept)
     
     # Store values in ROOT file
     if options.SaveFile:
@@ -353,7 +438,7 @@ if __name__ = '__main__':
             chanList = []
             for chan in range (0, 128):
                 # Get strip and pan pin
-                strip = chanToStripLUT[vfat][chan]
+                strip =  chanToStripLUT[vfat][chan]
                 pan_pin = chanToPanPinLUT[vfat][chan]
                 
                 # Store strip, chan and pan pin
@@ -418,44 +503,6 @@ if __name__ = '__main__':
             fitSums[vfat].SetMarkerStyle(2)
             pass
         pass
-    
-    def saveSummary(vSummaryPlots, vSummaryPlotsPanPin2, name='Summary'):
-        legend = r.TLegend(0.75,0.7,0.88,0.88)
-        r.gStyle.SetOptStat(0)
-        if not options.PanPin:
-            canv = make3x8Canvas('canv', vSummaryPlots, 'colz')
-            for vfat in range(0,24):
-                canv.cd(vfat+1)
-                if options.IsTrimmed:
-                    legend.Clear()
-                    legend.AddEntry(line, 'trimVCal is %f'%(trimVcal[vfat]))
-                    legend.Draw('SAME')
-                    print trimVcal[vfat]
-                    lines[vfat].SetLineColor(1)
-                    lines[vfat].SetLineWidth(3)
-                    lines[vfat].Draw('SAME')
-                    pass
-                canv.Update()
-                pass
-            pass
-        else:
-            canv = r.TCanvas('canv','canv',500*8,500*3)
-            canv.Divide(8,6)
-            r.gStyle.SetOptStat(0)
-            for ieta in range(0,8):
-                for iphi in range (0,3):
-                    r.gStyle.SetOptStat(0)
-                    canv.cd((ieta+1 + iphi*16)%48 + 16)
-                    vSummaryPlots[ieta+(8*iphi)].Draw('colz')
-                    canv.Update()
-                    canv.cd((ieta+9 + iphi*16)%48 + 16)
-                    vSummaryPlotsPanPin2[ieta+(8*iphi)].Draw('colz')
-                    canv.Update()
-                    pass
-                pass
-            pass
-    
-        canv.SaveAs(filename+'/%s.png' % name)
     
     saveSummary(vSummaryPlots, vSummaryPlotsPanPin2)
     if options.SaveFile:
