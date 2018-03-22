@@ -371,18 +371,21 @@ if __name__ = '__main__':
     # Store values in ROOT file
     if options.SaveFile:
         print("Storing Output Data")
-        fitSums = {}
+        fitSummaryPlots = {}
+        threshSummaryPlots = {}
+        encSummaryPlots = {}
         for vfat in range (0,24):
-            fitThr = []        
-            fitENC = []
-            stripPinOrChanList = []
+            fitThr = np.zeroes(128)        
+            fitENC = np.zeroes(128)
+            stripPinOrChanArray = np.zeroes(128)
             for chan in range (0, 128):
                 # Store stripChanOrPinType to use as x-axis of fit summary plots
-                stripPinOrChanList.append( float( dict_vfatChanLUT[vfat][stripChanOrPinType][chan] ) )
+                stripPinOrChan = float( dict_vfatChanLUT[vfat][stripChanOrPinType][chan] ) )
                
                 # Store Values for making fit summary plots
-                fitThr.append(scanFitResults[0][vfat][chan])
-                fitENC.append( scanFitResults[1][vfat][chan] )
+                fitThr[stripPinOrChan] = scanFitResults[0][vfat][chan]
+                fitENC[stripPinOrChan] = scanFitResults[1][vfat][chan]
+                stripPinOrChanArray[stripPinOrChan] = float(stripPinOrChan)
 
                 # Set arrays linked to TBranches
                 chi2[0] = scanFitResults[3][vfat][chan]
@@ -422,25 +425,48 @@ if __name__ = '__main__':
                 myT.Fill()
                 pass
 
+            # Make numpy arrays
+
             # Make fit Summary plot
-            fitSums[vfat] = r.TGraphErrors(
+            fitSummaryPlots[vfat] = r.TGraphErrors(
                     len(fitThr),
-                    np.array(stripPinOrChanList),
-                    np.array(fitThr),
-                    np.zeros(len(fitThr)),
-                    np.array(fitENC)
+                    stripPinOrChanArray,
+                    fitThr,
+                    len(fitThr),
+                    fitENC
                     )
-            fitSums[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
+            fitSummaryPlots[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
             
             if not (options.channels or options.PanPin):
-                fitSums[vfat].GetXaxis().SetTitle("Strip")
+                fitSummaryPlots[vfat].GetXaxis().SetTitle("Strip")
                 pass
             elif options.PanPin:
-                fitSums[vfat].GetXaxis().SetTitle("Panasonic Pin")
+                fitSummaryPlots[vfat].GetXaxis().SetTitle("Panasonic Pin")
                 pass
             
-            fitSums[vfat].SetName("gFitSummary_VFAT%i"%(vfat))
-            fitSums[vfat].SetMarkerStyle(2)
+            fitSummaryPlots[vfat].SetName("gFitSummary_VFAT%i"%(vfat))
+            fitSummaryPlots[vfat].SetMarkerStyle(2)
+            
+            # Make thresh summary plot - bin size is variable
+            histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
+                                100, np.mean(fitThr) - 5. * np.std(fitThr), np.mean(fitThr) + 5. * np.std(fitThr) )
+            histThresh.Sumw2()
+            for thresh in fitThr:
+                histThresh.Fill(thresh)
+            gThresh = r.TGraphErrors(histThresh)
+            gThresh.SetName("gScurveMeanDist_vfat%i"%vfat)
+            threshSummaryPlots[vfat] = gThresh
+
+            # Make enc summary plot - bin size is variable
+            histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
+                                100, np.mean(fitENC) - 5. * np.std(fitENC), np.mean(fitENC) + 5. * np.std(fitENC) )
+            histENC.Sumw2()
+            for enc in fitENC:
+                histENC.Fill(enc)
+            gENC = r.TGraphErrors(histENC)
+            gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
+            encSummaryPlots[vfat] = gThresh
+
             pass
         pass
    
@@ -467,11 +493,13 @@ if __name__ = '__main__':
         saveSummary(vSummaryPlots, None, '%s/Summary.png'%filename, trimVcal)
 
     if options.performFit:
-        saveSummary(fitSums, None, '%s/fitSummary.png'%filename, None)
         if options.panPin:
             saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, '%s/PrunedSummary.png'%filename, trimVcal)
         else:
             saveSummary(vSummaryPlotsNoHotChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
+        saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None)
+        saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None)
+        saveSummary(encSummaryPlots, None, '%s/ScurveWidthSummary.png'%filename, None)
 
         confF = open(filename+'/chConfig.txt','w')
         confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
@@ -486,10 +514,25 @@ if __name__ = '__main__':
                 pass
             pass
         confF.close()
-        outF.cd()
-        for vfat in fitSums.keys():
-            fitSums[vfat].Write()
-            pass
-        myT.Write()
-        outF.Close()
         pass
+
+    # Save TObjects
+    outF.cd()
+    myT.Write()
+    for vfat in range(0,23):
+        dirVFAT = outF.mkdir("VFAT%i"%vfat)
+        dirVFAT.cd()
+        vSummaryPlots[vfat].Write()
+        if options.panPin:
+            vSummaryPlotsPanPin2.Write()
+        if options.performFit:
+            vSummaryPlotsNoHotChan.Write()
+            if options.panPin:
+                vSummaryPlotsNoHotChanPanPin2.Write()
+            fitSummaryPlots[vfat].Write()
+            threshSummaryPlots[vfat].Write()
+            encSummaryPlots[vfat].Write()
+            pass
+    
+    # Close output root file
+    outF.Close()
