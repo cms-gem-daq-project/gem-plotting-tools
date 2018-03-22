@@ -247,3 +247,57 @@ def rejectOutliersMAD(arrayData, thresh=3.5):
 def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
     arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
     return arrayData[arrayOutliers != True]
+
+def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=None):
+    """
+    Makes an image with summary canvases drawn on it
+
+    dictSummary        - dict of TObjects to be drawn, one per VFAT.  Each will be 
+                         drawn on a separate canvas
+    dictSummaryPanPin2 - Optional, as dictSummary but if the independent variable is the
+                         readout connector pin this is the other side of the connector
+    name               - Name of output image
+    trimPt             - Optional, list of trim points the dependent variable was aligned
+                         to if it is the result of trimming.  One entry per VFAT
+    """
+
+    import ROOT as r
+
+    legend = r.TLegend(0.75,0.7,0.88,0.88)
+    r.gStyle.SetOptStat(0)
+    if dictSummaryPanPin2 is None:
+        canv = make3x8Canvas('canv', dictSummary, 'colz')
+        for vfat in range(0,24):
+            canv.cd(vfat+1)
+            if trimPt is not None and trimLine is not None:
+                trimLine = r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat])
+                legend.Clear()
+                legend.AddEntry(trimLine, 'trimVCal is %f'%(trimVcal[vfat]))
+                legend.Draw('SAME')
+                trimLine.SetLineColor(1)
+                trimLine.SetLineWidth(3)
+                trimLine.Draw('SAME')
+                pass
+            canv.Update()
+            pass
+        pass
+    else:
+        canv = r.TCanvas('canv','canv',500*8,500*3)
+        canv.Divide(8,6)
+        r.gStyle.SetOptStat(0)
+        for ieta in range(0,8):
+            for iphi in range (0,3):
+                r.gStyle.SetOptStat(0)
+                canv.cd((ieta+1 + iphi*16)%48 + 16)
+                dictSummary[ieta+(8*iphi)].Draw('colz')
+                canv.Update()
+                canv.cd((ieta+9 + iphi*16)%48 + 16)
+                dictSummaryPanPin2[ieta+(8*iphi)].Draw('colz')
+                canv.Update()
+                pass
+            pass
+        pass
+
+    canv.SaveAs(name)
+
+    return

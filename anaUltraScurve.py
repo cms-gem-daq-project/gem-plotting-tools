@@ -67,45 +67,6 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
 
     return
 
-def saveSummary(vSummaryPlots, vSummaryPlotsPanPin2, name='Summary'):
-    import ROOT as r
-
-    legend = r.TLegend(0.75,0.7,0.88,0.88)
-    r.gStyle.SetOptStat(0)
-    if not options.PanPin:
-        canv = make3x8Canvas('canv', vSummaryPlots, 'colz')
-        for vfat in range(0,24):
-            canv.cd(vfat+1)
-            if options.IsTrimmed:
-                legend.Clear()
-                legend.AddEntry(line, 'trimVCal is %f'%(trimVcal[vfat]))
-                legend.Draw('SAME')
-                print trimVcal[vfat]
-                lines[vfat].SetLineColor(1)
-                lines[vfat].SetLineWidth(3)
-                lines[vfat].Draw('SAME')
-                pass
-            canv.Update()
-            pass
-        pass
-    else:
-        canv = r.TCanvas('canv','canv',500*8,500*3)
-        canv.Divide(8,6)
-        r.gStyle.SetOptStat(0)
-        for ieta in range(0,8):
-            for iphi in range (0,3):
-                r.gStyle.SetOptStat(0)
-                canv.cd((ieta+1 + iphi*16)%48 + 16)
-                vSummaryPlots[ieta+(8*iphi)].Draw('colz')
-                canv.Update()
-                canv.cd((ieta+9 + iphi*16)%48 + 16)
-                vSummaryPlotsPanPin2[ieta+(8*iphi)].Draw('colz')
-                canv.Update()
-                pass
-            pass
-        pass
-
-    canv.SaveAs(filename+'/%s.png' % name)
 
 if __name__ = '__main__':
     import os
@@ -228,7 +189,6 @@ if __name__ = '__main__':
     vthr_list = getEmptyPerVFATList() 
     trim_list = getEmptyPerVFATList() 
     trimrange_list = getEmptyPerVFATList()
-    lines = []
     
     # Set default histogram behavior
     r.TH1.SetDefaultSumw2(False)
@@ -237,9 +197,6 @@ if __name__ = '__main__':
 
     # Initialize distributions
     for vfat in range(0,24):
-        if options.IsTrimmed:
-            lines.append(r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat]))
-            pass
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                 'VFAT %i;Channels;VCal [fC]'%vfat,
                 128,-0.5,127.5,256,
@@ -433,45 +390,38 @@ if __name__ = '__main__':
         for vfat in range (0,24):
             fitThr = []        
             fitENC = []
-            stripList = []
-            panList = []
-            chanList = []
+            stripPinOrChanList = []
             for chan in range (0, 128):
-                # Get strip and pan pin
-                strip =  chanToStripLUT[vfat][chan]
-                pan_pin = chanToPanPinLUT[vfat][chan]
-                
-                # Store strip, chan and pan pin
-                stripList.append(float(strip))
-                panList.append(float(pan_pin))
-                chanList.append(float(chan))
-                
-                # Filling the Branches
-                param0 = scanFitResults[0][vfat][chan]
-                param1 = scanFitResults[1][vfat][chan]
-                param2 = scanFitResults[2][vfat][chan]
-                ped_eff[0] = effectivePedestals[vfat][chan]
-                vfatN[0] = vfat
-                vfatID[0] = dict_vfatID[vfat]
-                vfatCH[0] = chan
-                ROBstr[0] = strip
-                panPin[0] = pan_pin
-                trimRange[0] = trimrange_list[vfat][chan] 
-                vthr[0] = vthr_list[vfat][chan]
-                trimDAC[0] = trim_list[vfat][chan]
-                threshold[0] = calDAC2Q_Slope[vfat]*param0+calDAC2Q_Intercept[vfat]
-                fitThr.append(calDAC2Q_Slope[vfat]*param0+calDAC2Q_Intercept[vfat])
-                noise[0] = calDAC2Q_Slope[vfat]*param1
-                fitENC.append(calDAC2Q_Slope[vfat]*param1*ztrim[0])
-                pedestal[0] = param2
+                # Store stripChanOrPinType to use as x-axis of fit summary plots
+                stripPinOrChanList.append( float( dict_vfatChanLUT[vfat][stripChanOrPinType][chan] ) )
+               
+                # Store Values for making fit summary plots
+                fitThr.append(scanFitResults[0][vfat][chan])
+                fitENC.append( scanFitResults[1][vfat][chan] )
+
+                # Set arrays linked to TBranches
+                chi2[0] = scanFitResults[3][vfat][chan]
                 mask[0] = masks[vfat][chan]
                 maskReason[0] = maskReasons[vfat][chan]
-                chi2[0] = scanFitResults[3][vfat][chan]
                 ndf[0] = int(scanFitResults[5][vfat][chan])
+                Nhigh[0] = int(scanFitResults[4][vfat][chan])
+                noise[0] = scanFitResults[1][vfat][chan]
+                panPin[0] = dict_vfatChanLUT[vfat]["PanPin"][chan] 
+                ped_eff[0] = effectivePedestals[vfat][chan]
+                pedestal[0] = scanFitResults[2][vfat][chan]
+                ROBstr[0] = dict_vfatChanLUT[vfat]["Strip"][chan]
+                threshold[0] = scanFitResults[0][vfat][chan]
+                trimDAC[0] = trim_list[vfat][chan]
+                trimRange[0] = trimrange_list[vfat][chan] 
+                vfatCH[0] = chan
+                vfatID[0] = dict_vfatID[vfat]
+                vfatN[0] = vfat
+                vthr[0] = vthr_list[vfat][chan]
+                
+                # Set TObjects linked to TBranches
                 holder_curve = fitter.scanHistos[vfat][chan]
                 holder_curve.Copy(scurve_h)
                 scurve_fit = fitter.getFunc(vfat,chan).Clone('scurveFit_vfat%i_chan%i'%(vfat,chan))
-                Nhigh[0] = int(scanFitResults[4][vfat][chan])
                 
                 # Filling the arrays for plotting later
                 if options.drawbad:
@@ -486,17 +436,22 @@ if __name__ = '__main__':
                     pass
                 myT.Fill()
                 pass
+
+            # Make fit Summary plot
+            fitSums[vfat] = r.TGraphErrors(
+                    len(fitThr),
+                    np.array(stripPinOrChanList),
+                    np.array(fitThr),
+                    np.zeros(len(fitThr)),
+                    np.array(fitENC)
+                    )
+            fitSums[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
+            
             if not (options.channels or options.PanPin):
-                fitSums[vfat] = r.TGraphErrors(len(fitThr),np.array(stripList),np.array(fitThr),np.zeros(len(fitThr)),np.array(fitENC))
-                fitSums[vfat].SetTitle("VFAT %i Fit Summary;Strip;Threshold [fC]"%vfat)
-                pass
-            elif options.channels:
-                fitSums[vfat] = r.TGraphErrors(len(fitThr),np.array(chanList),np.array(fitThr),np.zeros(len(fitThr)),np.array(fitENC))
-                fitSums[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
+                fitSums[vfat].GetXaxis().SetTitle("Strip")
                 pass
             elif options.PanPin:
-                fitSums[vfat] = r.TGraphErrors(len(fitThr),np.array(panList),np.array(fitThr),np.zeros(len(fitThr)),np.array(fitENC))
-                fitSums[vfat].SetTitle("VFAT %i Fit Summary;Panasonic Pin;Threshold [fC]"%vfat)
+                fitSums[vfat].GetXaxis().SetTitle("Panasonic Pin")
                 pass
             
             fitSums[vfat].SetName("gFitSummary_VFAT%i"%(vfat))
