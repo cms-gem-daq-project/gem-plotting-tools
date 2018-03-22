@@ -70,11 +70,12 @@ def getMapping(mappingFileName):
     the inner most dict has keys from the list anaInfo.py mappingNames.
     
     The inner dict stores a list whose index is ordered by ASIC channel number, accessing
-    the i^th element of this list gives either the readout strip number of readout connector
-    pin number as shown in this example:
+    the i^th element of this list gives either the readout strip number, the readout connector
+    pin number, or the vfat channel number as shown in this example:
 
         ret_dict[vfatN]['Strip'][asic_chan] is the strip number
         ret_dict[vfatN]['PanPin'][asic_chan] is the pin number on the readout connector
+        ret_dict[vfatN]['vfatCH'][asic_chan] is the vfat channel number
 
     mappingFile - physical filename of file which contains the mapping information, 
                   expected format:
@@ -124,6 +125,7 @@ def getMapping(mappingFileName):
         mapping = line.rsplit('\t')
         ret_mapDict[int(mapping[0])]['Strip'][int(mapping[2]) - 1] = int(mapping[1])
         ret_mapDict[int(mapping[0])]['PanPin'][int(mapping[2]) -1] = int(mapping[3])
+        ret_mapDict[int(mapping[0])]['vfatCH'][int(mapping[2]) - 1] = int(mapping[2]) - 1
 
     return ret_mapDict
 

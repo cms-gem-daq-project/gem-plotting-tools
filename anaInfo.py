@@ -29,7 +29,8 @@ tree_names = {
 
 mappingNames = [
         "Strip",
-        "PanPin"
+        "PanPin",
+        "vfatCH"
         ]
 
 class MaskReason:
