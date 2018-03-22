@@ -50,6 +50,8 @@ then
     ## make tarballs and binaries
     make
     make rpm
+    tar tf rpm/*.tar.gz
+    tar tf rpm/*.tbz2
     rpm -q --filesbypkg -p rpm/*.rpm
 
     # leave virtualenv

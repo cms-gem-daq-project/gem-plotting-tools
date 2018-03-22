@@ -8,12 +8,12 @@ stages:
   - test
   - build
   - name: docs
-    if: (branch = master OR branch =~ '^v?(\d+).(\d+).(\d+)-?((git[0-9a-z]{6})|(dev)|(pre\d+))?$')
+    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
   - name: release
-    if: (branch = master OR branch =~ '^v?(\d+).(\d+).(\d+)-?((git[0-9a-z]{6})|(dev)|(pre\d+))?$')
+    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
     tags: true
   - name: deploy
-    if: branch =~ '^v?(\d+).(\d+).(\d+)-?((git[0-9a-z]{6})|(dev)|(pre\d+))?$'
+    if: tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$'
 
 env:
   matrix:
@@ -53,18 +53,23 @@ before_install:
   - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
   - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
-  
+
+# Stages run in their own VMs, nothing gets transferred from stage to stage
 jobs:
   include:
-    - stage: setup
+    - stage: test
       script:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
+        - ls -laZ
     - stage: build
       script:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
+        - ls -laZ rpm
     - stage: docs
       script:
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "Building documentation"
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Building documentation"
+        - ls -laZ
 
 # before_deploy:
 #   # Set up git user name and tag this commit
@@ -85,13 +90,20 @@ jobs:
 #   file:
 #     - README.md
 #     - CHANGELOG.md
-#     - docs
+#     - docs #? or release docs somewhere else, and have this mentioned in the README
 #     - ./**/rpm/*.tbz2
 #     - ./**/rpm/*.tgz
 #     - ./**/rpm/*.rpm
-#   prerelease: true
+#   # pre-releases and draft releases for tags with pre/alpha/dev/gitHASH in the name
+#   draft: true # for tags with dev/alpha in the name, or
+#   prerelease: true # for tags with pre in the name
+#   # only deploy full release when the tag exactly matches vX.Y.Z (with or without the v)
+#   prerelease: false # for tags with pre in the name
+#   draft: false # for tags with pre in the name
 #   skip_cleanup: true
 #   on:
+#     repo: cms-gem-daq-project/gem-plotting-tools
+#     branch: master
 #     tags: true
 
 after_success:
