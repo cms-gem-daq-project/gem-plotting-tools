@@ -62,20 +62,28 @@ before_install:
 
 # Stages run in their own VMs, nothing gets transferred from stage to stage
 script:
-  - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+  - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
   - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
-  - ls -laZ
+  - ls -laZ rpm
   - find rpm -iname '.tar.gz' -o -iname '.tbz2' -o -iname '.rpm'
 
-# How to link the outputs from above with the jobs below?
+# How to link the environments/outputs from above with the jobs below?
 jobs:
   include:
-    - stage: build
+    - stage: test rpm
       script:
+        - echo 'Running test rpm stage on docker container $DOCKER_CONTAINER_ID'
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
         - ls -laZ rpm
-        - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o '*.tbz2'
+        - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
+    - stage: build
+      script:
+        - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
+        - ls -laZ rpm
+        - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
     - stage: docs
       script:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Building documentation"
