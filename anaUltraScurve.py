@@ -118,8 +118,6 @@ if __name__ = '__main__':
     vSummaryPlotsPanPin2 = ndict()
     vSummaryPlotsNoHotChan = ndict()
     vSummaryPlotsNoHotChanPanPin2 = ndict()
-    vScurves = getEmptyPerVFATList()
-    vScurveFits = getEmptyPerVFATList()
     vthr_list = getEmptyPerVFATList() 
     trim_list = getEmptyPerVFATList() 
     trimrange_list = getEmptyPerVFATList()
@@ -178,8 +176,6 @@ if __name__ = '__main__':
             vSummaryPlotsNoHotChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             pass
         for chan in range (0,128):
-            vScurves[vfat].append(r.TH1F('Scurve_%i_%i'%(vfat,chan),'Scurve_%i_%i;VCal [DAC units]'%(vfat,chan),256,-0.5,255.5))
-            vScurveFits[vfat].append(r.TH1F())
             vthr_list[vfat].append(0)
             trim_list[vfat].append(0)
             trimrange_list[vfat].append(0)
@@ -245,8 +241,6 @@ if __name__ = '__main__':
         else:
             vSummaryPlots[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
         
-        binVal = vScurves[event.vfatN][event.vfatCH].FindBin(event.vcal)
-        vScurves[event.vfatN][event.vfatCH].SetBinContent(binVal, event.Nhits)
         vthr_list[event.vfatN][event.vfatCH] = event.vthr
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
         trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
@@ -266,19 +260,18 @@ if __name__ = '__main__':
         print("Fitting Histograms")
         fitSummary = open(filename+'/fitSummary.txt','w')
         fitSummary.write('vfatN/I:vfatID/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
-        scanFits = fitter.fit()
+        scanFitResults = fitter.fit()
         for vfat in range(0,24):
             for chan in range(0,128):
-                vScurveFits[vfat][chan]=fitter.getFunc(vfat,chan)
                 fitSummary.write(
                         '%i\t%i\t%i\t%f\t%f\t%f\t%f\n'%(
                             vfat,
                             dict_vfatID[vfat],
                             chan,
-                            vScurveFits[vfat][chan].GetParameter(0),
-                            vScurveFits[vfat][chan].GetParameter(1),
-                            vScurveFits[vfat][chan].GetParameter(2),
-                            vScurveFits[vfat][chan].GetParameter(3)
+                            fitter.scanFuncs[vfat][chan].GetParameter(0),
+                            fitter.scanFuncs[vfat][chan].GetParameter(1),
+                            fitter.scanFuncs[vfat][chan].GetParameter(2),
+                            fitter.scanFuncs[vfat][chan].GetParameter(3)
                             )
                         )
         fitSummary.close()
@@ -296,11 +289,11 @@ if __name__ = '__main__':
             fitFailed = np.zeros(128, dtype=bool)
             for chan in range(0, 128):
                 # Compute values for cuts
-                channelNoise[chan] = scanFits[1][vfat][chan]
-                effectivePedestals[vfat][chan] = vScurveFits[vfat][chan].Eval(0.0)
+                channelNoise[chan] = scanFitResults[1][vfat][chan]
+                effectivePedestals[vfat][chan] = fitter.scanFuncs[vfat][chan].Eval(0.0)
                 
                 # Compute the value to apply MAD on for each channel
-                trimValue[chan] = scanFits[0][vfat][chan] - ztrim[0] * scanFits[1][vfat][chan]
+                trimValue[chan] = scanFitResults[0][vfat][chan] - ztrim[0] * scanFitResults[1][vfat][chan]
                 pass
             fitFailed = np.logical_not(fitter.fitValid[vfat])
             
@@ -369,9 +362,9 @@ if __name__ = '__main__':
                 chanList.append(float(chan))
                 
                 # Filling the Branches
-                param0 = scanFits[0][vfat][chan]
-                param1 = scanFits[1][vfat][chan]
-                param2 = scanFits[2][vfat][chan]
+                param0 = scanFitResults[0][vfat][chan]
+                param1 = scanFitResults[1][vfat][chan]
+                param2 = scanFitResults[2][vfat][chan]
                 ped_eff[0] = effectivePedestals[vfat][chan]
                 vfatN[0] = vfat
                 vfatID[0] = dict_vfatID[vfat]
@@ -388,12 +381,12 @@ if __name__ = '__main__':
                 pedestal[0] = param2
                 mask[0] = masks[vfat][chan]
                 maskReason[0] = maskReasons[vfat][chan]
-                chi2[0] = scanFits[3][vfat][chan]
-                ndf[0] = int(scanFits[5][vfat][chan])
-                holder_curve = vScurves[vfat][chan]
+                chi2[0] = scanFitResults[3][vfat][chan]
+                ndf[0] = int(scanFitResults[5][vfat][chan])
+                holder_curve = fitter.scanHistos[vfat][chan]
                 holder_curve.Copy(scurve_h)
                 scurve_fit = fitter.getFunc(vfat,chan).Clone('scurveFit_vfat%i_chan%i'%(vfat,chan))
-                Nhigh[0] = int(scanFits[4][vfat][chan])
+                Nhigh[0] = int(scanFitResults[4][vfat][chan])
                 
                 # Filling the arrays for plotting later
                 if options.drawbad:
