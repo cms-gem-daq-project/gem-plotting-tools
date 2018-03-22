@@ -76,6 +76,8 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
     vfatHistosPanPin2 - As vfatHistos but for the other side of the readout board connector if lutType is "PanPin"
     obsName           - String to append the TCanvas created for each VFAT
     """
+    import ROOT as r
+
     canv_dict = {}
 
     for vfat,histo in vfatHistos.iteritems():
@@ -83,21 +85,25 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
         canv_dict[vfat].cd()
         for binX in range(1,histo.GetNbinsX()+1):
             h_scurve = histo.ProjectionY("h_scurve",binX,binX,"")
-            h_scurve.SetLineColor(kBlue+2)
+            h_scurve.SetLineColor(r.kBlue+2)
             h_scurve.SetLineWidth(2)
+            
+            g_scurve = r.TGraph(h_scurve)
             if binX == 1:
-                h_scurve.Draw()
+                g_scurve.Draw("AP")
             else:
-                h_scurve.Draw("same")
+                g_scurve.Draw("sameP")
         canv_dict[vfat].Update()
     if vfatHistosPanPin2 is not None:
         for vfat,histo in vfatHistosPanPin2.iteritems():
             canv_dict[vfat].cd()
             for binX in range(1,histo.GetNbinsX()+1):
                 h_scurve = histo.ProjectionY("h_scurve",binX,binX,"")
-                h_scurve.SetLineColor(kBlue+2)
+                h_scurve.SetLineColor(r.kBlue+2)
                 h_scurve.SetLineWidth(2)
-                h_scurve.Draw("same")
+                
+                g_scurve = r.TGraph(h_scurve)
+                g_scurve.Draw("sameP")
             canv_dict[vfat].Update()
 
     return canv_dict
@@ -522,13 +528,13 @@ if __name__ == '__main__':
         pass
     
     # Save the summary plots and channel config file
-    if options.panPin:
+    if options.PanPin:
         saveSummary(vSummaryPlots, vSummaryPlotsPanPin2, '%s/Summary.png'%filename, trimVcal) 
     else: 
         saveSummary(vSummaryPlots, None, '%s/Summary.png'%filename, trimVcal)
 
     if options.performFit:
-        if options.panPin:
+        if options.PanPin:
             saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, '%s/PrunedSummary.png'%filename, trimVcal)
         else:
             saveSummary(vSummaryPlotsNoHotChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
@@ -553,16 +559,16 @@ if __name__ == '__main__':
 
     # Make 1D Plot for each VFAT showing all scurves
     # Don't use the ones stored in fitter since this may not exist (e.g. options.performFit = false)
-    if options.panPin:
-        canvOfScurveHistos = canvOfScurves(vSummaryPlots,vSummaryPlotsPanPin2,"canvScurves")
+    if options.PanPin:
+        canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,vSummaryPlotsPanPin2,"canvScurves")
     else:
-        canvOfScurveHistos = canvOfScurves(vSummaryPlots,None,"canvScurves")
+        canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,None,"canvScurves")
 
     if options.performFit:
-        if options.panPin:
-            canvOfScurveHistosNoHotChan = canvOfScurves(vSummaryPlotsNoHotChan,vSummaryPlotsNoHotChanPanPin2,"canvScurvesNotHotChan")
+        if options.PanPin:
+            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,vSummaryPlotsNoHotChanPanPin2,"canvScurvesNotHotChan")
         else:
-            canvOfScurveHistosNoHotChan = canvOfScurves(vSummaryPlotsNoHotChan,None,"canvScurvesNoHotChan")
+            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,None,"canvScurvesNoHotChan")
         
         canvOfScurveFits = {}
         for vfat in range(0,24):
@@ -577,17 +583,18 @@ if __name__ == '__main__':
 
     # Save TObjects
     outF.cd()
-    myT.Write()
+    if options.performFit:
+        myT.Write()
     for vfat in range(0,23):
         dirVFAT = outF.mkdir("VFAT%i"%vfat)
         dirVFAT.cd()
         vSummaryPlots[vfat].Write()
-        if options.panPin:
+        if options.PanPin:
             vSummaryPlotsPanPin2.Write()
         canvOfScurveHistos[vfat].Write()
         if options.performFit:
             vSummaryPlotsNoHotChan.Write()
-            if options.panPin:
+            if options.PanPin:
                 vSummaryPlotsNoHotChanPanPin2.Write()
             fitSummaryPlots[vfat].Write()
             threshSummaryPlots[vfat].Write()
