@@ -41,11 +41,12 @@ class ScanDataFitter(DeadChannelFinder):
         self.scanHistos[event.vfatN][event.vfatCH].Fill(event.vcal,event.Nhits)
         if(event.vcal > 250):
             self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
-        #if self.Nev < 0:
-        #    self.Nev = event.Nev
-        #else:
-        #    assert self.Nev == event.Nev, 'Inconsistent S-curve tree'
         self.Nev = event.Nev
+
+    def feedHisto(self, vfatN, vfatCH, Nev, histo):
+        self.scanHistos[event.vfatN][event.vfatCH] = histo
+        self.isDead[vfatN][vfatCH] = False
+        self.Nev = Nev
 
     def fit(self):
         r.gROOT.SetBatch(True)
