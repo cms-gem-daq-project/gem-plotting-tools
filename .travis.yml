@@ -6,7 +6,14 @@ stages:
   - setup
   - compile
   - test
-  - build
+  - name: build
+    env:
+      matrix:
+        - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
+        ### CC7 jobs
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v5.34.36-gcc4.8
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.10.08-gcc4.8
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.12.06-gcc4.8
   - name: docs
     if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
   - name: release
