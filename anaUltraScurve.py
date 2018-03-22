@@ -37,7 +37,7 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
     # Fill Histograms
     checkCurrentPulse = ("isCurrentPulse" in scurveTree.GetListOfBranches())
     for event in scurveTree:
-        if chanMasks is not None
+        if chanMasks is not None:
             if chanMasks[event.vfatN][event.vfatCH]:
                 continue
 
@@ -102,7 +102,7 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
 
     return canv_dict
 
-if __name__ = '__main__':
+if __name__ == '__main__':
     import os
     import numpy as np
     import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
@@ -110,7 +110,7 @@ if __name__ = '__main__':
     
     from array import array
     from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, saveSummary
-    from anaInfo import mappingNames, maskReason
+    from anaInfo import mappingNames, MaskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck
@@ -132,57 +132,15 @@ if __name__ = '__main__':
     parser.set_defaults(outfilename="SCurveFitData.root")
     (options, args) = parser.parse_args()
     
-    print("Analyzing: '%s'"%filename)
+    print("Analyzing: '%s'"%options.filename)
     filename = options.filename[:-5]
     os.system("mkdir " + filename)
     
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
-    # Create the output File and TTree
+    # Create the output File
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
-    myT = r.TTree('scurveFitTree','Tree Holding FitData')
-    chi2 = array( 'f', [ 0 ] )
-    myT.Branch( 'chi2', chi2, 'chi2/F')
-    mask = array( 'i', [ 0 ] )
-    myT.Branch( 'mask', mask, 'mask/I' )
-    maskReason = array( 'i', [ 0 ] )
-    myT.Branch( 'maskReason', maskReason, 'maskReason/I' )
-    ndf = array( 'i', [ 0 ] )
-    myT.Branch( 'ndf', ndf, 'ndf/I')
-    Nhigh = array( 'i', [ 0 ] )
-    myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
-    noise = array( 'f', [ 0 ] )
-    myT.Branch( 'noise', noise, 'noise/F')
-    panPin = array( 'i', [ 0 ] )
-    myT.Branch( 'panPin', panPin, 'panPin/I' )
-    pedestal = array( 'f', [ 0 ] )
-    myT.Branch( 'pedestal', pedestal, 'pedestal/F')
-    ped_eff = array( 'f', [ 0 ] )
-    myT.Branch( 'ped_eff', ped_eff, 'ped_eff/F')
-    ROBstr = array( 'i', [ 0 ] )
-    myT.Branch( 'ROBstr', ROBstr, 'ROBstr/I' )
-    trimDAC = array( 'i', [ 0 ] )
-    myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
-    threshold = array( 'f', [ 0 ] )
-    myT.Branch( 'threshold', threshold, 'threshold/F')
-    trimRange = array( 'i', [ 0 ] )
-    myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
-    vfatCH = array( 'i', [ 0 ] )
-    myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
-    vfatID = array( 'i', [-1] )
-    myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
-    vfatN = array( 'i', [ 0 ] )
-    myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
-    vthr = array( 'i', [ 0 ] )
-    myT.Branch( 'vthr', vthr, 'vthr/I' )
-    scurve_h = r.TH1F()
-    myT.Branch( 'scurve_h', scurve_h)
-    scurve_fit = r.TF1()
-    myT.Branch( 'scurve_fit', scurve_fit)
-    ztrim = array( 'f', [ 0 ] )
-    ztrim[0] = options.ztrim
-    myT.Branch( 'ztrim', ztrim, 'ztrim/F')
     
     # Set the CAL DAC to fC conversion
     calDAC2Q_Intercept = np.zeros(24)
@@ -265,16 +223,6 @@ if __name__ = '__main__':
             pass
         pass
     
-    # Create the fitter
-    checkCurrentPulse = ("isCurrentPulse" in inF.scurveTree.GetListOfBranches())
-    if options.performFit:
-        fitter = ScanDataFitter(
-                calDAC2Q_m=calDAC2Q_Slope, 
-                calDAC2Q_b=calDAC2Q_Intercept,
-                isVFAT3=checkCurrentPulse,
-                )
-        pass
-
     # Determine chan, strip or panpin indep var
     stripChanOrPinType = mappingNames[2]
     if not (options.channels or options.PanPin):
@@ -289,10 +237,23 @@ if __name__ = '__main__':
     if options.extChanMapping is not None:
         dict_vfatChanLUT = getMapping(options.extChanMapping)
     elif GEBtype == 'long':
-        dict_vfatChanLUT = getMapping(projectHome+'/mapping/longChannelMap.txt', 'r')
+        dict_vfatChanLUT = getMapping(projectHome+'/mapping/longChannelMap.txt')
     if GEBtype == 'short':
-        dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt', 'r')
+        dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt')
    
+    # Open the input ROOT File
+    inF = r.TFile(filename+'.root')
+
+    # Create the fitter
+    checkCurrentPulse = ("isCurrentPulse" in inF.scurveTree.GetListOfBranches())
+    if options.performFit:
+        fitter = ScanDataFitter(
+                calDAC2Q_m=calDAC2Q_Slope, 
+                calDAC2Q_b=calDAC2Q_Intercept,
+                isVFAT3=checkCurrentPulse,
+                )
+        pass
+
     # Get some of the operational settings of the ASIC
     # Refactor this using root_numpy???
     dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
@@ -315,7 +276,6 @@ if __name__ = '__main__':
 
     # Loop over input data and fill histograms
     print("Filling Histograms")
-    inF = r.TFile(filename+'.root')
     fill2DScurveSummaryPlots(
             scurveTree=inF.scurveTree, 
             vfatHistos=vSummaryPlots, 
@@ -402,8 +362,52 @@ if __name__ = '__main__':
                 calDAC2Q_m=calDAC2Q_Slope, 
                 calDAC2Q_b=calDAC2Q_Intercept)
     
-    # Store values in ROOT file
-    if options.SaveFile:
+    # Create the output TTree and store the results
+    if options.performFit:
+        myT = r.TTree('scurveFitTree','Tree Holding FitData')
+
+        chi2 = array( 'f', [ 0 ] )
+        myT.Branch( 'chi2', chi2, 'chi2/F')
+        mask = array( 'i', [ 0 ] )
+        myT.Branch( 'mask', mask, 'mask/I' )
+        maskReason = array( 'i', [ 0 ] )
+        myT.Branch( 'maskReason', maskReason, 'maskReason/I' )
+        ndf = array( 'i', [ 0 ] )
+        myT.Branch( 'ndf', ndf, 'ndf/I')
+        Nhigh = array( 'i', [ 0 ] )
+        myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
+        noise = array( 'f', [ 0 ] )
+        myT.Branch( 'noise', noise, 'noise/F')
+        panPin = array( 'i', [ 0 ] )
+        myT.Branch( 'panPin', panPin, 'panPin/I' )
+        pedestal = array( 'f', [ 0 ] )
+        myT.Branch( 'pedestal', pedestal, 'pedestal/F')
+        ped_eff = array( 'f', [ 0 ] )
+        myT.Branch( 'ped_eff', ped_eff, 'ped_eff/F')
+        ROBstr = array( 'i', [ 0 ] )
+        myT.Branch( 'ROBstr', ROBstr, 'ROBstr/I' )
+        trimDAC = array( 'i', [ 0 ] )
+        myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
+        threshold = array( 'f', [ 0 ] )
+        myT.Branch( 'threshold', threshold, 'threshold/F')
+        trimRange = array( 'i', [ 0 ] )
+        myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
+        vfatCH = array( 'i', [ 0 ] )
+        myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
+        vfatID = array( 'i', [-1] )
+        myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
+        vfatN = array( 'i', [ 0 ] )
+        myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
+        vthr = array( 'i', [ 0 ] )
+        myT.Branch( 'vthr', vthr, 'vthr/I' )
+        scurve_h = r.TH1F()
+        myT.Branch( 'scurve_h', scurve_h)
+        scurve_fit = r.TF1()
+        myT.Branch( 'scurve_fit', scurve_fit)
+        ztrim = array( 'f', [ 0 ] )
+        ztrim[0] = options.ztrim
+        myT.Branch( 'ztrim', ztrim, 'ztrim/F')
+    
         print("Storing Output Data")
         fitSummaryPlots = {}
         threshSummaryPlots = {}
@@ -414,7 +418,7 @@ if __name__ = '__main__':
             stripPinOrChanArray = np.zeroes(128)
             for chan in range (0, 128):
                 # Store stripChanOrPinType to use as x-axis of fit summary plots
-                stripPinOrChan = float( dict_vfatChanLUT[vfat][stripChanOrPinType][chan] ) )
+                stripPinOrChan = float( dict_vfatChanLUT[vfat][stripChanOrPinType][chan] )
                
                 # Store Values for making fit summary plots
                 fitThr[stripPinOrChan] = scanFitResults[0][vfat][chan]
@@ -459,8 +463,6 @@ if __name__ = '__main__':
                 myT.Fill()
                 pass
 
-            # Make numpy arrays
-
             # Make fit Summary plot
             fitSummaryPlots[vfat] = r.TGraphErrors(
                     len(fitThr),
@@ -500,7 +502,6 @@ if __name__ = '__main__':
             gENC = r.TGraphErrors(histENC)
             gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
             encSummaryPlots[vfat] = gThresh
-
             pass
         pass
    
