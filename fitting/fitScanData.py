@@ -32,11 +32,11 @@ class ScanDataFitter(DeadChannelFinder):
         self.isIPulse   = isIPulse
         self.dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
 
-        self.calDAC2Q_m = [1.]*24
+        self.calDAC2Q_m = np.ones(24)
         if calDAC2Q_m is not None:
             self.calDAC2Q_m = calDAC2Q_m
 
-        self.calDAC2Q_b = [0.]*24
+        self.calDAC2Q_b = np.zeros(24)
         if calDAC2Q_b is not None:
             self.calDAC2Q_b = calDAC2Q_b
 
