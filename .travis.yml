@@ -8,11 +8,14 @@ stages:
   - test
   - name: build
     env:
-      - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
+      - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+      # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+      # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+      # - OS_TYPE=centos PY_VER=python3.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
       ### CC7 jobs
-      - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v5.34.36-gcc4.8
-      - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.10.08-gcc4.8
-      - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.12.06-gcc4.8
+      - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+      # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+      # - OS_TYPE=centos PY_VER=python3.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
   - name: docs
     if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
   - name: release
@@ -21,8 +24,10 @@ stages:
   - name: deploy
     if: tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$'
 
-env:
+env: ## this is *only* for the built-in 'test' stage, doesn't currently transfer to other stages, beta feature
   matrix:
+    # slc6root53428
+    # slc6root53436
     - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
     # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
     # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
@@ -54,47 +59,59 @@ services:
   - docker
 
 before_install:
-  - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
-  - sleep 2
-  - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
-  - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
-  - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+  ## steps for all stages
+  # steps for specific stages
+  - stage: test OR build
+    - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
+    - sleep 2
+    - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
+    - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
+    - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+  # - stage: build
+  #   - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
+  #   - sleep 2
+  #   - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
+  #   - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
+  #   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
 
 # Stages run in their own VMs, nothing gets transferred from stage to stage
 script:
   - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
   - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
   - ls -laZ rpm
-  - find rpm -iname '.tar.gz' -o -iname '.tbz2' -o -iname '.rpm'
+  - find rpm -iname '*.tar.gz' -o -iname '*.tbz2' -o -iname '*.rpm'
 
 # How to link the environments/outputs from above with the jobs below?
+.build: &build_template
+  script:
+    - ls -laZ rpm
+    - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
+    - ls -laZ rpm
+    - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
+  
 jobs:
   include:
-    - stage: test rpm
-      script:
-        - echo 'Running test rpm stage on docker container $DOCKER_CONTAINER_ID'
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
-        - ls -laZ rpm
-        - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
     - stage: build
-      script:
-        - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
-        - ls -laZ rpm
-        - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
+      <<: *build_template
+      env:
+        - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+    - stage: build
+      <<: *build_template
+      env:
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
     - stage: docs
       script:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Building documentation"
         - ls -laZ
     - stage: cleanup
       env:
-        - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
+        - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
         ### CC7 jobs
-        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v5.34.36-gcc4.8
-        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.10.08-gcc4.8
-        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.12.06-gcc4.8
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
       script:
         - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
 
@@ -134,5 +151,8 @@ jobs:
 #     tags: true
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) &&
-  - echo "Uploaded code coverage"
+  - stage: test
+    - bash <(curl -s https://codecov.io/bash) &&
+    - echo "Uploaded code coverage"
+  - stage: build OR test
+    - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
