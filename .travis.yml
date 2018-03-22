@@ -65,6 +65,8 @@ script:
   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
   - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
   - ls -laZ
+  - find rpm -iname '.tar.gz' -o -iname '.tbz2' -o -iname '.rpm'
+
 # How to link the outputs from above with the jobs below?
 jobs:
   include:
