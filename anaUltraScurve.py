@@ -93,7 +93,7 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
                 g_scurve.Draw("AP")
             else:
                 g_scurve.Draw("sameP")
-        canv_dict[vfat].Update()
+        #canv_dict[vfat].Update()
     if vfatHistosPanPin2 is not None:
         for vfat,histo in vfatHistosPanPin2.iteritems():
             canv_dict[vfat].cd()
@@ -104,7 +104,7 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
                 
                 g_scurve = r.TGraph(h_scurve)
                 g_scurve.Draw("sameP")
-            canv_dict[vfat].Update()
+            #canv_dict[vfat].Update()
 
     return canv_dict
 
@@ -145,8 +145,10 @@ if __name__ == '__main__':
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
-    # Create the output File
+    # Create the output File and TTree
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
+    if options.performFit:
+        myT = r.TTree('scurveFitTree','Tree Holding FitData')
     
     # Set the CAL DAC to fC conversion
     calDAC2Q_Intercept = np.zeros(24)
@@ -330,7 +332,7 @@ if __name__ == '__main__':
                 effectivePedestals[vfat][chan] = fitter.scanFuncs[vfat][chan].Eval(0.0)
                 
                 # Compute the value to apply MAD on for each channel
-                trimValue[chan] = scanFitResults[0][vfat][chan] - ztrim[0] * scanFitResults[1][vfat][chan]
+                trimValue[chan] = scanFitResults[0][vfat][chan] - options.ztrim * scanFitResults[1][vfat][chan]
                 pass
             fitFailed = np.logical_not(fitter.fitValid[vfat])
             
@@ -368,9 +370,10 @@ if __name__ == '__main__':
                 calDAC2Q_m=calDAC2Q_Slope, 
                 calDAC2Q_b=calDAC2Q_Intercept)
     
-    # Create the output TTree and store the results
+    # Set the branches of the TTree and store the results
     if options.performFit:
-        myT = r.TTree('scurveFitTree','Tree Holding FitData')
+        # Due to weird ROOT black magic this cannot be done here
+        #myT = r.TTree('scurveFitTree','Tree Holding FitData')
 
         chi2 = array( 'f', [ 0 ] )
         myT.Branch( 'chi2', chi2, 'chi2/F')
@@ -419,13 +422,13 @@ if __name__ == '__main__':
         threshSummaryPlots = {}
         encSummaryPlots = {}
         for vfat in range (0,24):
-            fitThr = np.zeroes(128)        
-            fitENC = np.zeroes(128)
-            stripPinOrChanArray = np.zeroes(128)
+            fitThr = np.zeros(128)        
+            fitENC = np.zeros(128)
+            stripPinOrChanArray = np.zeros(128)
             for chan in range (0, 128):
                 # Store stripChanOrPinType to use as x-axis of fit summary plots
-                stripPinOrChan = float( dict_vfatChanLUT[vfat][stripChanOrPinType][chan] )
-               
+                stripPinOrChan = dict_vfatChanLUT[vfat][stripChanOrPinType][chan]
+                 
                 # Store Values for making fit summary plots
                 fitThr[stripPinOrChan] = scanFitResults[0][vfat][chan]
                 fitENC[stripPinOrChan] = scanFitResults[1][vfat][chan]
@@ -474,7 +477,7 @@ if __name__ == '__main__':
                     len(fitThr),
                     stripPinOrChanArray,
                     fitThr,
-                    len(fitThr),
+                    np.zeros(len(fitThr)),
                     fitENC
                     )
             fitSummaryPlots[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
@@ -491,23 +494,25 @@ if __name__ == '__main__':
             
             # Make thresh summary plot - bin size is variable
             histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
-                                100, np.mean(fitThr) - 5. * np.std(fitThr), np.mean(fitThr) + 5. * np.std(fitThr) )
+                                40, np.mean(fitThr) - 5. * np.std(fitThr), np.mean(fitThr) + 5. * np.std(fitThr) )
             histThresh.Sumw2()
-            for thresh in fitThr:
-                histThresh.Fill(thresh)
+            if np.std(fitThr) != 0: # Don't fill if we are still at initial values
+                for thresh in fitThr:
+                    histThresh.Fill(thresh)
             gThresh = r.TGraphErrors(histThresh)
             gThresh.SetName("gScurveMeanDist_vfat%i"%vfat)
             threshSummaryPlots[vfat] = gThresh
 
             # Make enc summary plot - bin size is variable
             histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
-                                100, np.mean(fitENC) - 5. * np.std(fitENC), np.mean(fitENC) + 5. * np.std(fitENC) )
+                                40, np.mean(fitENC) - 5. * np.std(fitENC), np.mean(fitENC) + 5. * np.std(fitENC) )
             histENC.Sumw2()
-            for enc in fitENC:
-                histENC.Fill(enc)
+            if np.std(fitENC) != 0: # Don't fill if we are still at initial values
+                for enc in fitENC:
+                    histENC.Fill(enc)
             gENC = r.TGraphErrors(histENC)
             gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
-            encSummaryPlots[vfat] = gThresh
+            encSummaryPlots[vfat] = gENC
             pass
         pass
    
@@ -538,9 +543,9 @@ if __name__ == '__main__':
             saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, '%s/PrunedSummary.png'%filename, trimVcal)
         else:
             saveSummary(vSummaryPlotsNoHotChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
-        saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None)
-        saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None)
-        saveSummary(encSummaryPlots, None, '%s/ScurveWidthSummary.png'%filename, None)
+        saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None, drawOpt="APE1")
+        saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None, drawOpt="AP")
+        saveSummary(encSummaryPlots, None, '%s/ScurveWidthSummary.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
         confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
@@ -576,9 +581,9 @@ if __name__ == '__main__':
             canvOfScurveFits[vfat].cd()
             for chan in range (0,128):
                 if chan == 0:
-                    fitter.scanFuncs[vfat][ch].Draw()
+                    fitter.scanFuncs[vfat][chan].Draw()
                 else:
-                    fitter.scanFuncs[vfat][ch].Draw("same")
+                    fitter.scanFuncs[vfat][chan].Draw("same")
             canvOfScurveFits[vfat].Update()
 
     # Save TObjects
@@ -590,12 +595,12 @@ if __name__ == '__main__':
         dirVFAT.cd()
         vSummaryPlots[vfat].Write()
         if options.PanPin:
-            vSummaryPlotsPanPin2.Write()
+            vSummaryPlotsPanPin2[vfat].Write()
         canvOfScurveHistos[vfat].Write()
         if options.performFit:
-            vSummaryPlotsNoHotChan.Write()
+            vSummaryPlotsNoHotChan[vfat].Write()
             if options.PanPin:
-                vSummaryPlotsNoHotChanPanPin2.Write()
+                vSummaryPlotsNoHotChanPanPin2[vfat].Write()
             fitSummaryPlots[vfat].Write()
             threshSummaryPlots[vfat].Write()
             encSummaryPlots[vfat].Write()

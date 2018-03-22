@@ -112,11 +112,11 @@ class ScanDataFitter(DeadChannelFinder):
 
         random = r.TRandom3()
         random.SetSeed(0)
-        fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
-                        self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
         for vfat in range(0,24):
-            print 'fitting vfat %i'%vfat
+            fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                        self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
             for ch in range(0,128):
+                print 'fitting vfat %i chan %i'%(vfat,ch)
                 if self.isDead[vfat][ch]:
                     continue # Don't try to fit dead channels
                 elif not (self.scanHistos[vfat][ch].Integral() > 0):
@@ -126,7 +126,12 @@ class ScanDataFitter(DeadChannelFinder):
                 stepN = 0
                 while(stepN < 15):
                     rand = random.Gaus(10, 5)
+                    
+                    # Make sure the input parameters are positive
                     if (rand < 0.0 or rand > 100): continue
+                    #if self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] < 0: continue
+                    #if self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat] < 0: continue
+
                     # Provide an initial guess
                     fitTF1.SetParameter(0, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] )
                     fitTF1.SetParameter(1, self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat])
@@ -134,11 +139,11 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParameter(3, self.Nev[vfat][ch]/2.)
 
                     # Set Parameter Limits
-                    fitTF1.SetParLimits(0, 0.01, self.calDAC2Q_m[vfat]*(300.0)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParLimits(1, 0.0,  self.calDAC2Q_m[vfat]*(100.0)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParLimits(2, 0.0,  self.calDAC2Q_m[vfat]*(300.0)+self.calDAC2Q_b[vfat])
+                    fitTF1.SetParLimits(0, 0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
+                    fitTF1.SetParLimits(1, 0.0,  self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
+                    fitTF1.SetParLimits(2, 0.0,  self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
                     fitTF1.SetParLimits(3, 0.0,  self.Nev[vfat][ch] * 2.)
-
+                    
                     # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
