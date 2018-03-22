@@ -15,6 +15,7 @@ class ScanDataFitter(DeadChannelFinder):
         from gempython.utils.nesteddict import nesteddict as ndict
         r.gStyle.SetOptStat(0)
 
+        self.Nev = ndict()
         self.scanFuncs  = ndict()
         self.scanHistos = ndict()
         self.scanCount  = ndict()
@@ -34,19 +35,22 @@ class ScanDataFitter(DeadChannelFinder):
                 self.scanCount[vfat][ch] = 0
 
         self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
-        self.Nev = -1
 
     def feed(self, event):
         super(ScanDataFitter, self).feed(event)
         self.scanHistos[event.vfatN][event.vfatCH].Fill(event.vcal,event.Nhits)
         if(event.vcal > 250):
             self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
-        self.Nev = event.Nev
+        self.Nev[event.vfatN][event.vfatCH] = event.Nev
 
-    def feedHisto(self, vfatN, vfatCH, Nev, histo):
-        self.scanHistos[event.vfatN][event.vfatCH] = histo
+    def feedHisto(self, vfatN, vfatCH, histo, nEvts=None):
+        self.scanHistos[vfatN][vfatCH] = histo
         self.isDead[vfatN][vfatCH] = False
-        self.Nev = Nev
+        if nEvts is None:
+            maxBin = self.scanHistos[vfatN][vfatCH].GetMaximumBin()
+            self.Nev[vfatN][vfatCH] = self.scanHistos[vfatN][vfatCH].GetBinContent(maxBin)
+        else:
+            self.Nev[vfatN][vfatCH] = nEvts
 
     def fit(self):
         r.gROOT.SetBatch(True)
@@ -72,13 +76,13 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParameter(0, 8+stepN*8)
                     fitTF1.SetParameter(1,rand)
                     fitTF1.SetParameter(2,8+stepN*8)
-                    fitTF1.SetParameter(3, self.Nev/2.)
+                    fitTF1.SetParameter(3, self.Nev[vfat][ch]/2.)
 
                     # Set Parameter Limits
                     fitTF1.SetParLimits(0, 0.01, 300.0)
                     fitTF1.SetParLimits(1, 0.0, 100.0)
                     fitTF1.SetParLimits(2, 0.0, 300.0)
-                    fitTF1.SetParLimits(3, 0.0, self.Nev * 2.)
+                    fitTF1.SetParLimits(3, 0.0, self.Nev[vfat][ch] * 2.)
 
                     # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
