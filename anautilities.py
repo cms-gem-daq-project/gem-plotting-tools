@@ -21,6 +21,20 @@ def filePathExists(searchPath, subPath=None, debug=False):
             print "Found %s"%s(testPath)
         return True
 
+def first_index_gt(data_list, value):
+    """
+    http://code.activestate.com/recipes/578071-fast-indexing-functions-greater-than-less-than-equ/
+    
+    return the first index greater than value from a given list like object.
+    If value is greater than all elements in the list like object, the length 
+    of the list like object is returned instead
+    """
+    try:
+        index = next(data[0] for data in enumerate(data_list) if data[1] > value)
+        return index
+    except StopIteration: 
+        return len(data_list)
+
 def getDirByAnaType(anaType, cName, ztrim=4):
     from anaInfo import ana_config
     
