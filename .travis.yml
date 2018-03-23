@@ -6,6 +6,7 @@ stages:
   - setup
   - compile
   - test
+  - coverage
   - name: build
     env:
       - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
@@ -18,8 +19,14 @@ stages:
       # - OS_TYPE=centos PY_VER=python3.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
   - name: docs
     if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
+  - name: prerelease
+    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(pre|rc))((\d+$)|(-git[0-9a-z]{6,8})?)$')
+    tags: true
+  - name: devrelease
+    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev))((\d+$)|(-git[0-9a-z]{6,8})?)$')
+    tags: true
   - name: release
-    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
+    if: (branch = master AND tag =~ '^v?(\d+).(\d+).(\d+)(-git[0-9a-z]{6,8})?)$')
     tags: true
   - name: deploy
     if: tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$'
@@ -83,6 +90,7 @@ script:
 
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate updated ChangeLog"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
     - ls -laZ rpm
@@ -91,6 +99,32 @@ script:
   after_success:
     - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
 
+.release: &release_template
+  # publish to Github releases
+  provider: releases
+  api_key:
+    secure: "GITHUB OAUTH TOKEN"
+  file_glob: true
+  file:
+    - README.md
+    - CHANGELOG.md
+    # - docs #? or release docs somewhere else, and have this mentioned in the README
+    - ./**/rpm/*.tar.gz
+    - ./**/rpm/*.tgz
+    - ./**/rpm/*.tbz2
+    - ./**/rpm/*.rpm
+  ## pre-releases and draft releases for tags with pre/alpha/dev/gitHASH in the name
+  # draft: true # for tags with dev/alpha in the name, or
+  # prerelease: true # for tags with pre in the name
+  ## only deploy full release when the tag exactly matches vX.Y.Z (with or without the v)
+  prerelease: false # for tags with pre in the name
+  draft: false # for tags with pre in the name
+  skip_cleanup: true
+  on:
+    repo: cms-gem-daq-project/gem-plotting-tools
+    branch: master
+    tags: true
+    
 jobs:
   include:
     - stage: build
@@ -102,27 +136,57 @@ jobs:
         - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
       <<: *build_template
     - stage: docs
+      before_script: skip
+      before_install: skip
       script:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Building documentation"
         - ls -laZ
-      after_success:
-        - sudo pip install -U codecov
-        - coverage run python
-        - codecov
-        - bash <(curl -s https://codecov.io/bash) &&
-        - echo "Uploaded code coverage"
+      after_success: skip
 
-    - stage: cleanup
-      env:
-        - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-        ### CC7 jobs
-        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+    - stage: coverage
+      before_script: skip
+      before_install: skip
       script: skip
       after_success:
-        - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
+        - sudo pip install -U codecov
+#        - coverage run -a scripta.py
+        - codecov
+        - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
+    - stage: prerelease
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+      deploy:
+        - <<: *release_template
+          prerelease: true # for tags with dev/alpha in the name, or
+          on:
+            repo: jsturdy/gem-plotting-tools
+            tags: true
 
+      after_success:
+    - stage: devrelease
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+      deploy:
+        - <<: *release_template
+          draft: true # for tags with dev/alpha in the name, or
+      after_success:
+    - stage: release
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+      deploy:
+        - <<: *release_template
+      after_success:
+    - stage: deploy
+      ## push docs to SaaS docs website, readthedocs style, with versioning
+      ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
+      before_script: skip
+      before_install: skip
+      - script: skip
+      after_success: skip
+      before_deploy: skip
+      after_deploy: skip
+
+## Only want to run the deploy following the build stage, with the artifacts, and maybe from docs
 # before_deploy:
 #   # Set up git user name and tag this commit
 #   - git config --local user.name "YOUR GIT USER NAME"
@@ -133,32 +197,9 @@ jobs:
 #   # Sign the tags
 #   - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
 
-# deploy:
-#   # deploy to Github releases
-#   provider: releases
-#   api_key:
-#     secure: "GITHUB OAUTH TOKEN"
-#   file_glob: true
-#   file:
-#     - README.md
-#     - CHANGELOG.md
-#     - docs #? or release docs somewhere else, and have this mentioned in the README
-#     - ./**/rpm/*.tbz2
-#     - ./**/rpm/*.tgz
-#     - ./**/rpm/*.rpm
-#   # pre-releases and draft releases for tags with pre/alpha/dev/gitHASH in the name
-#   draft: true # for tags with dev/alpha in the name, or
-#   prerelease: true # for tags with pre in the name
-#   # only deploy full release when the tag exactly matches vX.Y.Z (with or without the v)
-#   prerelease: false # for tags with pre in the name
-#   draft: false # for tags with pre in the name
-#   skip_cleanup: true
-#   on:
-#     repo: cms-gem-daq-project/gem-plotting-tools
-#     branch: master
-#     tags: true
 # after_deploy: skip
 
+## Defaults, applied to the 'test' stage
 after_success:
   - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
 
