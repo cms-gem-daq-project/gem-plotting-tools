@@ -19,6 +19,8 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
     calDAC2Q_b        - as calDAC2Q_m but for intercept b, but a value of 0 is used if argument is None
     """
     from anaInfo import dict_calSF, mappingNames
+    from anautilities import first_index_gt
+    from math import sqrt
 
     # Check if lutType is expected
     if lutType not in mappingNames:
@@ -36,6 +38,7 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
    
     # Fill Histograms
     checkCurrentPulse = ("isCurrentPulse" in scurveTree.GetListOfBranches())
+    listOfBinEdgesY = None
     for event in scurveTree:
         if chanMasks is not None:
             if chanMasks[event.vfatN][event.vfatCH]:
@@ -53,21 +56,34 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
             else:
                 charge = calDAC2Q_m[event.vfatN]*(256-event.vcal)+calDAC2Q_b[event.vfatN]
         
+        # Get list of bin edges in Y
+        if listOfBinEdgesY is None:
+            listOfBinEdgesY = [ vfatHistos[event.vfatN].GetYaxis().GetBinLowEdge(binY) 
+                    for binY in range(1,vfatHistos[event.vfatN].GetNbinsY()+2) ] #Include overflow
+        
+        # Determine the binY that corresponds to this charge value
+        chargeBin = first_index_gt(listOfBinEdgesY, charge)-1
+        
         # Fill Summary Histogram 
         if lutType is mappingNames[1] and vfatHistosPanPin2 is not None:
             if (stripPinOrChan < 64):
-                vfatHistos[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
+                #vfatHistos[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
+                vfatHistos[event.vfatN].SetBinContent(63-(stripPinOrChan+1),chargeBin,event.Nhits)
+                vfatHistos[event.vfatN].SetBinError(63-(stripPinOrChan+1),chargeBin,sqrt(event.Nhits))
                 pass
             else:
-                vfatHistosPanPin2[event.vfatN].Fill(127-stripPinOrChan,charge,event.Nhits)
+                #vfatHistosPanPin2[event.vfatN].Fill(127-stripPinOrChan,charge,event.Nhits)
+                vfatHistosPanPin2[event.vfatN].SetBinContent(127-(stripPinOrChan+1),chargeBin,event.Nhits)
+                vfatHistosPanPin2[event.vfatN].SetBinError(127-(stripPinOrChan+1),chargeBin,sqrt(event.Nhits))
                 pass
             pass
         else:
-            vfatHistos[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
+            #vfatHistos[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
+            vfatHistos[event.vfatN].SetBinContent(stripPinOrChan+1,chargeBin,event.Nhits)
 
     return
 
-def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScurves"):
+def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="scurves"):
     """
     Plots all scurves for a given vfat on a TCanvas for all vfats
 
@@ -82,29 +98,33 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
 
     for vfat,histo in vfatHistos.iteritems():
         canv_dict[vfat] = r.TCanvas("%s_vfat%i"%(obsName,vfat),"%s from VFAT%i"%(obsName,vfat),600,600)
+        canv_dict[vfat].Draw()
         canv_dict[vfat].cd()
         for binX in range(1,histo.GetNbinsX()+1):
-            h_scurve = histo.ProjectionY("h_scurve",binX,binX,"")
+            h_scurve = histo.ProjectionY("h_%s_vfat%i_bin%i"%(obsName,vfat,binX),binX,binX,"")
             h_scurve.SetLineColor(r.kBlue+2)
             h_scurve.SetLineWidth(2)
-            
+            h_scurve.SetFillStyle(0)
+
             g_scurve = r.TGraph(h_scurve)
             if binX == 1:
-                g_scurve.Clone().Draw("AP")
+                print "drawining first histo"
+                h_scurve.Draw()
             else:
-                g_scurve.Clone().Draw("sameP")
-        #canv_dict[vfat].Update()
+                h_scurve.Draw("same")
+        canv_dict[vfat].Update()
     if vfatHistosPanPin2 is not None:
         for vfat,histo in vfatHistosPanPin2.iteritems():
             canv_dict[vfat].cd()
             for binX in range(1,histo.GetNbinsX()+1):
-                h_scurve = histo.ProjectionY("h_scurve",binX,binX,"")
+                h_scurve = histo.ProjectionY("h_%s_vfat%i_bin%i"%(obsName,vfat,binX),binX,binX,"")
                 h_scurve.SetLineColor(r.kBlue+2)
                 h_scurve.SetLineWidth(2)
-                
+                h_scurve.SetFillStyle(0)
+                h_scurve.Draw("same")
+
                 g_scurve = r.TGraph(h_scurve)
-                g_scurve.Clone().Draw("sameP")
-            #canv_dict[vfat].Update()
+            canv_dict[vfat].Update()
 
     return canv_dict
 
@@ -572,16 +592,17 @@ if __name__ == '__main__':
 
     # Make 1D Plot for each VFAT showing all scurves
     # Don't use the ones stored in fitter since this may not exist (e.g. options.performFit = false)
+    canvOfScurveHistosNoHotChan = {}
     if options.PanPin:
-        canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,vSummaryPlotsPanPin2,"canvScurves")
+        canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,vSummaryPlotsPanPin2,"scurves")
     else:
-        canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,None,"canvScurves")
+        canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,None,"scurves")
 
     if options.performFit:
         if options.PanPin:
-            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,vSummaryPlotsNoHotChanPanPin2,"canvScurvesNotHotChan")
+            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,vSummaryPlotsNoHotChanPanPin2,"scurvesNoHotChan")
         else:
-            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,None,"canvScurvesNoHotChan")
+            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,None,"scurvesNoHotChan")
         
         canvOfScurveFits = {}
         for vfat in range(0,24):
