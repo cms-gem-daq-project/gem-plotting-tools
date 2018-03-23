@@ -162,7 +162,7 @@ jobs:
             repo: jsturdy/gem-plotting-tools
             tags: true
 
-      after_success:
+      after_success: skip
     - stage: devrelease
       script:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
@@ -175,16 +175,16 @@ jobs:
         - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
       deploy:
         - <<: *release_template
-      after_success:
-    - stage: deploy
-      ## push docs to SaaS docs website, readthedocs style, with versioning
-      ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
-      before_script: skip
-      before_install: skip
-      - script: skip
       after_success: skip
-      before_deploy: skip
-      after_deploy: skip
+    # - stage: deploy
+    #   ## push docs to SaaS docs website, readthedocs style, with versioning
+    #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
+    #   before_script: skip
+    #   before_install: skip
+    #   - script: skip
+    #   after_success: skip
+    #   # before_deploy: skip
+    #   # after_deploy: skip
 
 ## Only want to run the deploy following the build stage, with the artifacts, and maybe from docs
 # before_deploy:
