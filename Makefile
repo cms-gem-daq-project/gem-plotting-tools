@@ -42,8 +42,8 @@ default:
 .PHONY: clean preprpm
 _rpmprep: preprpm
 preprpm: default
-	@cp -rfp requirements.txt README.md LICENSE $(PackageDir)
-	@cp -rfp requirements.txt README.md pkg
+	@cp -rfp requirements.txt README.md CHANGELOG.md LICENSE $(PackageDir)
+	@cp -rfp requirements.txt README.md CHANGELOG.md pkg
 	$(MakeDir) $(PackageDir)/bin
 	@cp -rfp ana*.py $(PackageDir)/bin
 
@@ -56,9 +56,11 @@ clean:
 	@rm -f  $(PackageDir)/MANIFEST.in
 	@rm -f  $(PackageDir)/requirements.txt
 	@rm -f  $(PackageDir)/README.md
+	@rm -f  $(PackageDir)/CHANGELOG.md
 	@rm -f  $(PackageDir)/__init__.py
 	@rm -f  pkg/$(Namespace)/__init__.py
 	@rm -f  pkg/README.md
+	@rm -f  pkg/CHANGELOG.md
 	@rm -f  pkg/requirements.txt
 
 print-env:

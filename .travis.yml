@@ -88,7 +88,7 @@ script:
 
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate updated ChangeLog"
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
     - ls -laZ rpm
