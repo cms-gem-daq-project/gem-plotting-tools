@@ -90,9 +90,9 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
             
             g_scurve = r.TGraph(h_scurve)
             if binX == 1:
-                g_scurve.Draw("AP")
+                g_scurve.Clone().Draw("AP")
             else:
-                g_scurve.Draw("sameP")
+                g_scurve.Clone().Draw("sameP")
         #canv_dict[vfat].Update()
     if vfatHistosPanPin2 is not None:
         for vfat,histo in vfatHistosPanPin2.iteritems():
@@ -103,7 +103,7 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="canvScur
                 h_scurve.SetLineWidth(2)
                 
                 g_scurve = r.TGraph(h_scurve)
-                g_scurve.Draw("sameP")
+                g_scurve.Clone().Draw("sameP")
             #canv_dict[vfat].Update()
 
     return canv_dict
@@ -120,7 +120,11 @@ if __name__ == '__main__':
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck
-    
+  
+    defaultVFATList='0'
+    for vfat in range(1,24):
+        defaultVFATList+=(',%i'%vfat)
+
     from anaoptions import parser
     parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
                       help="Draw fit overlays for Chi2 > 10000", metavar="drawbad")
@@ -133,6 +137,8 @@ if __name__ == '__main__':
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
+    parser.add_option("--vfatList", type="string", dest="vfatList", default=defaultVFATList,
+                      help="Comma separated list of vfats positions to analyze", metavar="vfatList")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
     parser.set_defaults(outfilename="SCurveFitData.root")
@@ -142,6 +148,8 @@ if __name__ == '__main__':
     filename = options.filename[:-5]
     os.system("mkdir " + filename)
     
+    listOfVFATs = options.vfatList.split(',')
+    listOfVFATs = [int(vfat) for vfat in listOfVFATs]
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
@@ -181,7 +189,7 @@ if __name__ == '__main__':
     r.gStyle.SetOptStat(1111111)
 
     # Initialize distributions
-    for vfat in range(0,24):
+    for vfat in listOfVFATs:
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                 'VFAT %i;Channels;VCal [fC]'%vfat,
                 128,-0.5,127.5,256,
@@ -264,7 +272,7 @@ if __name__ == '__main__':
 
     # Get some of the operational settings of the ASIC
     # Refactor this using root_numpy???
-    dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
+    dict_vfatID = dict((vfat, 0) for vfat in listOfVFATs)
     listOfBranches = inF.scurveTree.GetListOfBranches()
     for event in inF.scurveTree:
         vthr_list[event.vfatN][event.vfatCH] = event.vthr
@@ -300,7 +308,7 @@ if __name__ == '__main__':
         fitSummary = open(filename+'/fitSummary.txt','w')
         fitSummary.write('vfatN/I:vfatID/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
         scanFitResults = fitter.fit()
-        for vfat in range(0,24):
+        for vfat in listOfVFATs:
             for chan in range(0,128):
                 fitSummary.write(
                         '%i\t%i\t%i\t%f\t%f\t%f\t%f\n'%(
@@ -319,10 +327,10 @@ if __name__ == '__main__':
         print("Determining hot channels")
         masks = []
         maskReasons = []
-        effectivePedestals = [ np.zeros(128) for vfat in range(24) ]
+        effectivePedestals = [ np.zeros(128) for vfat in listOfVFATs ]
         print "| vfatN | Dead Chan | Hot Chan | Failed Fits | High Noise | High Eff Ped |"
         print "| :---: | :-------: | :------: | :---------: | :--------: | :----------: |"
-        for vfat in range(0, 24):
+        for vfat in listOfVFATs:
             trimValue = np.zeros(128)
             channelNoise = np.zeros(128)
             fitFailed = np.zeros(128, dtype=bool)
@@ -421,7 +429,7 @@ if __name__ == '__main__':
         fitSummaryPlots = {}
         threshSummaryPlots = {}
         encSummaryPlots = {}
-        for vfat in range (0,24):
+        for vfat in listOfVFATs:
             fitThr = np.zeros(128)        
             fitENC = np.zeros(128)
             stripPinOrChanArray = np.zeros(128)
@@ -521,7 +529,7 @@ if __name__ == '__main__':
     if options.IsTrimmed:
         trimmed_text = open('scanInfo.txt', 'r')
         trimVcal = []
-        for vfat in range(0,24):
+        for vfat in listOfVFATs:
             trimVcal.append(0)
             pass
         for n, line in enumerate(trimmed_text):
@@ -549,7 +557,7 @@ if __name__ == '__main__':
 
         confF = open(filename+'/chConfig.txt','w')
         confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
-        for vfat in range (0,24):
+        for vfat in listOfVFATs:
             for chan in range (0, 128):
                 confF.write('%i\t%i\t%i\t%i\t%i\n'%(
                     vfat,
@@ -576,7 +584,7 @@ if __name__ == '__main__':
             canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,None,"canvScurvesNoHotChan")
         
         canvOfScurveFits = {}
-        for vfat in range(0,24):
+        for vfat in listOfVFATs:
             canvOfScurveFits[vfat] = r.TCanvas("canvScurveFits_vfat%i"%vfat,"Scurve Fits from VFAT%i"%vfat,600,600)
             canvOfScurveFits[vfat].cd()
             for chan in range (0,128):
@@ -590,7 +598,7 @@ if __name__ == '__main__':
     outF.cd()
     if options.performFit:
         myT.Write()
-    for vfat in range(0,23):
+    for vfat in listOfVFATs:
         dirVFAT = outF.mkdir("VFAT%i"%vfat)
         dirVFAT.cd()
         vSummaryPlots[vfat].Write()
