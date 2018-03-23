@@ -12,8 +12,7 @@ COMMAND=$4
 
 ls -lZ
 
-
-# need a varaible to point to the .travis directory
+# need a varaible to point to the .ci directory
 # Run tests in Container
 if [ "${COMMAND}" = "setup" ]
 then
