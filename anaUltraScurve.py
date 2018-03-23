@@ -194,8 +194,8 @@ if __name__ == '__main__':
     # Create output plot containers
     vSummaryPlots = ndict()
     vSummaryPlotsPanPin2 = ndict()
-    vSummaryPlotsNoHotChan = ndict()
-    vSummaryPlotsNoHotChanPanPin2 = ndict()
+    vSummaryPlotsNoMaskedChan = ndict()
+    vSummaryPlotsNoMaskedChanPanPin2 = ndict()
     vthr_list = getEmptyPerVFATList() 
     trim_list = getEmptyPerVFATList() 
     trimrange_list = getEmptyPerVFATList()
@@ -213,15 +213,15 @@ if __name__ == '__main__':
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-        vSummaryPlotsNoHotChan[vfat] = r.TH2D('vSummaryPlotsNoHotChan%i'%vfat,
+        vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
                 'VFAT %i;Channels;VCal [fC]'%vfat,
                 128,-0.5,127.5,256,
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-        vSummaryPlotsNoHotChan[vfat].GetYaxis().SetTitleOffset(1.5)
+        vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
         if not (options.channels or options.PanPin):
             vSummaryPlots[vfat].SetXTitle('Strip')
-            vSummaryPlotsNoHotChan[vfat].SetXTitle('Strip')
+            vSummaryPlotsNoMaskedChan[vfat].SetXTitle('Strip')
             pass
         if options.PanPin:
             vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
@@ -230,24 +230,24 @@ if __name__ == '__main__':
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
-            vSummaryPlotsNoHotChan[vfat] = r.TH2D('vSummaryPlotsNoHotChan%i'%vfat,
+            vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
                     'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlotsNoHotChan[vfat].GetYaxis().SetTitleOffset(1.5)
+            vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
-            vSummaryPlotsNoHotChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoHotChanPanPin2_%i'%vfat,
+            vSummaryPlotsNoMaskedChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoMaskedChanPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
-            vSummaryPlotsNoHotChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
+            vSummaryPlotsNoMaskedChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             pass
         for chan in range (0,128):
             vthr_list[vfat].append(0)
@@ -387,9 +387,9 @@ if __name__ == '__main__':
         print("Removing Hot Channels from Output Histograms")
         fill2DScurveSummaryPlots(
                 scurveTree=inF.scurveTree, 
-                vfatHistos=vSummaryPlotsNoHotChan, 
+                vfatHistos=vSummaryPlotsNoMaskedChan, 
                 vfatChanLUT=dict_vfatChanLUT, 
-                vfatHistosPanPin2=vSummaryPlotsNoHotChanPanPin2, 
+                vfatHistosPanPin2=vSummaryPlotsNoMaskedChanPanPin2, 
                 lutType=stripChanOrPinType, 
                 chanMasks=masks, 
                 calDAC2Q_m=calDAC2Q_Slope, 
@@ -566,9 +566,9 @@ if __name__ == '__main__':
 
     if options.performFit:
         if options.PanPin:
-            saveSummary(vSummaryPlotsNoHotChan, vSummaryPlotsNoHotChanPanPin2, '%s/PrunedSummary.png'%filename, trimVcal)
+            saveSummary(vSummaryPlotsNoMaskedChan, vSummaryPlotsNoMaskedChanPanPin2, '%s/PrunedSummary.png'%filename, trimVcal)
         else:
-            saveSummary(vSummaryPlotsNoHotChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
+            saveSummary(vSummaryPlotsNoMaskedChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
         saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None, drawOpt="APE1")
         saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None, drawOpt="AP")
         saveSummary(encSummaryPlots, None, '%s/ScurveWidthSummary.png'%filename, None, drawOpt="AP")
@@ -590,7 +590,7 @@ if __name__ == '__main__':
 
     # Make 1D Plot for each VFAT showing all scurves
     # Don't use the ones stored in fitter since this may not exist (e.g. options.performFit = false)
-    canvOfScurveHistosNoHotChan = {}
+    canvOfScurveHistosNoMaskedChan = {}
     if options.PanPin:
         canvOfScurveHistos = plotAllSCurvesOnCanvas(vSummaryPlots,vSummaryPlotsPanPin2,"scurves")
     else:
@@ -598,9 +598,9 @@ if __name__ == '__main__':
 
     if options.performFit:
         if options.PanPin:
-            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,vSummaryPlotsNoHotChanPanPin2,"scurvesNoHotChan")
+            canvOfScurveHistosNoMaskedChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoMaskedChan,vSummaryPlotsNoMaskedChanPanPin2,"scurvesNoMaskedChan")
         else:
-            canvOfScurveHistosNoHotChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoHotChan,None,"scurvesNoHotChan")
+            canvOfScurveHistosNoMaskedChan = plotAllSCurvesOnCanvas(vSummaryPlotsNoMaskedChan,None,"scurvesNoMaskedChan")
         
         canvOfScurveFits = {}
         for vfat in range(0,24):
@@ -628,13 +628,13 @@ if __name__ == '__main__':
             vSummaryPlotsPanPin2[vfat].Write()
         canvOfScurveHistos[vfat].Write()
         if options.performFit:
-            vSummaryPlotsNoHotChan[vfat].Write()
+            vSummaryPlotsNoMaskedChan[vfat].Write()
             if options.PanPin:
-                vSummaryPlotsNoHotChanPanPin2[vfat].Write()
+                vSummaryPlotsNoMaskedChanPanPin2[vfat].Write()
             fitSummaryPlots[vfat].Write()
             threshSummaryPlots[vfat].Write()
             encSummaryPlots[vfat].Write()
-            canvOfScurveHistosNoHotChan[vfat].Write()
+            canvOfScurveHistosNoMaskedChan[vfat].Write()
             canvOfScurveFits[vfat].Write()
             pass
     
