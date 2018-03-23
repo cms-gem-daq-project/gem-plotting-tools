@@ -36,9 +36,15 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
     if calDAC2Q_b is None:
         calDAC2Q_b = np.zeros(24)
    
+    # Get list of bin edges in Y
+    # Must be done for each VFAT since the conversion from DAC units to fC may be unique to the VFAT
+    listOfBinEdgesY = {}
+    for vfat in vfatHistos:
+        listOfBinEdgesY[vfat] = [ vfatHistos[vfat].GetYaxis().GetBinLowEdge(binY) 
+                for binY in range(1,vfatHistos[vfat].GetNbinsY()+2) ] #Include overflow
+        
     # Fill Histograms
     checkCurrentPulse = ("isCurrentPulse" in scurveTree.GetListOfBranches())
-    listOfBinEdgesY = None
     for event in scurveTree:
         if chanMasks is not None:
             if chanMasks[event.vfatN][event.vfatCH]:
@@ -56,29 +62,21 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
             else:
                 charge = calDAC2Q_m[event.vfatN]*(256-event.vcal)+calDAC2Q_b[event.vfatN]
         
-        # Get list of bin edges in Y
-        if listOfBinEdgesY is None:
-            listOfBinEdgesY = [ vfatHistos[event.vfatN].GetYaxis().GetBinLowEdge(binY) 
-                    for binY in range(1,vfatHistos[event.vfatN].GetNbinsY()+2) ] #Include overflow
-        
         # Determine the binY that corresponds to this charge value
-        chargeBin = first_index_gt(listOfBinEdgesY, charge)-1
+        chargeBin = first_index_gt(listOfBinEdgesY[event.vfatN], charge)-1
         
         # Fill Summary Histogram 
         if lutType is mappingNames[1] and vfatHistosPanPin2 is not None:
             if (stripPinOrChan < 64):
-                #vfatHistos[event.vfatN].Fill(63-stripPinOrChan,charge,event.Nhits)
                 vfatHistos[event.vfatN].SetBinContent(63-(stripPinOrChan+1),chargeBin,event.Nhits)
                 vfatHistos[event.vfatN].SetBinError(63-(stripPinOrChan+1),chargeBin,sqrt(event.Nhits))
                 pass
             else:
-                #vfatHistosPanPin2[event.vfatN].Fill(127-stripPinOrChan,charge,event.Nhits)
                 vfatHistosPanPin2[event.vfatN].SetBinContent(127-(stripPinOrChan+1),chargeBin,event.Nhits)
                 vfatHistosPanPin2[event.vfatN].SetBinError(127-(stripPinOrChan+1),chargeBin,sqrt(event.Nhits))
                 pass
             pass
         else:
-            #vfatHistos[event.vfatN].Fill(stripPinOrChan,charge,event.Nhits)
             vfatHistos[event.vfatN].SetBinContent(stripPinOrChan+1,chargeBin,event.Nhits)
 
     return
@@ -108,7 +106,6 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="scurves"
 
             g_scurve = r.TGraph(h_scurve)
             if binX == 1:
-                print "drawining first histo"
                 h_scurve.Draw()
             else:
                 h_scurve.Draw("same")
@@ -519,6 +516,7 @@ if __name__ == '__main__':
             
             fitSummaryPlots[vfat].SetName("gFitSummary_VFAT%i"%(vfat))
             fitSummaryPlots[vfat].SetMarkerStyle(2)
+            #fitSummaryPlots[vfat].GetYaxis().SetRangeUser(0,50)
             
             # Make thresh summary plot - bin size is variable
             histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
