@@ -105,6 +105,12 @@ class ScanDataFitter(DeadChannelFinder):
                  [3][vfat][ch] = fitChi2
                  [4][vfat][ch] = self.scanCount[vfat][ch]
                  [5][vfat][ch] = fitNDF
+
+        The TF1 is color coded:
+            Black - Default
+            Blue - Fit Converged 
+            Gray - Dead channel or empty input histogram
+            Orange - Fit result is empty
         """
 
         r.gROOT.SetBatch(True)
@@ -115,26 +121,29 @@ class ScanDataFitter(DeadChannelFinder):
         for vfat in range(0,24):
             fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
                         self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
+            fitTF1.SetLineColor(r.kBlack)
             for ch in range(0,128):
                 print 'fitting vfat %i chan %i'%(vfat,ch)
                 if self.isDead[vfat][ch]:
+                    fitTF1.SetLineColor(r.kGray)
                     continue # Don't try to fit dead channels
                 elif not (self.scanHistos[vfat][ch].Integral() > 0):
+                    fitTF1.SetLineColor(r.kGray)
                     continue # Don't try to fit with 0 entries
                 fitChi2 = 0
                 MinChi2Temp = 99999999
                 stepN = 0
                 while(stepN < 15):
-                    rand = random.Gaus(10, 5)
+                    rand = max(0.0, random.Gaus(10, 5)) # do not accept negative numbers
                     
                     # Make sure the input parameters are positive
-                    if (rand < 0.0 or rand > 100): continue
+                    if (rand > 100): continue
                     #if self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] < 0: continue
                     #if self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat] < 0: continue
 
                     # Provide an initial guess
-                    fitTF1.SetParameter(0, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] )
-                    fitTF1.SetParameter(1, self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat])
+                    fitTF1.SetParameter(0, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat])
+                    fitTF1.SetParameter(1, self.calDAC2Q_m[vfat]*(rand))
                     fitTF1.SetParameter(2, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat])
                     fitTF1.SetParameter(3, self.Nev[vfat][ch]/2.)
 
@@ -148,6 +157,7 @@ class ScanDataFitter(DeadChannelFinder):
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
                     if fitEmpty:
+                        fitTF1.SetLineColor(kOrange-2)
                         # Don't try to fit empty data again
                         break
                     fitValid = fitResult.IsValid()
@@ -158,6 +168,7 @@ class ScanDataFitter(DeadChannelFinder):
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
+                        self.scanFuncs[vfat][ch].SetLineColor(kBlue-2)
                         self.scanFitResults[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFitResults[1][vfat][ch] = fitTF1.GetParameter(1)
                         self.scanFitResults[2][vfat][ch] = fitTF1.GetParameter(2)
