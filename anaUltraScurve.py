@@ -527,6 +527,8 @@ if __name__ == '__main__':
                     histThresh.Fill(thresh)
             gThresh = r.TGraphErrors(histThresh)
             gThresh.SetName("gScurveMeanDist_vfat%i"%vfat)
+            gThresh.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
+            gThresh.GetYaxis().SetTitle("Entries / %f fC"%(np.std(fitThr)/4.))
             threshSummaryPlots[vfat] = gThresh
 
             # Make enc summary plot - bin size is variable
@@ -538,6 +540,8 @@ if __name__ == '__main__':
                     histENC.Fill(enc)
             gENC = r.TGraphErrors(histENC)
             gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
+            gENC.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
+            gENC.GetYaxis().SetTitle("Entries / %f fC"%(np.std(fitENC)/4.))
             encSummaryPlots[vfat] = gENC
             pass
         pass
