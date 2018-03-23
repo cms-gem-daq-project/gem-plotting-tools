@@ -90,7 +90,7 @@ class ScanDataFitter(DeadChannelFinder):
 
         return
 
-    def fit(self):
+    def fit(self, debug=False):
         """
         Iteratively fits all scurves
         Note:   if the user supplied calDAC2Q_m and calDAC2Q_b at
@@ -133,17 +133,22 @@ class ScanDataFitter(DeadChannelFinder):
                 fitChi2 = 0
                 MinChi2Temp = 99999999
                 stepN = 0
+                if debug:
+                    print "| p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
+                    print "| ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
                 while(stepN < 15):
                     rand = max(0.0, random.Gaus(10, 5)) # do not accept negative numbers
                     
                     # Make sure the input parameters are positive
-                    if (rand > 100): continue
-                    #if self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] < 0: continue
-                    #if self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat] < 0: continue
+                    if rand > 100: continue
+                    if (self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat]) < 0:
+                        stepN +=1
+                        continue
+                    #if (self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat]) < 0: continue
 
                     # Provide an initial guess
                     fitTF1.SetParameter(0, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParameter(1, self.calDAC2Q_m[vfat]*(rand))
+                    fitTF1.SetParameter(1, self.calDAC2Q_m[vfat]*rand)
                     fitTF1.SetParameter(2, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat])
                     fitTF1.SetParameter(3, self.Nev[vfat][ch]/2.)
 
@@ -153,6 +158,19 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParLimits(2, 0.0,  self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
                     fitTF1.SetParLimits(3, 0.0,  self.Nev[vfat][ch] * 2.)
                     
+                    if debug:
+                        print "| %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                    0.01,
+                                    self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                    self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
+                                    0.0,
+                                    self.calDAC2Q_m[vfat]*rand,
+                                    self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
+                                    0.0,
+                                    self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                    self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
+                                )
+
                     # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
@@ -168,7 +186,7 @@ class ScanDataFitter(DeadChannelFinder):
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
                         self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
-                        self.scanFuncs[vfat][ch].SetLineColor(kBlue-2)
+                        self.scanFuncs[vfat][ch].SetLineColor(r.kBlue-2)
                         self.scanFitResults[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFitResults[1][vfat][ch] = fitTF1.GetParameter(1)
                         self.scanFitResults[2][vfat][ch] = fitTF1.GetParameter(2)
