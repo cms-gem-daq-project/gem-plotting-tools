@@ -21,13 +21,13 @@ stages:
     if: ((branch = master) OR (tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$))
   - name: prerelease
     if: (tag =~ ^v?(\d+).(\d+).(\d+)(-(pre|rc))((\d+$)|(-git[0-9a-z]{6,8})?)$)
-    tags: true
+    # tags: true
   - name: devrelease
     if: (tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev))((\d+$)|(-git[0-9a-z]{6,8})?)$)
-    tags: true
+    # tags: true
   - name: release
     if: ((branch = master) AND (tag =~ ^v?(\d+).(\d+).(\d+)(-git[0-9a-z]{6,8})?)$))
-    tags: true
+    # tags: true
   - name: deploy
     if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
 
