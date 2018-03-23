@@ -18,15 +18,15 @@ stages:
       # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
       # - OS_TYPE=centos PY_VER=python3.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
   - name: docs
-    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$')
+    if: ((branch = master) OR (tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$'))
   - name: prerelease
-    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(pre|rc))((\d+$)|(-git[0-9a-z]{6,8})?)$')
+    if: (tag =~ '^v?(\d+).(\d+).(\d+)(-(pre|rc))((\d+$)|(-git[0-9a-z]{6,8})?)$')
     tags: true
   - name: devrelease
-    if: (branch = master OR tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev))((\d+$)|(-git[0-9a-z]{6,8})?)$')
+    if: (tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev))((\d+$)|(-git[0-9a-z]{6,8})?)$')
     tags: true
   - name: release
-    if: (branch = master AND tag =~ '^v?(\d+).(\d+).(\d+)(-git[0-9a-z]{6,8})?)$')
+    if: ((branch = master) AND (tag =~ '^v?(\d+).(\d+).(\d+)(-git[0-9a-z]{6,8})?)$'))
     tags: true
   - name: deploy
     if: tag =~ '^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$'
