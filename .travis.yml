@@ -33,8 +33,6 @@ stages:
 
 env: ## this is *only* for the built-in 'test' stage, doesn't currently transfer to other stages, beta feature
   matrix:
-    # slc6root53428
-    # slc6root53436
     - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
     # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
     # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
@@ -68,23 +66,23 @@ services:
 before_install:
   ## steps for all stages
   # steps for specific stages
-  - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
+  - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
   - sleep 2
-  - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
+  - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
   - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
 
 # Stages run in their own VMs, nothing gets transferred from stage to stage
 script:
   - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
-  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
+  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.ci/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
 
 # How to link the environments/outputs from above with the jobs below?
 .build: &build_template
   before_install:
-    - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
+    - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
     - sleep 2
-    - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
+    - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
     - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
 
@@ -97,7 +95,7 @@ script:
     - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
 
   after_success:
-    - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
+    - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
 
 .release: &release_template
   # publish to Github releases
@@ -109,10 +107,10 @@ script:
     - README.md
     - CHANGELOG.md
     # - docs #? or release docs somewhere else, and have this mentioned in the README
-    - ./**/rpm/*.tar.gz
-    - ./**/rpm/*.tgz
-    - ./**/rpm/*.tbz2
-    - ./**/rpm/*.rpm
+    - ./rpm/*.tar.gz
+    - ./rpm/*.tgz
+    - ./rpm/*.tbz2
+    - ./rpm/*.rpm
   ## pre-releases and draft releases for tags with pre/alpha/dev/gitHASH in the name
   # draft: true # for tags with dev/alpha in the name, or
   # prerelease: true # for tags with pre in the name
@@ -152,30 +150,30 @@ jobs:
 #        - coverage run -a scripta.py
         - codecov
         - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
-    - stage: prerelease
-      script:
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-      deploy:
-        - <<: *release_template
-          prerelease: true # for tags with dev/alpha in the name, or
-          on:
-            repo: jsturdy/gem-plotting-tools
-            tags: true
+    # - stage: prerelease
+    #   script:
+    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+    #   deploy:
+    #     - <<: *release_template
+    #       prerelease: true # for tags with dev/alpha in the name, or
+    #       # on:
+    #       #   repo: jsturdy/gem-plotting-tools
+    #       #   tags: true
 
-      after_success: skip
-    - stage: devrelease
-      script:
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-      deploy:
-        - <<: *release_template
-          draft: true # for tags with dev/alpha in the name, or
-      after_success:
-    - stage: release
-      script:
-        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-      deploy:
-        - <<: *release_template
-      after_success: skip
+    #   after_success: skip
+    # - stage: devrelease
+    #   script:
+    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+    #   deploy:
+    #     - <<: *release_template
+    #       draft: true # for tags with dev/alpha in the name, or
+    #   after_success:
+    # - stage: release
+    #   script:
+    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+    #   deploy:
+    #     - <<: *release_template
+    #   after_success: skip
     # - stage: deploy
     #   ## push docs to SaaS docs website, readthedocs style, with versioning
     #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
@@ -201,7 +199,7 @@ jobs:
 
 ## Defaults, applied to the 'test' stage
 after_success:
-  - ./.travis/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
+  - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
 
 after_failure: skip
 

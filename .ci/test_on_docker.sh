@@ -43,6 +43,8 @@ then
     pip install -U -r requirements.txt
     pip install -U root_numpy
 
+    # set up and run tests and coverage
+
     # leave virtualenv
     deactivate
 fi

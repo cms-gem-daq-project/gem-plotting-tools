@@ -12,6 +12,6 @@ ROOT_VER=$4
 
 DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
 docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running test job;
-   . /home/daqbuild/gem-plotting-tools/.travis/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER};"
+   . /home/daqbuild/gem-plotting-tools/.ci/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER};"
 
 exit 0
