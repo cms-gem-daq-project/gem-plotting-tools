@@ -122,17 +122,25 @@ class ScanDataFitter(DeadChannelFinder):
             fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
                         self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
             fitTF1.SetLineColor(r.kBlack)
+            
+            if not debug:
+                print 'fitting vfat %i'%(vfat)
+
             for ch in range(0,128):
-                print 'fitting vfat %i chan %i'%(vfat,ch)
+                if debug:
+                    print 'fitting vfat %i chan %i'%(vfat,ch)
+                
                 if self.isDead[vfat][ch]:
                     fitTF1.SetLineColor(r.kGray)
                     continue # Don't try to fit dead channels
                 elif not (self.scanHistos[vfat][ch].Integral() > 0):
                     fitTF1.SetLineColor(r.kGray)
                     continue # Don't try to fit with 0 entries
+                
                 fitChi2 = 0
                 MinChi2Temp = 99999999
                 stepN = 0
+                
                 if debug:
                     print "| p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
                     print "| ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
@@ -211,7 +219,7 @@ class ScanDataFitter(DeadChannelFinder):
             self.feed(event)
         return
 
-def fitScanData(treeFileName):
-    fitter = ScanDataFitter()
+def fitScanData(treeFileName, isVFAT3=False):
+    fitter = ScanDataFitter(isVFAT3=isVFAT3)
     fitter.readFile(treeFileName)
     return fitter.fit()
