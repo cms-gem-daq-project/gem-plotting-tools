@@ -1,200 +1,114 @@
 sudo: required
-
 language: generic
-
 stages:
-  - setup
-  - compile
-  - test
-  - coverage
-  - name: buildrpm
-  - name: docs
-    if: ((branch = master) OR (tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$))
-    # tags: true
-  - name: prerelease
-    if: (tag =~ ^v?(\d+).(\d+).(\d+)(-(pre|rc))((\d+$)|(-git[0-9a-z]{6,8})?)$)
-  - name: devrelease
-    if: (tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev))((\d+$)|(-git[0-9a-z]{6,8})?)$)
-  - name: release
-    if: ((branch = master) AND (tag =~ ^v?(\d+).(\d+).(\d+)(-git[0-9a-z]{6,8})?)$))
-  - name: deploy
-    if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
-
-env: ## this is *only* for the built-in 'test' stage, doesn't currently transfer to other stages, beta feature
+- setup
+- compile
+- test
+- coverage
+- name: buildrpm
+- name: docs
+  if: "((branch = master) OR (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev|pre|rc))?((\\d+$)|(-git[0-9a-z]{6,8})?)$))"
+- name: prerelease
+  if: "(tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(pre|rc))((\\d+$)|(-git[0-9a-z]{6,8})?)$)"
+- name: devrelease
+  if: "(tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev))((\\d+$)|(-git[0-9a-z]{6,8})?)$)"
+- name: release
+  if: "((branch = master) AND (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-git[0-9a-z]{6,8})?)$))"
+- name: deploy
+  if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
+env:
   global:
-    secure: "mDvXuJd3DkIIzP7oLctF4GtfxPr9dKfQpHgCEahSlBANM/vYcPJ0tzQi34iT4QUSMnrEfIAdgvLsWdE1jTN1GmuACvT7/XKLM7U3SVW+Q9+xu0muealRJuS4kmZHMuHQeGmvMfEsM8HaF0YcD82WzeCDV7tdOlhZLE997szXj1bZQS0I4XBTohb2mQLLokbWYpdrvbuhsmplc5sHOoZb6XX4O6zCvZJG43dJeV9ENbui/Ys4R/WsKcOn9bQm6vsA56Zn9FxbCNwp8gtPfq5dyN8ZAogadYMKarqcKeMi+2CIhyB6owEUZQSFbVNmLsoTVjKyuXwhKtiOwm0T8i3LRIpBdfso06zergOKmIZ4y4VGbXd4PxzPlNp5imNOtG2j8Q5oGKGGVDLWlA23BpGwav6fkdaW8iGNfkHeHcS1CO6nBWAy/feRm1+tKkoIwkEFBQpXI+Epb0YgY1Yv1F5TaUiS60Te49BuvNMraW+bJa/XLVgs5KwSOw7T5HlddvybJMPe+GxkDmVNnGxEED7h/G/yX1gp92Ni1W8y56UbvxvFORYFkd+fWpHamUScFWN+8Sczdh35oyCesCN99kNYpB4RlKxVWNgKgY64uc3lx7i6TPclKXNF33elxJE3BTjjRmYQ1Ocj6q8iLfWwZ7G9qsqWIj55w1cLSvQFrR1isU8="
+  - secure: i4K316XPS0ANZeU6bF0JIsxZOaD/7gD5IwXR+kQwbENLpf6DsrLTE6ZJKgS/r9jClOAvbAQj9R7O61uRCHPYzQemKkXhCLSlqMlk0/RdvLVlcFCR6C7SDPF5DKnA8QQ3r7c2jdv27/TFfk60VWOYbQln94Mh8n3kH+6NGOwFwjxLBce88v8lsZXb3NDiHzwxXMeTbqqrAAbhCrjr7hrIvpm7eJwXVhOCz2HR7SpDOIFhwaDgGNgotqleF2szXwVnOUE4RxOgR7zBKLLFwjOtcdS0nRvOctf7l6kiq0t16V+BRIr0kad9hMUscNEKHDmQmRWF9zI83k2j/Ux4kgq1NUy6Jx+fbs/Y0WIwrd+LCyGIuaw/Y+Y3LVwT1EmUzYoga7oq2VB7j07PrOvGa4BwFDN1zm+7n2EZtmDw5aZwTtMeCkm4L+dL8HoiVVWAaFMZ8l/EYDDqWea5dcg9uazdI/wUFLavuc1lRzGTGHK+fxEYmX5DOfK35nyJQqDjB6dCKFjsty9NR1nF1wnsk49IuvviN6IfpCiIaGTxgAUrV8mT32gxPB9DdDyiPsQXHS6Z8ha2aq9Eeq7Zm/TXA5WkbUcw3RJsmdX6oDj89FzElX5EK0KjwRJgqgFfDP7yIhQHsRSk0QnWhIO6YI78A30DaTwR7vKNex09eT3igm+4ppU=
   matrix:
-    - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
-    # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=python3.2 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=python3.3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=python3.5 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=pypy  OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=pypy3 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-    # - OS_TYPE=centos PY_VER=pypy OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
-
-    ### CC7 jobs
-    - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v5.34.36-gcc4.8
-    - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.10.08-gcc4.8
-    - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.12.06-gcc4.8
-    # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=python2.7 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=python3.2 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=python3.3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=python3.4 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=python3.5 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=pypy  OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    # - OS_TYPE=centos PY_VER=pypy OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v5.34.36-gcc4.8
-    # - OS_TYPE=centos PY_VER=pypy OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.10.08-gcc4.8
-    # - OS_TYPE=centos PY_VER=pypy OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7 ROOT_VER=v6.12.06-gcc4.8
-    # - OS_TYPE=centos PY_VER=pypy3 OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-
+  - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+    ROOT_VER=v5.34.36-gcc4.4
+  - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+    ROOT_VER=v5.34.36-gcc4.8
+  - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+    ROOT_VER=v6.10.08-gcc4.8
+  - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+    ROOT_VER=v6.12.06-gcc4.8
 services:
-  - docker
-
+- docker
 before_install:
-  ## steps for all stages
-  # steps for specific stages
-  - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
+- "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup"
+- sleep 2
+- "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start"
+- DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
+- echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+script:
+- echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
+- docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.ci/test_on_docker.sh
+  ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
+".rpmbuild":
+  before_install: &1
+  - "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup"
   - sleep 2
-  - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
+  - "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start"
   - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
-
-# Stages run in their own VMs, nothing gets transferred from stage to stage
-script:
-  - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
-  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.ci/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
-
-# How to link the environments/outputs from above with the jobs below?
-.rpmbuild: &rpmbuild_template
-  before_install:
-    - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} setup
-    - sleep 2
-    - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
-    - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
-    - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
-    - gem install github_changelog_generator
-
-  script:
-    - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
-    - github_changelog_generator
-    - cat CHANGELOG.md
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
-    - ls -laZ rpm
-    - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
-
-  after_success:
-    - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
-
-.release: &release_template
-  # publish to Github releases
+  - gem install github_changelog_generator
+  script: &2
+  - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
+  - github_changelog_generator
+  - cat CHANGELOG.md
+  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator
+    to generate updated ChangeLog"
+  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
+  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools;
+    make && make rpm "
+  - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools;
+    rpm -q --filesbypkg -p rpm/*.rpm"
+  - ls -laZ rpm
+  - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
+  after_success: &3
+  - "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop"
+".release":
   provider: releases
   api_key:
-    secure: "GITHUB OAUTH TOKEN"
+    secure: GITHUB OAUTH TOKEN
   file_glob: true
   file:
-    - README.md
-    - CHANGELOG.md
-    # - docs #? or release docs somewhere else, and have this mentioned in the README
-    - ./rpm/*.tar.gz
-    - ./rpm/*.tgz
-    - ./rpm/*.tbz2
-    - ./rpm/*.rpm
-  ## pre-releases and draft releases for tags with pre/alpha/dev/gitHASH in the name
-  # draft: true # for tags with dev/alpha in the name, or
-  # prerelease: true # for tags with pre in the name
-  ## only deploy full release when the tag exactly matches vX.Y.Z (with or without the v)
-  prerelease: false # for tags with pre in the name
-  draft: false # for tags with pre in the name
+  - README.md
+  - CHANGELOG.md
+  - "./rpm/*.tar.gz"
+  - "./rpm/*.tgz"
+  - "./rpm/*.tbz2"
+  - "./rpm/*.rpm"
+  prerelease: false
+  draft: false
   skip_cleanup: true
   on:
     repo: cms-gem-daq-project/gem-plotting-tools
     branch: master
     tags: true
-    
 jobs:
   include:
-    - stage: buildrpm
-      env: OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
-      <<: *rpmbuild_template
-    - stage: buildrpm
-      env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-      <<: *rpmbuild_template
-    - stage: docs
-      before_script: skip
-      # if docs need special tools, set them up here
-      before_install: skip
-      script:
-        # - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo Building documentation"
-        - ls -laZ
-      after_success: skip
-
-    - stage: coverage
-      before_script: skip
-      before_install: skip
-      script: skip
-      after_success:
-        - sudo pip install -U codecov
-#        - coverage run -a scripta.py
-        - codecov
-        - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
-    # - stage: prerelease
-    #   script:
-    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   deploy:
-    #     - <<: *release_template
-    #       prerelease: true # for tags with dev/alpha in the name, or
-    #       # on:
-    #       #   repo: jsturdy/gem-plotting-tools
-    #       #   tags: true
-
-    #   after_success: skip
-    # - stage: devrelease
-    #   script:
-    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   deploy:
-    #     - <<: *release_template
-    #       draft: true # for tags with dev/alpha in the name, or
-    #   after_success:
-    # - stage: release
-    #   script:
-    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   deploy:
-    #     - <<: *release_template
-    #   after_success: skip
-    # - stage: deploy
-    #   ## push docs to SaaS docs website, readthedocs style, with versioning
-    #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
-    #   before_script: skip
-    #   before_install: skip
-    #   - script: skip
-    #   after_success: skip
-    #   # before_deploy: skip
-    #   # after_deploy: skip
-
-## Only want to run the deploy following the build stage, with the artifacts, and maybe from docs
-# before_deploy:
-#   # Set up git user name and tag this commit
-#   - git config --local user.name "YOUR GIT USER NAME"
-#   - git config --local user.email "YOUR GIT USER EMAIL"
-#   # ?create the changelog
-#   # ?update release notes
-#   # ?run our cmsgemostag script instead?
-#   # Sign the tags
-#   - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
-
-# after_deploy: skip
-
-## Defaults, applied to the 'test' stage
+  - stage: buildrpm
+    env: OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+    before_install: *1
+    script: *2
+    after_success: *3
+  - stage: buildrpm
+    env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+    before_install: *1
+    script: *2
+    after_success: *3
+  - stage: docs
+    before_script: skip
+    before_install: skip
+    script:
+    - ls -laZ
+    after_success: skip
+  - stage: coverage
+    before_script: skip
+    before_install: skip
+    script: skip
+    after_success:
+    - sudo pip install -U codecov
+    - codecov
+    - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 after_success:
-  - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop
-
+- "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop"
 after_failure: skip
-
 after_script: skip
