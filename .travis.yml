@@ -21,6 +21,8 @@ stages:
     if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
 
 env: ## this is *only* for the built-in 'test' stage, doesn't currently transfer to other stages, beta feature
+  global:
+    secure: "mDvXuJd3DkIIzP7oLctF4GtfxPr9dKfQpHgCEahSlBANM/vYcPJ0tzQi34iT4QUSMnrEfIAdgvLsWdE1jTN1GmuACvT7/XKLM7U3SVW+Q9+xu0muealRJuS4kmZHMuHQeGmvMfEsM8HaF0YcD82WzeCDV7tdOlhZLE997szXj1bZQS0I4XBTohb2mQLLokbWYpdrvbuhsmplc5sHOoZb6XX4O6zCvZJG43dJeV9ENbui/Ys4R/WsKcOn9bQm6vsA56Zn9FxbCNwp8gtPfq5dyN8ZAogadYMKarqcKeMi+2CIhyB6owEUZQSFbVNmLsoTVjKyuXwhKtiOwm0T8i3LRIpBdfso06zergOKmIZ4y4VGbXd4PxzPlNp5imNOtG2j8Q5oGKGGVDLWlA23BpGwav6fkdaW8iGNfkHeHcS1CO6nBWAy/feRm1+tKkoIwkEFBQpXI+Epb0YgY1Yv1F5TaUiS60Te49BuvNMraW+bJa/XLVgs5KwSOw7T5HlddvybJMPe+GxkDmVNnGxEED7h/G/yX1gp92Ni1W8y56UbvxvFORYFkd+fWpHamUScFWN+8Sczdh35oyCesCN99kNYpB4RlKxVWNgKgY64uc3lx7i6TPclKXNF33elxJE3BTjjRmYQ1Ocj6q8iLfWwZ7G9qsqWIj55w1cLSvQFrR1isU8="
   matrix:
     - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
     # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
@@ -74,9 +76,12 @@ script:
     - ./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} start
     - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+    - gem install github_changelog_generator
 
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
+    - github_changelog_generator
+    - cat CHANGELOG.md
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
