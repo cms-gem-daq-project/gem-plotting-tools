@@ -19,8 +19,17 @@ then
     sudo usermod -aG docker $USER
     sudo groupadd daqbuild -g 2055
     sudo useradd daqbuild -g 2055 -u 2055
-    sudo usermod -aG daqbuild travis
+    sudo usermod -aG daqbuild $USER
     groups
+    # sudo chown :daqbuild -R .
+    sudo chmod g+s $HOME
+    sudo apt-get install acl
+    sudo getfacl $HOME
+    sudo getfacl .
+    sudo setfacl -Rdm u::rwX,g::rwX,o::rX $HOME
+    sudo setfacl -Rm  u::rwX,g::rwX,o::rX $HOME
+    sudo getfacl $HOME
+    sudo getfacl .
 
     sudo apt-get update
     echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | \
@@ -29,10 +38,6 @@ then
     docker pull ${DOCKER_IMAGE}
     docker ps -al
     git clone https://github.com/cms-gem-daq-project/gembuild.git config
-    sudo chown :daqbuild -R .
-    sudo apt-get install acl
-    sudo setfacl -Rdm u::rwX,g::rwX,o::rX .
-    sudo setfacl -Rm  u::rwX,g::rwX,o::rX .
 elif [ "${COMMAND}" = "start" ]
 then
     if [ "$OS_VERSION" = "6" ]
