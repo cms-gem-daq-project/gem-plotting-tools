@@ -23,12 +23,8 @@ then
     groups
     sudo chmod g+s -R $HOME
     sudo apt-get install acl
-    sudo getfacl $HOME
-    sudo getfacl .
     sudo setfacl -Rdm u::rwX,g::rwX,o::rX $HOME
     sudo setfacl -Rm  u::rwX,g::rwX,o::rX $HOME
-    sudo getfacl $HOME
-    sudo getfacl .
 
     sudo apt-get update
     echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | \

@@ -156,16 +156,18 @@ jobs:
         - codecov
         - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 
-    # - stage: prerelease
-    #   script:
-    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   deploy:
-    #     - <<: *release_template
-    #       prerelease: true # for tags with dev/alpha in the name
-    #       # on:
-    #       #   repo: jsturdy/gem-plotting-tools
-    #       #   tags: true
-    #   after_success: skip
+    - stage: prerelease
+      env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+      script:
+        - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+        <<: *rpmbuild_template
+      deploy:
+        - <<: *release_template
+          prerelease: true # for tags with dev/alpha in the name
+          on:
+            repo: jsturdy/gem-plotting-tools
+            tags: true
+      after_success: skip
 
     # - stage: devrelease
     #   script:
