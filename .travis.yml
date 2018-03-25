@@ -18,6 +18,17 @@ stages:
     if: ((branch = master) AND (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-git[0-9a-z]{6,8})?)$))
   - name: deploy
     if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
+    
+.docs: &docs_cond
+  if: ((branch = master) OR (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev|pre|rc))?((\\d+$)|(-git[0-9a-z]{6,8})?)$))
+.prerelease: &prerelease_cond
+  if: (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(pre|rc))((\\d+$)|(-git[0-9a-z]{6,8})?)$)
+.devrelease: &devrelease_cond
+  if: (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev))((\\d+$)|(-git[0-9a-z]{6,8})?)$)
+.release: &release_cond
+  if: ((branch = master) AND (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-git[0-9a-z]{6,8})?)$))
+.deploy: &deploy_cond
+  if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
 
 env:
   global:
@@ -128,6 +139,7 @@ jobs:
         - <<: *release_template
           # prerelease: true # for tags with dev/alpha in the name
           # draft: true # for tags with pre/rc in the name
+          <<: *deploy_cond
           on:
             repo: jsturdy/gem-plotting-tools
             tags: true
@@ -138,6 +150,7 @@ jobs:
         - <<: *release_template
           # prerelease: true # for tags with dev/alpha in the name
           # draft: true # for tags with pre/rc in the name
+          <<: *deploy_cond
           on:
             repo: jsturdy/gem-plotting-tools
             tags: true
@@ -157,6 +170,7 @@ jobs:
         - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 
     - stage: prerelease
+      <<: *prerelease_cond
       env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
       <<: *rpmbuild_template
       deploy:
