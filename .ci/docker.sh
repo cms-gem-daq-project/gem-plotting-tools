@@ -22,7 +22,8 @@ then
     sudo usermod -aG daqbuild $USER
     groups
     # sudo chown :daqbuild -R .
-    sudo chmod g+s $HOME
+    echo $PWD
+    find $HOME -type d |xargs -n1 sudo chmod g+s
     sudo apt-get install acl
     sudo getfacl $HOME
     sudo getfacl .
