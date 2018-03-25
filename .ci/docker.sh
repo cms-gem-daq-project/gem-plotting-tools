@@ -21,9 +21,7 @@ then
     sudo useradd daqbuild -g 2055 -u 2055
     sudo usermod -aG daqbuild $USER
     groups
-    # sudo chown :daqbuild -R .
-    echo $PWD
-    find $HOME -type d |xargs -n1 sudo chmod g+s
+    sudo chmod g+s -R $HOME
     sudo apt-get install acl
     sudo getfacl $HOME
     sudo getfacl .
