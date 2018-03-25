@@ -80,7 +80,9 @@ script:
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
     - if ! test -z ${CHANGELOG_GITHUB_TOKEN+x}; then github_changelog_generator; else echo "Not updating changelog"; fi
-    - cat CHANGELOG.md
+    - ls -laZ CHANGELOG.md
+    - sudo chown :daqbuild -R .
+    - ls -laZ CHANGELOG.md
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "

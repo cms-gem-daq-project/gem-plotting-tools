@@ -30,6 +30,8 @@ then
     docker ps -al
     git clone https://github.com/cms-gem-daq-project/gembuild.git config
     sudo chown :daqbuild -R .
+    sudo setfacl -Rdm u::rwX,g::rwX,o::rX .
+    sudo setfacl -Rm  u::rwX,g::rwX,o::rX .
 elif [ "${COMMAND}" = "start" ]
 then
     if [ "$OS_VERSION" = "6" ]
