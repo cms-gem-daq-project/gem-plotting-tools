@@ -446,18 +446,23 @@ if __name__ == '__main__':
         fitSummaryPlots = {}
         threshSummaryPlots = {}
         encSummaryPlots = {}
+        allThresh = np.zeros(3072)
+        allENC = np.zeros(3072)
         for vfat in range(0,24):
-            fitThr = np.zeros(128)        
-            fitENC = np.zeros(128)
+            #fitThr = np.zeros(128)        
+            #fitENC = np.zeros(128)
             stripPinOrChanArray = np.zeros(128)
             for chan in range (0, 128):
                 # Store stripChanOrPinType to use as x-axis of fit summary plots
                 stripPinOrChan = dict_vfatChanLUT[vfat][stripChanOrPinType][chan]
                  
                 # Store Values for making fit summary plots
-                fitThr[stripPinOrChan] = scanFitResults[0][vfat][chan]
-                fitENC[stripPinOrChan] = scanFitResults[1][vfat][chan]
+                allThresh[vfat*128 + chan] = scanFitResults[0][vfat][chan]
+                allENC[vfat*128 + chan] =  scanFitResults[1][vfat][chan]
+                #fitThr[stripPinOrChan] = scanFitResults[0][vfat][chan]
+                #fitENC[stripPinOrChan] = scanFitResults[1][vfat][chan]
                 stripPinOrChanArray[stripPinOrChan] = float(stripPinOrChan)
+
 
                 # Set arrays linked to TBranches
                 chi2[0] = scanFitResults[3][vfat][chan]
@@ -519,33 +524,71 @@ if __name__ == '__main__':
             #fitSummaryPlots[vfat].GetYaxis().SetRangeUser(0,50)
             
             # Make thresh summary plot - bin size is variable
+            thisVFAT_ThreshMean = np.mean(allThresh[(vfat*128):((vfat+1)*128)])
+            thisVFAT_ThreshStd = np.std(allThresh[(vfat*128):((vfat+1)*128)])
+            #histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
+            #                    40, np.mean(fitThr) - 5. * np.std(fitThr), np.mean(fitThr) + 5. * np.std(fitThr) )
             histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
-                                40, np.mean(fitThr) - 5. * np.std(fitThr), np.mean(fitThr) + 5. * np.std(fitThr) )
+                                40, thisVFAT_ThreshMean - 5. * thisVFAT_ThreshStd, thisVFAT_ThreshMean + 5. * thisVFAT_ThreshStd )
             histThresh.Sumw2()
-            if np.std(fitThr) != 0: # Don't fill if we are still at initial values
-                for thresh in fitThr:
+            #if np.std(fitThr) != 0: # Don't fill if we are still at initial values
+            #    for thresh in fitThr:
+            #        histThresh.Fill(thresh)
+            if thisVFAT_ThreshStd != 0: # Don't fill if we still at initial values
+                for thresh in allThresh[(vfat*128):((vfat+1)*128)]:
                     histThresh.Fill(thresh)
             gThresh = r.TGraphErrors(histThresh)
             gThresh.SetName("gScurveMeanDist_vfat%i"%vfat)
             gThresh.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
-            gThresh.GetYaxis().SetTitle("Entries / %f fC"%(np.std(fitThr)/4.))
+            gThresh.GetYaxis().SetTitle("Entries / %f fC"%(thisVFAT_ThreshStd/4.))
             threshSummaryPlots[vfat] = gThresh
 
             # Make enc summary plot - bin size is variable
+            thisVFAT_ENCMean = np.mean(allENC[(vfat*128):((vfat+1)*128)])
+            thisVFAT_ENCStd = np.std(allENC[(vfat*128):((vfat+1)*128)])
+            #histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
+            #                    40, np.mean(fitENC) - 5. * np.std(fitENC), np.mean(fitENC) + 5. * np.std(fitENC) )
             histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
-                                40, np.mean(fitENC) - 5. * np.std(fitENC), np.mean(fitENC) + 5. * np.std(fitENC) )
+                                40, thisVFAT_ENCMean - 5. * thisVFAT_ENCStd, thisVFAT_ENCMean + 5. * thisVFAT_ENCStd )
             histENC.Sumw2()
-            if np.std(fitENC) != 0: # Don't fill if we are still at initial values
-                for enc in fitENC:
+            #if np.std(fitENC) != 0: # Don't fill if we are still at initial values
+            #    for enc in fitENC:
+            #        histENC.Fill(enc)
+            if thisVFAT_ENCStd != 0: # Don't fill if we are still at initial values
+                for enc in allENC[(vfat*128):((vfat+1)*128)]:
                     histENC.Fill(enc)
             gENC = r.TGraphErrors(histENC)
             gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
             gENC.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
-            gENC.GetYaxis().SetTitle("Entries / %f fC"%(np.std(fitENC)/4.))
+            gENC.GetYaxis().SetTitle("Entries / %f fC"%(thisVFAT_ENCStd/4.))
             encSummaryPlots[vfat] = gENC
             pass
+  
+        # Make a Thresh Summary Dist For the entire Detector
+        detThresh_Mean = np.mean(allThresh[allThresh != 0]) #Don't consider intial values
+        detThresh_Std = np.std(allThresh[allThresh != 0]) #Don't consider intial values
+        detThresh_All = r.TH1F("scurveMean_All","All VFATs;S-Curve Mean #left(fC#right);N",
+                            40, detThresh_Mean - 5. * detThresh_Std, detThresh_Mean + 5. * detThresh_Std )
+        for thresh in allThresh[allThresh != 0]:
+            detThresh_All.Fill(thresh)
+        gDetThresh_All = r.TGraphErrors(detThresh_All)
+        gDetThresh_All.SetName("gScurveMeanDist_All")
+        gDetThresh_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
+        gDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/4.))
+
+        # Make a ENC Summary Dist For the entire Detector
+        detENC_Mean = np.mean(allENC[allENC != 0]) #Don't consider intial values
+        detENC_Std = np.std(allENC[allENC != 0]) #Don't consider intial values
+        detENC_All = r.TH1F("scurveMean_All","All VFATs;S-Curve Mean #left(fC#right);N",
+                            40, detENC_Mean - 5. * detENC_Std, detENC_Mean + 5. * detENC_Std )
+        for thresh in allENC[allENC != 0]:
+            detENC_All.Fill(thresh)
+        gDetENC_All = r.TGraphErrors(detENC_All)
+        gDetENC_All.SetName("gScurveMeanDist_All")
+        gDetENC_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
+        gDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/4.))
         pass
-   
+    
     # Check if inputfile is trimmed
     trimVcal = None
     if options.IsTrimmed:
@@ -641,6 +684,10 @@ if __name__ == '__main__':
             canvOfScurveHistosNoMaskedChan[vfat].Write()
             canvOfScurveFits[vfat].Write()
             pass
+    if options.performFit:
+        outF.cd()
+        gDetThresh_All.Write()
+        gDetENC_All.Write()
     
     # Close output root file
     outF.Close()
