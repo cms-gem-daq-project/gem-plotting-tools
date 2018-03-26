@@ -579,14 +579,14 @@ if __name__ == '__main__':
         # Make a ENC Summary Dist For the entire Detector
         detENC_Mean = np.mean(allENC[allENC != 0]) #Don't consider intial values
         detENC_Std = np.std(allENC[allENC != 0]) #Don't consider intial values
-        hDetENC_All = r.TH1F("hScurveWidthDist_All","All VFATs;S-Curve Mean #left(fC#right);N",
+        hDetENC_All = r.TH1F("hScurveSigmaDist_All","All VFATs;S-Curve Mean #left(fC#right);N",
                             40, detENC_Mean - 5. * detENC_Std, detENC_Mean + 5. * detENC_Std )
         for thresh in allENC[allENC != 0]:
             hDetENC_All.Fill(thresh)
         hDetENC_All.GetXaxis().SetTitle("scurve width #left(fC#right)")
         hDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/4.))
         gDetENC_All = r.TGraphErrors(hDetENC_All)
-        gDetENC_All.SetName("gScurveWidthDist_All")
+        gDetENC_All.SetName("gScurveSigmaDist_All")
         pass
     
     # Check if inputfile is trimmed
@@ -618,7 +618,7 @@ if __name__ == '__main__':
             saveSummary(vSummaryPlotsNoMaskedChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
         saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None, drawOpt="APE1")
         saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None, drawOpt="AP")
-        saveSummary(encSummaryPlots, None, '%s/ScurveWidthSummary.png'%filename, None, drawOpt="AP")
+        saveSummary(encSummaryPlots, None, '%s/ScurveSigmaSummary.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
         confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
