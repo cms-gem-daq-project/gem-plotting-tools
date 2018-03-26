@@ -143,6 +143,23 @@ def getMapping(mappingFileName):
 
     return ret_mapDict
 
+def getStringNoSpecials(inputStr):
+    """
+    returns a string without special characters
+    """
+
+    inputStr = inputStr.replace('*','')
+    inputStr = inputStr.replace('-','')
+    inputStr = inputStr.replace('+','')
+    inputStr = inputStr.replace('(','')
+    inputStr = inputStr.replace(')','')
+    inputStr = inputStr.replace('/','')
+    inputStr = inputStr.replace('{','')
+    inputStr = inputStr.replace('}','')
+    inputStr = inputStr.replace('#','')
+
+    return inputStr
+
 def initVFATArray(array_dtype, nstrips=128):
     import numpy as np
     
@@ -249,6 +266,97 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
             secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
     canv.Update()
     return canv
+
+def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
+    """
+    Parses a filename which describes a list of scandates.  Two formats of the filename
+    are supported, one in which there are three columns and one in which there are two.
+    The first column is always expected to be the chamber name, the second column is 
+    always expected to be the scandate.  If a third column is present it is expected to
+    be an independent variable and will be alphanumeric input.  Two examples are presented:
+
+    Example1, two columns:
+
+    ChamberName scandate
+    GE11-VI-L-CERN-0001    2017.08.11.16.30
+    GE11-VI-L-CERN-0001    2017.08.14.20.54
+    GE11-VI-L-CERN-0001    2017.08.30.15.03
+
+    Example2, three columns:
+
+    ChamberName scandate indepVarName
+    GE11-VI-L-CERN-0001    2017.08.11.16.30 100
+    GE11-VI-L-CERN-0001    2017.08.14.20.54 200
+    GE11-VI-L-CERN-0001    2017.08.30.15.03 300
+
+    Please note that '#' character is understood as a comment and lines starting with 
+    this character will be skipped.
+
+    Arguments are described as:
+    
+    filename - physical filename of input list of scandate files
+    alphaLabels - True (False): the optional third column is understood as alphanumeric (floating point)
+
+    The return value is a tuple:
+        [0] -> updated parsedListOfScanDates
+        [1] -> indepVarName if present (empty string if not)
+    """
+
+    import os
+
+    # Check input file
+    try:
+        fileScanDates = open(filename, 'r') 
+    except Exception as e:
+        print '%s does not seem to exist or is not readable'%(filename)
+        print e
+        exit(os.EX_NOINPUT)
+        pass
+
+    parsedListOfScanDates = []
+    strIndepVar = ""
+    indepVar = ""
+    for i,line in enumerate(fileScanDates):
+        if line[0] == "#":
+            continue
+
+        # Split the line
+        line = line.strip('\n')
+        analysisList = line.rsplit(delim) #chamber name, scandate, independent var
+
+        # Get the indepVar name if it is present, 
+        # Always skip the first line
+        if i==0:
+            if len(analysisList) == 3:
+                strIndepVar = analysisList[2]
+            continue
+
+        cName = analysisList[0]
+        scandate = analysisList[1]
+        if len(analysisList) == 2:
+            indepVar = scandate
+        elif len(analysisList) == 3:
+            if alphaLabels:
+                indepVar = analysisList[2]
+            else:
+                try:
+                    indepVar = float(analysisList[2])
+                except Exception as e:
+                    print("Non-numeric input given, maybe you ment to call with option 'alphaLabels=True'?")
+                    print("Exiting")
+                    exit(os.EX_USAGE)
+        else:
+            print "Input format incorrect"
+            print "I was expecting a delimited file using '%s' with all lines having either 2 or 3 entries"%delim
+            print "But I received:"
+            print "\t%s"%(line)
+            print "Exiting"
+            exit(os.EX_USAGE)
+
+        
+        parsedListOfScanDates.append( (cName, scandate, indepVar) )
+
+    return (parsedListOfScanDates,strIndepVar)
 
 #Use Median absolute deviation (MAD) to reject outliers
 #See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
