@@ -449,8 +449,6 @@ if __name__ == '__main__':
         allThresh = np.zeros(3072)
         allENC = np.zeros(3072)
         for vfat in range(0,24):
-            #fitThr = np.zeros(128)        
-            #fitENC = np.zeros(128)
             stripPinOrChanArray = np.zeros(128)
             for chan in range (0, 128):
                 # Store stripChanOrPinType to use as x-axis of fit summary plots
@@ -459,8 +457,6 @@ if __name__ == '__main__':
                 # Store Values for making fit summary plots
                 allThresh[vfat*128 + chan] = scanFitResults[0][vfat][chan]
                 allENC[vfat*128 + chan] =  scanFitResults[1][vfat][chan]
-                #fitThr[stripPinOrChan] = scanFitResults[0][vfat][chan]
-                #fitENC[stripPinOrChan] = scanFitResults[1][vfat][chan]
                 stripPinOrChanArray[stripPinOrChan] = float(stripPinOrChan)
 
 
@@ -521,19 +517,13 @@ if __name__ == '__main__':
             
             fitSummaryPlots[vfat].SetName("gFitSummary_VFAT%i"%(vfat))
             fitSummaryPlots[vfat].SetMarkerStyle(2)
-            #fitSummaryPlots[vfat].GetYaxis().SetRangeUser(0,50)
             
             # Make thresh summary plot - bin size is variable
             thisVFAT_ThreshMean = np.mean(allThresh[(vfat*128):((vfat+1)*128)])
             thisVFAT_ThreshStd = np.std(allThresh[(vfat*128):((vfat+1)*128)])
-            #histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
-            #                    40, np.mean(fitThr) - 5. * np.std(fitThr), np.mean(fitThr) + 5. * np.std(fitThr) )
             histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat,
                                 40, thisVFAT_ThreshMean - 5. * thisVFAT_ThreshStd, thisVFAT_ThreshMean + 5. * thisVFAT_ThreshStd )
             histThresh.Sumw2()
-            #if np.std(fitThr) != 0: # Don't fill if we are still at initial values
-            #    for thresh in fitThr:
-            #        histThresh.Fill(thresh)
             if thisVFAT_ThreshStd != 0: # Don't fill if we still at initial values
                 for thresh in allThresh[(vfat*128):((vfat+1)*128)]:
                     histThresh.Fill(thresh)
@@ -546,14 +536,9 @@ if __name__ == '__main__':
             # Make enc summary plot - bin size is variable
             thisVFAT_ENCMean = np.mean(allENC[(vfat*128):((vfat+1)*128)])
             thisVFAT_ENCStd = np.std(allENC[(vfat*128):((vfat+1)*128)])
-            #histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
-            #                    40, np.mean(fitENC) - 5. * np.std(fitENC), np.mean(fitENC) + 5. * np.std(fitENC) )
             histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
                                 40, thisVFAT_ENCMean - 5. * thisVFAT_ENCStd, thisVFAT_ENCMean + 5. * thisVFAT_ENCStd )
             histENC.Sumw2()
-            #if np.std(fitENC) != 0: # Don't fill if we are still at initial values
-            #    for enc in fitENC:
-            #        histENC.Fill(enc)
             if thisVFAT_ENCStd != 0: # Don't fill if we are still at initial values
                 for enc in allENC[(vfat*128):((vfat+1)*128)]:
                     histENC.Fill(enc)
