@@ -1,22 +1,5 @@
 #!/bin/env python
 
-def getStringNoSpecials(inputStr):
-    """
-    returns a string without special characters
-    """
-
-    inputStr = inputStr.replace('*','')
-    inputStr = inputStr.replace('-','')
-    inputStr = inputStr.replace('+','')
-    inputStr = inputStr.replace('(','')
-    inputStr = inputStr.replace(')','')
-    inputStr = inputStr.replace('/','')
-    inputStr = inputStr.replace('{','')
-    inputStr = inputStr.replace('}','')
-    inputStr = inputStr.replace('#','')
-
-    return inputStr
-
 def getPlotFromTree(filename, treeName, expression, selection=""):
     """
     Returns the type of TObject returned by TTree::Draw(expression, selection, drawOpt)
@@ -30,7 +13,7 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
     selection - string, the "selection" argument passed to TTree::Draw()
     """
   
-    from anautilities import filePathExists, getDirByAnaType
+    from anautilities import filePathExists, getStringNoSpecials, getDirByAnaType
 
     import os
     import ROOT as r
@@ -101,7 +84,7 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
 
 if __name__ == '__main__':
     from anaInfo import tree_names
-    from anautilities import filePathExists, getDirByAnaType
+    from anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from macros.plotoptions import parser
     
@@ -164,14 +147,9 @@ if __name__ == '__main__':
         exit(os.EX_USAGE)
         pass
     
-    # Check input file
-    try:
-        fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
-    except Exception as e:
-        print '%s does not seem to exist'%(options.filename)
-        print e
-        exit(os.EX_NOINPUT)
-        pass
+    # Get info from input file
+    parsedTuple = parseListOfScanDatesFile(options.filename)
+    listChamberAndScanDate = parsedTuple[0]
     
     # Make output TFile
     listParsedExpress = options.treeExpress.split(":")
@@ -187,25 +165,7 @@ if __name__ == '__main__':
     
     # Loop Over inputs
     listPlots = []
-    for i,line in enumerate(fileScanDates):
-        if line[0] == "#":
-            continue
-
-        # On 1st iteration get independent variable name
-        if i == 0:
-            continue
-        
-        # Split the line
-        line = line.strip('\n')
-        chamberAndScanDatePair = line.rsplit('\t') #chamber name, scandate
-        if len(chamberAndScanDatePair) != 2:
-            print "Input format incorrect"
-            print "I was expecting a tab-delimited file with each line having 2 entries"
-            print "But I received:"
-            print "\t%s"%(line)
-            print "Exiting"
-            exit(os.EX_USAGE)
-
+    for chamberAndScanDatePair in listChamberAndScanDate:
         # Setup the path
         dirPath = getDirByAnaType(options.anaType.strip("Ana"), chamberAndScanDatePair[0], options.ztrim)
         if not filePathExists(dirPath, chamberAndScanDatePair[1]):

@@ -175,6 +175,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
 
 if __name__ == '__main__':
     from anaInfo import tree_names
+    from anautilities import parsedListOfScanDates
     from gempython.utils.wrappers import envCheck
     from macros.plotoptions import parser
     
@@ -235,50 +236,11 @@ if __name__ == '__main__':
         exit(os.EX_USAGE)
         pass
     
-    # Check input file
-    try:
-        fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
-    except Exception as e:
-        print '%s does not seem to exist'%(options.filename)
-        print e
-        exit(os.EX_NOINPUT)
-        pass
-    
-    # Loop Over inputs
-    strIndepVar = ""
-    listDataPtTuples = []
-    for i,line in enumerate(fileScanDates):
-        if line[0] == "#":
-            continue
+    # Get info from input file
+    parsedTuple = parseListOfScanDatesFile(options.filename, options.alphaLabels)
+    listDataPtTuples = parsedTuple[0]
+    strIndepVar = parsedTuple[1]
 
-        # Split the line
-        line = line.strip('\n')
-        analysisList = line.rsplit('\t') #chamber name, scandate, independent var
-
-        if len(analysisList) != 3:
-            print "Input format incorrect"
-            print "I was expecting a tab-delimited file with each line having 3 entries"
-            print "But I received:"
-            print "\t%s"%(line)
-            print "Exiting"
-            exit(os.EX_USAGE)
-
-        # On 1st iteration get independent variable name
-        if i == 0:
-            strIndepVar = analysisList[2]
-            continue
-        
-        # Make input list for arbitraryPlotter()
-        if options.alphaLabels:
-            listDataPtTuples.append( (analysisList[0], analysisList[1], analysisList[2]) )
-        else:
-            try:
-                listDataPtTuples.append( (analysisList[0], analysisList[1], float(analysisList[2]) ) )
-            except Exception as e:
-                print("Non-numeric input given, maybe you ment to call with option '--alphaLabels'?")
-                print("Exiting")
-                exit(os.EX_USAGE)
-    
     # Do we make strip/channel level plot?
     vfatCH=None
     strip=None
