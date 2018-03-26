@@ -8,6 +8,7 @@ stages:
   - test
   - coverage
   - name: buildrpm
+    ## CONDITIONAL STUFF BROKEN
   - name: docs
     if: ((branch = master) OR (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev|pre|rc))?((\\d+$)|(-git[0-9a-z]{6,8})?)$))
   - name: prerelease
@@ -19,6 +20,7 @@ stages:
   - name: deploy
     if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
     
+## CONDITIONAL STUFF BROKEN
 .docs: &docs_cond
   if: ((branch = master) OR (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev|pre|rc))?((\\d+$)|(-git[0-9a-z]{6,8})?)$))
 .prerelease: &prerelease_cond
@@ -110,7 +112,7 @@ script:
     secure: GITHUB OAUTH TOKEN
   file_glob: true
   file:
-    # - docs #? or release docs somewhere else, and have this mentioned in the README
+    - LICENSE
     - README.md
     - CHANGELOG.md
     - "./rpm/*.tar.gz"
@@ -129,6 +131,7 @@ script:
     repo: cms-gem-daq-project/gem-plotting-tools
     branch: master
     tags: true
+  after_deploy: skip
 
 jobs:
   include:
@@ -169,38 +172,31 @@ jobs:
         - codecov
         - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 
-    - stage: prerelease
-      <<: *prerelease_cond
-      env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-      <<: *rpmbuild_template
-      deploy:
-        - <<: *release_template
-          prerelease: true # for tags with dev/alpha in the name
-          on:
-            repo: jsturdy/gem-plotting-tools
-            tags: true
-      after_success: skip
+    # - stage: prerelease
+    #   <<: *prerelease_cond
+    #   env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
+    #   <<: *rpmbuild_template
+    #   deploy:
+    #     - <<: *release_template
+    #       prerelease: true # for tags with dev/alpha in the name
+    #       on:
+    #         repo: jsturdy/gem-plotting-tools
+    #         tags: true
+    #   after_success: skip
 
     # - stage: devrelease
     #   script:
     #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
+    #   before_deploy: skip
     #   deploy:
     #     - <<: *release_template
     #       draft: true # for tags with dev/alpha in the name
     #   after_success: skip
     #   after_deploy: skip
-    #   _deploy: skip
 
     # - stage: release
     #   script:
     #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   deploy:
-    #     - <<: *release_template
-    #   after_success: skip
-    #   after_deploy:
-    #   ## push docs to SaaS docs website, readthedocs style, with versioning
-    #   ## push API to SaaS docs website, Doxygen style, with versioning
-    #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
     #   before_deploy:
     #     #Set up git user name and tag this commit
     #     - git config --local user.name "YOUR GIT USER NAME"
@@ -210,6 +206,13 @@ jobs:
     #     # ?run our cmsgemostag script instead?
     #     # Sign the tags
     #   # - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
+    #   deploy:
+    #     - <<: *release_template
+    #   after_success: skip
+    #   after_deploy:
+    #   ## push docs to SaaS docs website, readthedocs style, with versioning
+    #   ## push API to SaaS docs website, Doxygen style, with versioning
+    #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
 
     # - stage: deploy
     #   ## push docs to SaaS docs website, readthedocs style, with versioning

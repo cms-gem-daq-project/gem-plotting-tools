@@ -15,6 +15,7 @@ PackageDir   := pkg/$(Namespace)/$(ShortPackage)
 
 # Explicitly define the modules that are being exported (for PEP420 compliance)
 PythonModules = ["$(Namespace).$(ShortPackage)", \
+                 "$(Namespace).$(ShortPackage).utils", \
                  "$(Namespace).$(ShortPackage).fitting", \
                  "$(Namespace).$(ShortPackage).macros", \
                  "$(Namespace).$(ShortPackage).mapping" \
@@ -33,10 +34,11 @@ include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
 
 default:
-	$(MakeDir) $(PackageDir)
+	$(MakeDir) $(PackageDir)/utils
 	@cp -rfp macros fitting mapping $(PackageDir)
 	@echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > pkg/$(Namespace)/__init__.py
 	@cp -rfp __init__.py $(PackageDir)
+	@cp -rfp anaInfo.py anaoptions.py anautilities.py $(PackageDir)/utils
 
 # need to ensure that the python only stuff is packaged into RPMs
 .PHONY: clean preprpm
@@ -45,7 +47,10 @@ preprpm: default
 	@cp -rfp requirements.txt README.md CHANGELOG.md LICENSE $(PackageDir)
 	@cp -rfp requirements.txt README.md CHANGELOG.md pkg
 	$(MakeDir) $(PackageDir)/bin
-	@cp -rfp ana*.py $(PackageDir)/bin
+	# @cp -rfp anaInfo.py anaoptions.py anautilities.py $(PackageDir)/utils
+	@cp -rfp anaUltra*.py $(PackageDir)/bin
+	@cp -rfp ana_scans.py $(PackageDir)/bin
+	@cp -rfp anaXDAQLatency.py $(PackageDir)/bin
 
 clean:
 	@rm -rf $(PackageDir)/macros
