@@ -553,11 +553,11 @@ if __name__ == '__main__':
         detThresh_Mean = np.mean(allThresh[allThresh != 0]) #Don't consider intial values
         detThresh_Std = np.std(allThresh[allThresh != 0]) #Don't consider intial values
         hDetThresh_All = r.TH1F("hScurveMeanDist_All","All VFATs;S-Curve Mean #left(fC#right);N",
-                            40, detThresh_Mean - 5. * detThresh_Std, detThresh_Mean + 5. * detThresh_Std )
+                            100, detThresh_Mean - 5. * detThresh_Std, detThresh_Mean + 5. * detThresh_Std )
         for thresh in allThresh[allThresh != 0]:
             hDetThresh_All.Fill(thresh)
         hDetThresh_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
-        hDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/4.))
+        hDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
         gDetThresh_All = r.TGraphErrors(hDetThresh_All)
         gDetThresh_All.SetName("gScurveMeanDist_All")
 
@@ -565,11 +565,11 @@ if __name__ == '__main__':
         detENC_Mean = np.mean(allENC[allENC != 0]) #Don't consider intial values
         detENC_Std = np.std(allENC[allENC != 0]) #Don't consider intial values
         hDetENC_All = r.TH1F("hScurveSigmaDist_All","All VFATs;S-Curve Mean #left(fC#right);N",
-                            40, detENC_Mean - 5. * detENC_Std, detENC_Mean + 5. * detENC_Std )
+                            100, detENC_Mean - 5. * detENC_Std, detENC_Mean + 5. * detENC_Std )
         for thresh in allENC[allENC != 0]:
             hDetENC_All.Fill(thresh)
         hDetENC_All.GetXaxis().SetTitle("scurve width #left(fC#right)")
-        hDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/4.))
+        hDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/10.))
         gDetENC_All = r.TGraphErrors(hDetENC_All)
         gDetENC_All.SetName("gScurveSigmaDist_All")
         pass
