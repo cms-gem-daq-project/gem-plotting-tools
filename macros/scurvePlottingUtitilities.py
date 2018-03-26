@@ -41,7 +41,8 @@ def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNo
         print("\tYou must supply at least one of them")
         print("\tExiting")
         exit(os.EX_USAGE)
-    
+   
+    canvas.cd()
     scurveHisto.Draw()
     scurveFit.Draw("same")
     canvas.SaveAs("%s.png"%(canvas.GetName()))

@@ -35,6 +35,7 @@ print filename
 outfilename = options.outfilename
 
 import ROOT as r
+r.TH1.SetDefaultSumw2(False)
 r.gROOT.SetBatch(True)
 r.gStyle.SetOptStat(1111111)
 GEBtype = options.GEBtype
@@ -146,9 +147,9 @@ if options.SaveFile:
     myT.Branch( 'ndf', ndf, 'ndf/I')
     Nhigh = array( 'i', [ 0 ] )
     myT.Branch( 'Nhigh', Nhigh, 'Nhigh/I')
-    ztrim = array( 'i', [ 0 ] )
+    ztrim = array( 'f', [ 0 ] )
     ztrim[0] = options.ztrim
-    myT.Branch( 'ztrim', ztrim, 'ztrim/I')
+    myT.Branch( 'ztrim', ztrim, 'ztrim/F')
     pass
 
 vSummaryPlots = ndict()
@@ -240,23 +241,30 @@ if options.SaveFile:
 
 # Fill
 print("Filling Histograms")
+checkCurrentPulse = ("isCurrentPulse" in inF.scurveTree.GetListOfBranches())
+dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
 dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
 listOfBranches = inF.scurveTree.GetListOfBranches()
 for event in inF.scurveTree:
     strip = chanToStripLUT[event.vfatN][event.vfatCH]
     pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
+    charge = calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN]
+    if checkCurrentPulse:
+        if event.isCurrentPulse:
+            #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
+            charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
     if not (options.channels or options.PanPin):
-        vSummaryPlots[event.vfatN].Fill(strip,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+        vSummaryPlots[event.vfatN].Fill(strip,charge,event.Nhits)
         pass
     if options.channels:
-        vSummaryPlots[event.vfatN].Fill(event.vfatCH,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+        vSummaryPlots[event.vfatN].Fill(event.vfatCH,charge,event.Nhits)
         pass
     if options.PanPin:
         if (pan_pin < 64):
-            vSummaryPlots[event.vfatN].Fill(63-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+            vSummaryPlots[event.vfatN].Fill(63-pan_pin,charge,event.Nhits)
             pass
         else:
-            vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+            vSummaryPlotsPanPin2[event.vfatN].Fill(127-pan_pin,charge,event.Nhits)
             pass
         pass
     
@@ -353,15 +361,20 @@ if options.SaveFile:
             continue
         strip = chanToStripLUT[event.vfatN][event.vfatCH]
         pan_pin = chanToPanPinLUT[event.vfatN][event.vfatCH]
+        charge = calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN]
+        if checkCurrentPulse:
+            if event.isCurrentPulse:
+                #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
+                charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
         if not (options.channels or options.PanPin):
-            vSummaryPlotsPruned[event.vfatN].Fill(strip,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+            vSummaryPlotsPruned[event.vfatN].Fill(strip,charge,event.Nhits)
         if options.channels:
-            vSummaryPlotsPruned[event.vfatN].Fill(event.vfatCH,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+            vSummaryPlotsPruned[event.vfatN].Fill(event.vfatCH,charge,event.Nhits)
         if options.PanPin:
             if (pan_pin < 64):
-                vSummaryPlotsPruned[event.vfatN].Fill(63-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+                vSummaryPlotsPruned[event.vfatN].Fill(63-pan_pin,charge,event.Nhits)
             else:
-                vSummaryPlotsPrunedPanPin2[event.vfatN].Fill(127-pan_pin,calDAC2Q_Slope[event.vfatN]*event.vcal+calDAC2Q_Intercept[event.vfatN],event.Nhits)
+                vSummaryPlotsPrunedPanPin2[event.vfatN].Fill(127-pan_pin,charge,event.Nhits)
 
 # Store values in ROOT file
 if options.SaveFile:

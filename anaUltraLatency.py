@@ -33,6 +33,7 @@ print filename
 outputfilename = options.outfilename
 
 import ROOT as r
+r.TH1.SetDefaultSumw2(False)
 r.gROOT.SetBatch(True)
 r.gStyle.SetOptStat(1111111)
 inF = r.TFile(filename+'.root',"READ")
@@ -41,7 +42,8 @@ inF = r.TFile(filename+'.root',"READ")
 print 'Initializing Histograms'
 dict_hVFATHitsVsLat = ndict()
 for vfat in range(0,24):
-    dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,256,-0.5,255.5)
+    #dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,256,-0.5,255.5)
+    dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,1024,-0.5,1023.5)
     pass
 
 #Filling Histograms
@@ -70,6 +72,16 @@ for event in inF.latTree:
         nTrig = event.Nev
         pass
     pass
+
+from math import sqrt
+for vfat in range(0,24):
+    for binX in range(1, dict_hVFATHitsVsLat[vfat].GetNbinsX()+1):
+        dict_hVFATHitsVsLat[vfat].SetBinError(binX, sqrt(dict_hVFATHitsVsLat[vfat].GetBinContent(binX)))
+
+hHitsVsLat_AllVFATs = dict_hVFATHitsVsLat[0].Clone("hHitsVsLat_AllVFATs")
+hHitsVsLat_AllVFATs.SetTitle("Sum over all VFATs")
+for vfat in range(1,24):
+    hHitsVsLat_AllVFATs.Add(dict_hVFATHitsVsLat[vfat])
 
 # Set Latency Fitting Bounds - Signal
 latFitMin_Sig = latMin
@@ -107,12 +119,12 @@ vfatN = array( 'i', [ 0 ] )
 myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
 vfatID = array( 'i', [-1] )
 myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
-hitCountMaxLat = array( 'i', [ 0 ] )
-myT.Branch( 'hitCountMaxLat', hitCountMaxLat, 'hitCountMaxLat/I' )
-hitCountMaxLatErr = array( 'i', [ 0 ] )
-myT.Branch( 'hitCountMaxLatErr', hitCountMaxLatErr, 'hitCountMaxLatErr/I' )
-maxLatBin = array( 'i', [ 0 ] )
-myT.Branch( 'maxLatBin', maxLatBin, 'maxLatBin/I' )
+hitCountMaxLat = array( 'f', [ 0 ] )
+myT.Branch( 'hitCountMaxLat', hitCountMaxLat, 'hitCountMaxLat/F' )
+hitCountMaxLatErr = array( 'f', [ 0 ] )
+myT.Branch( 'hitCountMaxLatErr', hitCountMaxLatErr, 'hitCountMaxLatErr/F' )
+maxLatBin = array( 'f', [ 0 ] )
+myT.Branch( 'maxLatBin', maxLatBin, 'maxLatBin/F' )
 hitCountBkg = array( 'f', [ 0 ] )
 hitCountBkgErr = array( 'f', [ 0 ] )
 hitCountSig = array( 'f', [ 0 ] )
@@ -265,6 +277,15 @@ if options.performFit:
     grVFATNSignalNoBkg.Draw("APE1")
     canv_Signal.SaveAs(filename+'/SignalNoBkg.png')
 
+# Store - Sum over all VFATs
+canv_LatSum = r.TCanvas("canv_LatSumOverAllVFATs","canv_LatSumOverAllVFATs",600,600)
+canv_LatSum.cd()
+hHitsVsLat_AllVFATs.SetXTitle("Latency")
+hHitsVsLat_AllVFATs.SetYTitle("N")
+hHitsVsLat_AllVFATs.GetXaxis().SetRangeUser(latMin,latMax)
+hHitsVsLat_AllVFATs.Draw("hist")
+canv_LatSum.SaveAs(filename + '/LatSumOverAllVFATs.png')
+
 # Store - Max Hits By Lat Per VFAT
 canv_MaxHitsPerLatByVFAT = r.TCanvas("canv_MaxHitsPerLatByVFAT","canv_MaxHitsPerLatByVFAT",1200,600)
 canv_MaxHitsPerLatByVFAT.Divide(2,1)
@@ -293,6 +314,7 @@ canv_MaxHitsPerLatByVFAT.SaveAs(filename+'/MaxHitsPerLatByVFAT.png')
 
 # Store - TObjects
 outF.cd()
+hHitsVsLat_AllVFATs.Write()
 grNMaxLatBinByVFAT.SetName("grNMaxLatBinByVFAT")
 grNMaxLatBinByVFAT.Write()
 grMaxLatBinByVFAT.SetName("grMaxLatBinByVFAT")

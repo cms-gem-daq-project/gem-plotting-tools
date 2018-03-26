@@ -26,6 +26,7 @@ print filename
 outfilename = options.outfilename
 
 import ROOT as r
+r.TH1.SetDefaultSumw2(False)
 r.gROOT.SetBatch(True)
 GEBtype = options.GEBtype
 inF = r.TFile(filename+'.root')
@@ -173,7 +174,8 @@ if options.chConfigKnown:
         list_bNames.append("ROBstr")
         pass
     elif options.channels:
-        list_bNames.append("vfatCh")
+        #list_bNames.append("vfatCh")
+        list_bNames.append("vfatCH")
         pass
     elif options.PanPin:
         list_bNames.append("panPin")
