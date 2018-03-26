@@ -35,6 +35,24 @@ def first_index_gt(data_list, value):
     except StopIteration: 
         return len(data_list)
 
+def getCyclicColor(idx):
+    import ROOT as r
+
+    colors = {
+        0:r.kBlack,
+        1:r.kRed-1,
+        2:r.kGreen-1,
+        3:r.kBlue-1,
+        4:r.kRed-2,
+        5:r.kGreen-2,
+        6:r.kBlue-2,
+        7:r.kRed-3,
+        8:r.kGreen-3,
+        9:r.kBlue-3,
+            }
+
+    return colors[idx % 10]
+
 def getDirByAnaType(anaType, cName, ztrim=4):
     from anaInfo import ana_config
     
@@ -241,7 +259,7 @@ def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
         else:
             return modified_z_score < -1.0 * thresh
 
-def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = ''):
+def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv=None):
     """
     Creates a 3x8 canvas for summary plots.
 
@@ -250,12 +268,15 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     initialDrawOpt - draw option to be used when drawing elements of initialContent
     secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
     secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
+    canv - TCanvas previously produced by make3x8Canvas() or one that has been subdivided into a 3x8 grid
     """
 
     import ROOT as r
     
-    canv = r.TCanvas(name,name,500*8,500*3)
-    canv.Divide(8,3)
+    if canv is None:
+        canv = r.TCanvas(name,name,500*8,500*3)
+        canv.Divide(8,3)
+
     if initialContent is not None:
         for vfat in range(24):
             canv.cd(vfat+1)
