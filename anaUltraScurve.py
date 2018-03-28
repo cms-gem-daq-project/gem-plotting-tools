@@ -208,13 +208,13 @@ if __name__ == '__main__':
     # Initialize distributions
     for vfat in range(0,24):
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                'VFAT %i;Channels;VCal [fC]'%vfat,
+                'VFAT %i;Channels;VCal #lef(fC#right)'%vfat,
                 128,-0.5,127.5,256,
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
         vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
-                'VFAT %i;Channels;VCal [fC]'%vfat,
+                'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
@@ -225,25 +225,25 @@ if __name__ == '__main__':
             pass
         if options.PanPin:
             vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                    'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
+                    'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
-                    'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
+                    'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
-                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
+                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoMaskedChanPanPin2_%i'%vfat,
-                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
+                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
@@ -506,7 +506,7 @@ if __name__ == '__main__':
                     np.zeros(128),
                     allENC[(vfat*128):((vfat+1)*128)]
                     )
-            fitSummaryPlots[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
+            fitSummaryPlots[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold #left(fC#right)"%vfat)
             
             if not (options.channels or options.PanPin):
                 fitSummaryPlots[vfat].GetXaxis().SetTitle("Strip")
