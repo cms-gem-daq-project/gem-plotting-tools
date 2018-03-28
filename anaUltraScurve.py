@@ -526,7 +526,11 @@ if __name__ == '__main__':
             histThresh.Sumw2()
             if thisVFAT_ThreshStd != 0: # Don't fill if we still at initial values
                 for thresh in allThresh[(vfat*128):((vfat+1)*128)]:
+                    if thresh == 0: # Skip the case where it still equals the inital value
+                        continue
                     histThresh.Fill(thresh)
+                    pass
+                pass
             gThresh = r.TGraphErrors(histThresh)
             gThresh.SetName("gScurveMeanDist_vfat%i"%vfat)
             gThresh.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
@@ -541,7 +545,11 @@ if __name__ == '__main__':
             histENC.Sumw2()
             if thisVFAT_ENCStd != 0: # Don't fill if we are still at initial values
                 for enc in allENC[(vfat*128):((vfat+1)*128)]:
+                    if enc == 0: # Skip the case where it still equals the inital value
+                        continue
                     histENC.Fill(enc)
+                    pass
+                pass
             gENC = r.TGraphErrors(histENC)
             gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
             gENC.GetXaxis().SetTitle("scurve width #left(fC#right)")
