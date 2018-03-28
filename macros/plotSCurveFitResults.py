@@ -125,6 +125,10 @@ if __name__ == '__main__':
         pass
 
     # Make the plots
+    dict_canvSCurveFitSum = ndict()
+    dict_canvSCurveMean = ndict()
+    dict_canvSCurveSigma = ndict()
+    
     canvFitSum_Grid = None
     canvScurveMean_DetSum = r.TCanvas("canvSCurveMeanDetSumAllScandates","Scurve Mean - Detector Summary",600,600)
     #canvScurveMean_DetSum.cd().SetLogy()
@@ -139,6 +143,24 @@ if __name__ == '__main__':
             drawOpt="APE1"
         else:
             drawOpt="samePE1"
+
+        # Draw per VFAT distributions
+        for vfat in range(0,24):
+            if idx == 0:
+                dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT%i"%(vfat),"SCurve Fit Summary - VFAT%i"%(vfat),600,600)
+                dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT%i"%(vfat),"SCurve Mean - VFAT%i"%(vfat),600,600)
+                dict_canvSCurveSigma[vfat]  = r.TCanvas("canvScurveSigma_VFAT%i"%(vfat),"SCurve Sigma - VFAT%i"%(vfat),600,600)
+                pass
+
+            dict_canvSCurveFitSum[vfat].cd()
+            dict_fitSum[chamberAndScanDatePair[1]][vfat].Draw(drawOpt)
+            
+            dict_canvSCurveMean[vfat].cd()
+            dict_ScurveMean[chamberAndScanDatePair[1]][vfat].Draw(drawOpt)
+
+            dict_canvSCurveSigma[vfat].cd()
+            dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].Draw(drawOpt)
+            pass
 
         # Draw grid distributions
         canvFitSum_Grid = make3x8Canvas("scurveFitSummaryGridAllScandates",dict_fitSum[chamberAndScanDatePair[1]],drawOpt,canv=canvFitSum_Grid)
@@ -156,6 +178,17 @@ if __name__ == '__main__':
         pass
 
     if options.drawLeg:
+        for vfat in range(0,24):
+            dict_canvSCurveFitSum[vfat].cd()
+            plotLeg.Draw("same")
+            
+            dict_canvSCurveMean[vfat].cd()
+            plotLeg.Draw("same")
+
+            dict_canvSCurveSigma[vfat].cd()
+            plotLeg.Draw("same")
+            pass
+
         canvFitSum_Grid.cd(1)
         plotLeg.Draw("same")
         
@@ -180,9 +213,20 @@ if __name__ == '__main__':
     canvScurveMean_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_DetSum.GetName()))
     canvScurveSigma_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_DetSum.GetName()))
 
-    # Save canvas objects in output root file
+    # Save summary canvas objects in output root file
     outF = r.TFile("%s/%s"%(elogPath,options.rootName),options.rootOpt)
-    outF.cd()
+    
+    for vfat in range(0,24):
+        dirVFAT = outF.mkdir("VFAT%i"%(vfat))
+        dirVFAT.cd()
+
+        dict_canvSCurveFitSum[vfat].Write()
+        dict_canvSCurveMean[vfat].Write()
+        dict_canvSCurveSigma[vfat].Write()
+        pass
+
+    dirSummary = outF.mkdir("Summary")
+    dirSummary.cd()
     canvFitSum_Grid.Write()
     canvScurveMean_Grid.Write()
     canvScurveSigma_Grid.Write()
@@ -193,3 +237,9 @@ if __name__ == '__main__':
     print ""
     print "     %s"%elogPath
     print ""
+    
+    print "You can open the output TFile via:"
+    print ""
+    print "     root -l %s/%s"%(elogPath,options.rootName)
+    print ""
+    print "Good-bye"
