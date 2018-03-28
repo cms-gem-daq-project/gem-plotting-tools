@@ -21,6 +21,38 @@ def filePathExists(searchPath, subPath=None, debug=False):
             print "Found %s"%s(testPath)
         return True
 
+def first_index_gt(data_list, value):
+    """
+    http://code.activestate.com/recipes/578071-fast-indexing-functions-greater-than-less-than-equ/
+    
+    return the first index greater than value from a given list like object.
+    If value is greater than all elements in the list like object, the length 
+    of the list like object is returned instead
+    """
+    try:
+        index = next(data[0] for data in enumerate(data_list) if data[1] > value)
+        return index
+    except StopIteration: 
+        return len(data_list)
+
+def getCyclicColor(idx):
+    import ROOT as r
+
+    colors = {
+        0:r.kBlack,
+        1:r.kRed-1,
+        2:r.kGreen-1,
+        3:r.kBlue-1,
+        4:r.kRed-2,
+        5:r.kGreen-2,
+        6:r.kBlue-2,
+        7:r.kRed-3,
+        8:r.kGreen-3,
+        9:r.kBlue-3,
+            }
+
+    return colors[idx % 10]
+
 def getDirByAnaType(anaType, cName, ztrim=4):
     from anaInfo import ana_config
     
@@ -53,6 +85,81 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
 
     return dirPath
+
+def getEmptyPerVFATList(n_vfat=24):
+    """
+    Returns a list of lists
+    Each of the inner lists are empty
+
+    There are n_vfat inner lists
+    """
+
+    return [ [] for vfat in range(0,n_vfat) ]
+
+def getMapping(mappingFileName):
+    """
+    Returns a nested dictionary, the outer dictionary uses VFAT position as the has a key,
+    the inner most dict has keys from the list anaInfo.py mappingNames.
+    
+    The inner dict stores a list whose index is ordered by ASIC channel number, accessing
+    the i^th element of this list gives either the readout strip number, the readout connector
+    pin number, or the vfat channel number as shown in this example:
+
+        ret_dict[vfatN]['Strip'][asic_chan] is the strip number
+        ret_dict[vfatN]['PanPin'][asic_chan] is the pin number on the readout connector
+        ret_dict[vfatN]['vfatCH'][asic_chan] is the vfat channel number
+
+    mappingFile - physical filename of file which contains the mapping information, 
+                  expected format:
+
+                        vfat/I:strip/I:channel/I:PanPin/I
+                        0	0	16	63
+                        0	1	20	62
+                        0	2	24	61
+                        ...
+                        ...
+
+                  Here these column headings are:
+                        vfat - the VFAT position on the detector (e.g. vfatN)
+                        strip - the anode strip on the readout board in an ieta row
+                        channel - the channel on the ASIC
+                        PanPin - the pin number on the panasonic connector
+    """
+    from gempython.utils.nesteddict import nesteddict
+
+    from anaInfo import mappingNames
+    import ROOT as r
+
+    # Try to get the mapping data
+    try:
+        mapFile = open(mappingFileName, 'r')
+    except IOError as e:
+        print "Exception:", e
+        print "Failed to open: '%s'"%mappingFileName
+    else:
+        listMapData = mapFile.readlines()
+    finally:
+        mapFile.close()
+
+    # strip trhe end of line character
+    listMapData = [x.strip('\n') for x in listMapData]
+
+    # setup the look up table
+    ret_mapDict = nesteddict()
+    for vfat in range(0,24):
+        for name in mappingNames:
+            ret_mapDict[vfat][name] = [0] * 128
+
+    # Set the data in the loop up table
+    for idx, line in enumerate(listMapData):
+        if idx == 0: 
+            continue # skip the header line
+        mapping = line.rsplit('\t')
+        ret_mapDict[int(mapping[0])]['Strip'][int(mapping[2]) - 1] = int(mapping[1])
+        ret_mapDict[int(mapping[0])]['PanPin'][int(mapping[2]) -1] = int(mapping[3])
+        ret_mapDict[int(mapping[0])]['vfatCH'][int(mapping[2]) - 1] = int(mapping[2]) - 1
+
+    return ret_mapDict
 
 def getStringNoSpecials(inputStr):
     """
@@ -152,7 +259,7 @@ def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
         else:
             return modified_z_score < -1.0 * thresh
 
-def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = ''):
+def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv=None):
     """
     Creates a 3x8 canvas for summary plots.
 
@@ -161,12 +268,15 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     initialDrawOpt - draw option to be used when drawing elements of initialContent
     secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
     secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
+    canv - TCanvas previously produced by make3x8Canvas() or one that has been subdivided into a 3x8 grid
     """
 
     import ROOT as r
     
-    canv = r.TCanvas(name,name,500*8,500*3)
-    canv.Divide(8,3)
+    if canv is None:
+        canv = r.TCanvas(name,name,500*8,500*3)
+        canv.Divide(8,3)
+
     if initialContent is not None:
         for vfat in range(24):
             canv.cd(vfat+1)
@@ -280,3 +390,58 @@ def rejectOutliersMAD(arrayData, thresh=3.5):
 def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
     arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
     return arrayData[arrayOutliers != True]
+
+def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=None, drawOpt="colz"):
+    """
+    Makes an image with summary canvases drawn on it
+
+    dictSummary        - dict of TObjects to be drawn, one per VFAT.  Each will be 
+                         drawn on a separate canvas
+    dictSummaryPanPin2 - Optional, as dictSummary but if the independent variable is the
+                         readout connector pin this is the other side of the connector
+    name               - Name of output image
+    trimPt             - Optional, list of trim points the dependent variable was aligned
+                         to if it is the result of trimming.  One entry per VFAT
+    drawOpt            - Draw option
+    """
+
+    import ROOT as r
+
+    legend = r.TLegend(0.75,0.7,0.88,0.88)
+    r.gStyle.SetOptStat(0)
+    if dictSummaryPanPin2 is None:
+        canv = make3x8Canvas('canv', dictSummary, drawOpt)
+        for vfat in range(0,24):
+            canv.cd(vfat+1)
+            if trimPt is not None and trimLine is not None:
+                trimLine = r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat])
+                legend.Clear()
+                legend.AddEntry(trimLine, 'trimVCal is %f'%(trimVcal[vfat]))
+                legend.Draw('SAME')
+                trimLine.SetLineColor(1)
+                trimLine.SetLineWidth(3)
+                trimLine.Draw('SAME')
+                pass
+            canv.Update()
+            pass
+        pass
+    else:
+        canv = r.TCanvas('canv','canv',500*8,500*3)
+        canv.Divide(8,6)
+        r.gStyle.SetOptStat(0)
+        for ieta in range(0,8):
+            for iphi in range (0,3):
+                r.gStyle.SetOptStat(0)
+                canv.cd((ieta+1 + iphi*16)%48 + 16)
+                dictSummary[ieta+(8*iphi)].Draw(drawOpt)
+                canv.Update()
+                canv.cd((ieta+9 + iphi*16)%48 + 16)
+                dictSummaryPanPin2[ieta+(8*iphi)].Draw(drawOpt)
+                canv.Update()
+                pass
+            pass
+        pass
+
+    canv.SaveAs(name)
+
+    return

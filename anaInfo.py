@@ -27,6 +27,17 @@ tree_names = {
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
         }
 
+mappingNames = [
+        "Strip",
+        "PanPin",
+        "vfatCH"
+        ]
+
+# Cal scale factor (e.g. CFG_CAL_FS)
+# Required for determining charge when using 
+# Current pulse cal mode of VFAT3
+dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
+
 class MaskReason:
     """Enum-like class to represent the reasons for which a channel was masked.
     Reasons are bitmasks. Example usage:
