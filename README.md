@@ -30,6 +30,10 @@ Table of Contents
             * [gemSCurveAnaToolkit.py Arguments](#gemscurveanatoolkitpy-arguments)
             * [gemSCurveAnaToolkit.py Input File](#gemscurveanatoolkitpy-input-file)
             * [gemSCurveAnaToolkit.py Example: Making a Plot](#gemscurveanatoolkitpy-example-making-a-plot)
+         * [Comparing Scurves Results Across Scandates: plotSCurveFitResults.py](#comparing-scurves-results-across-scandates-plotscurvefitresultspy)
+            * [plotSCurveFitResults.py Arguments](#plotscurvefitresultspy-arguments)
+            * [plotSCurveFitResults.py Input File](#plotscurvefitresultspy-input-file)
+            * [plotSCurveFitResults.py Example](#plotscurvefitresultspy-example)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
