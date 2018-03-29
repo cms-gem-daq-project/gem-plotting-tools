@@ -138,7 +138,7 @@ if __name__ == '__main__':
         dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetLineColor(getCyclicColor(idx))
         dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetMarkerColor(getCyclicColor(idx))
 
-        dict_ScurveSigma[chamberAndScanDatePair[1]][-1] = scanFile.Get("Summary/gScurveMeanDist_All")
+        dict_ScurveSigma[chamberAndScanDatePair[1]][-1] = scanFile.Get("Summary/gScurveSigmaDist_All")
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetName(
                     "%s_%s"%(
                         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].GetName(),
@@ -149,77 +149,101 @@ if __name__ == '__main__':
         
         pass
 
-    # Make the plots
+    # Define the TMultiGraph dictionaries
+    dict_mGraph_fitSum = ndict()        # key: (0,23) follows vfat #
+    dict_mGraph_ScurveMean = ndict()    # key: (0,23) follows vfat #, -1 is summary over all det
+    dict_mGraph_ScurveSigma = ndict()   # key: (0,23) follows vfat #, -1 is summary over all det
+   
+    dict_mGraph_ScurveMean[-1] = r.TMultiGraph("mGraph_ScurveMeanDist_All","")
+    dict_mGraph_ScurveSigma[-1] = r.TMultiGraph("mGraph_ScurveSigmaDist_All","")
+
+    dict_mGraph_ScurveMeanByiEta = ndict()
+    dict_mGraph_ScurveSigmaByiEta = ndict() 
+    
+    # Make the canvas dictionaries
     dict_canvSCurveFitSum = ndict()
     dict_canvSCurveMean = ndict()
     dict_canvSCurveMeanByiEta = ndict()
     dict_canvSCurveSigma = ndict()
     dict_canvSCurveSigmaByiEta = ndict()
     
-    canvFitSum_Grid = None
+    # Make the summary canvases
     canvScurveMean_DetSum = r.TCanvas("canvSCurveMeanDetSumAllScandates","Scurve Mean - Detector Summary",600,600)
-    canvScurveMean_Grid = None
-    canvScurveMean_Grid_iEta = None
     canvScurveSigma_DetSum = r.TCanvas("canvSCurveSigmaDetSumAllScandates","Scurve Sigma - Detector Summary",600,600)
-    canvScurveSigma_Grid = None
-    canvScurveSigma_Grid_iEta = None
     plotLeg = r.TLegend(0.1,0.65,0.45,0.9)
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
-        # Determine draw option
-        if idx==0:
-            drawOpt="APE1"
-        else:
-            drawOpt="samePE1"
+        drawOpt="APE1"
 
         # Draw per VFAT distributions
         for vfat in range(0,24):
             if idx == 0:
+                dict_mGraph_fitSum[vfat]    = r.TMultiGraph("mGraph_FitSummary_VFAT%i"%(vfat),"")
+                dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat%i"%(vfat),"")
+                dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat%i"%(vfat),"")
+
                 dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT%i"%(vfat),"SCurve Fit Summary - VFAT%i"%(vfat),600,600)
                 dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT%i"%(vfat),"SCurve Mean - VFAT%i"%(vfat),600,600)
                 dict_canvSCurveSigma[vfat]  = r.TCanvas("canvScurveSigma_VFAT%i"%(vfat),"SCurve Sigma - VFAT%i"%(vfat),600,600)
                 pass
 
-            dict_canvSCurveFitSum[vfat].cd()
-            dict_fitSum[chamberAndScanDatePair[1]][vfat].Draw(drawOpt)
+            dict_mGraph_fitSum[vfat].Add(dict_fitSum[chamberAndScanDatePair[1]][vfat])
+            dict_mGraph_ScurveMean[vfat].Add(dict_ScurveMean[chamberAndScanDatePair[1]][vfat])
+            dict_mGraph_ScurveSigma[vfat].Add(dict_ScurveSigma[chamberAndScanDatePair[1]][vfat])
             
-            dict_canvSCurveMean[vfat].cd()
-            dict_ScurveMean[chamberAndScanDatePair[1]][vfat].Draw(drawOpt)
+            if (idx == (len(listChamberAndScanDate) - 1) ):
+                dict_canvSCurveFitSum[vfat].cd()
+                dict_mGraph_fitSum[vfat].Draw(drawOpt)
 
-            dict_canvSCurveSigma[vfat].cd()
-            dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].Draw(drawOpt)
+                dict_canvSCurveMean[vfat].cd()
+                dict_mGraph_ScurveMean[vfat].Draw(drawOpt)
+                
+                dict_canvSCurveSigma[vfat].cd()
+                dict_mGraph_ScurveSigma[vfat].Draw(drawOpt)
+                pass
             pass
 
         # Draw per ieta distributions
         for ieta in range(1,9):
             if idx == 0:
+                dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta%i"%(ieta),"")
+                dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta%i"%(ieta),"")
+
                 dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta%i"%(ieta),"SCurve Mean - ieta%i"%(ieta),600,600)
                 dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta%i"%(ieta),"SCurve Sigma - ieta%i"%(ieta),600,600)
                 pass
 
-            dict_canvSCurveMeanByiEta[ieta].cd()
-            dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].Draw(drawOpt)
+            dict_mGraph_ScurveMeanByiEta[ieta].Add(dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta])
+            dict_mGraph_ScurveSigmaByiEta[ieta].Add(dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta])
 
-            dict_canvSCurveSigmaByiEta[ieta].cd()
-            dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].Draw(drawOpt)
+            if (idx == (len(listChamberAndScanDate) - 1) ):
+                dict_canvSCurveMeanByiEta[ieta].cd()
+                dict_mGraph_ScurveMeanByiEta[ieta].Draw(drawOpt)
+
+                dict_canvSCurveSigmaByiEta[ieta].cd()
+                dict_mGraph_ScurveSigmaByiEta[ieta].Draw(drawOpt)
+                pass
             pass
 
-        # Draw grid distributions
-        canvFitSum_Grid = make3x8Canvas("scurveFitSummaryGridAllScandates",dict_fitSum[chamberAndScanDatePair[1]],drawOpt,canv=canvFitSum_Grid)
-        canvScurveMean_Grid = make3x8Canvas("scurveMeanGridAllScandates",dict_ScurveMean[chamberAndScanDatePair[1]],drawOpt,canv=canvScurveMean_Grid)
-        canvScurveSigma_Grid = make3x8Canvas("scurveSigmaGridAllScandates",dict_ScurveSigma[chamberAndScanDatePair[1]],drawOpt,canv=canvScurveSigma_Grid)
-
-        canvScurveMean_Grid_iEta = make2x4Canvas("scurveMeanGridByiEtaAllScandates",dict_ScurveMeanByiEta[chamberAndScanDatePair[1]],drawOpt,canv=canvScurveMean_Grid_iEta)
-        canvScurveSigma_Grid_iEta = make2x4Canvas("scurveSigmaGridByiEtaAllScandates",dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]],drawOpt,canv=canvScurveSigma_Grid_iEta)
-
-        # Draw detector summary distributions
-        canvScurveMean_DetSum.cd()
-        dict_ScurveMean[chamberAndScanDatePair[1]][-1].Draw(drawOpt)
-        canvScurveSigma_DetSum.cd()
-        dict_ScurveSigma[chamberAndScanDatePair[1]][-1].Draw(drawOpt)
+        dict_mGraph_ScurveMean[-1].Add(dict_ScurveMean[chamberAndScanDatePair[1]][-1])
+        dict_mGraph_ScurveSigma[-1].Add(dict_ScurveSigma[chamberAndScanDatePair[1]][-1])
 
         # Fill Legend - use VFAT0 of each
         plotLeg.AddEntry(dict_fitSum[chamberAndScanDatePair[1]][0],chamberAndScanDatePair[2],"LPE")
         pass
+
+    # Draw multigraphs for summary cases
+    canvFitSum_Grid = make3x8Canvas("scurveFitSummaryGridAllScandates",dict_mGraph_fitSum,"APE1")
+    canvScurveMean_Grid = make3x8Canvas("scurveMeanGridAllScandates",dict_mGraph_ScurveMean,"APE1")
+    canvScurveSigma_Grid = make3x8Canvas("scurveSigmaGridAllScandates",dict_mGraph_ScurveSigma,"APE1")
+
+    canvScurveMean_Grid_iEta = make2x4Canvas("scurveMeanGridByiEtaAllScandates",dict_mGraph_ScurveMeanByiEta,"APE1")
+    canvScurveSigma_Grid_iEta = make2x4Canvas("scurveSigmaGridByiEtaAllScandates",dict_mGraph_ScurveSigmaByiEta,"APE1")
+    
+    canvScurveMean_DetSum.cd()
+    dict_mGraph_ScurveMean[-1].Draw("APE1")
+
+    canvScurveSigma_DetSum.cd()
+    dict_mGraph_ScurveSigma[-1].Draw("APE1")
 
     if options.drawLeg:
         # VFAT level
@@ -286,8 +310,13 @@ if __name__ == '__main__':
         dirVFAT.cd()
 
         dict_canvSCurveFitSum[vfat].Write()
+        dict_mGraph_fitSum[vfat].Write()
+
         dict_canvSCurveMean[vfat].Write()
+        dict_mGraph_ScurveMean[vfat].Write()
+
         dict_canvSCurveSigma[vfat].Write()
+        dict_mGraph_ScurveSigma[vfat].Write()
         pass
 
     dirSummary = outF.mkdir("Summary")
@@ -296,7 +325,11 @@ if __name__ == '__main__':
         dir_iEta.cd()
 
         dict_canvSCurveMeanByiEta[ieta].Write()
+        dict_mGraph_ScurveMeanByiEta[ieta].Write()
+
         dict_canvSCurveSigmaByiEta[ieta].Write()
+        dict_mGraph_ScurveSigmaByiEta[ieta].Write()
+        pass
 
     dirSummary.cd()
     canvFitSum_Grid.Write()
@@ -305,7 +338,9 @@ if __name__ == '__main__':
     canvScurveSigma_Grid.Write()
     canvScurveSigma_Grid_iEta.Write()
     canvScurveMean_DetSum.Write()
+    dict_mGraph_ScurveMean[-1].Write()
     canvScurveSigma_DetSum.Write()
+    dict_mGraph_ScurveSigma[-1].Write()
 
     print "Your plots can be found in:"
     print ""
