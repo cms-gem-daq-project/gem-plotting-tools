@@ -291,7 +291,6 @@ if __name__ == '__main__':
         pass
 
     dirSummary = outF.mkdir("Summary")
-    dirSummary.cd()
     for ieta in range(1,9):
         dir_iEta = dirSummary.mkdir("ieta%i"%ieta)
         dir_iEta.cd()
@@ -299,6 +298,7 @@ if __name__ == '__main__':
         dict_canvSCurveMeanByiEta[ieta].Write()
         dict_canvSCurveSigmaByiEta[ieta].Write()
 
+    dirSummary.cd()
     canvFitSum_Grid.Write()
     canvScurveMean_Grid.Write()
     canvScurveMean_Grid_iEta.Write()
