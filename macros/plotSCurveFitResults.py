@@ -269,10 +269,18 @@ if __name__ == '__main__':
     canvScurveSigma_Grid_iEta = make2x4Canvas("scurveSigmaGridByiEtaAllScandates",dict_mGraph_ScurveSigmaByiEta,"APE1")
     
     canvScurveMean_DetSum.cd()
+    canvScurveMean_DetSum.cd().SetLogy()
     dict_mGraph_ScurveMean[-1].Draw("APE1")
+    #dict_mGraph_ScurveMean[-1].GetXaxis().SetRangeUser(0,40)
+    #dict_mGraph_ScurveMean[-1].GetYaxis().SetRangeUser(1e-1,1e3)
+    #dict_mGraph_ScurveMean[-1].Draw("APE1")
 
     canvScurveSigma_DetSum.cd()
+    canvScurveSigma_DetSum.cd().SetLogy()
     dict_mGraph_ScurveSigma[-1].Draw("APE1")
+    #dict_mGraph_ScurveSigma[-1].GetXaxis().SetRangeUser(0,5)
+    #dict_mGraph_ScurveSigma[-1].GetYaxis().SetRangeUser(1e-1,1e3)
+    #dict_mGraph_ScurveSigma[-1].Draw("APE1")
 
     if options.drawLeg:
         # VFAT level
