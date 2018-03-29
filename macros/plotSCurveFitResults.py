@@ -77,8 +77,9 @@ if __name__ == '__main__':
             # Fit summary 
             dict_fitSum[chamberAndScanDatePair[1]][vfat] = scanFile.Get("VFAT%i/gFitSummary_VFAT%i"%(vfat,vfat))
             dict_fitSum[chamberAndScanDatePair[1]][vfat].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_fitSum[chamberAndScanDatePair[1]][vfat].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                     )
             dict_fitSum[chamberAndScanDatePair[1]][vfat].SetLineColor(getCyclicColor(idx))
@@ -88,8 +89,9 @@ if __name__ == '__main__':
             # Scurve Mean
             dict_ScurveMean[chamberAndScanDatePair[1]][vfat] = scanFile.Get("VFAT%i/gScurveMeanDist_vfat%i"%(vfat,vfat))
             dict_ScurveMean[chamberAndScanDatePair[1]][vfat].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_ScurveMean[chamberAndScanDatePair[1]][vfat].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                     )
             dict_ScurveMean[chamberAndScanDatePair[1]][vfat].SetLineColor(getCyclicColor(idx))
@@ -99,8 +101,9 @@ if __name__ == '__main__':
             # Scurve Width
             dict_ScurveSigma[chamberAndScanDatePair[1]][vfat] = scanFile.Get("VFAT%i/gScurveSigmaDist_vfat%i"%(vfat,vfat))
             dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                     )
             dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].SetLineColor(getCyclicColor(idx))
@@ -113,8 +116,9 @@ if __name__ == '__main__':
             # Scurve Mean
             dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta] = scanFile.Get("Summary/ieta%i/gScurveMeanDist_ieta%i"%(ieta,ieta))
             dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                     )
             dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].SetLineColor(getCyclicColor(idx))
@@ -124,8 +128,9 @@ if __name__ == '__main__':
             # Scurve Sigma
             dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta] = scanFile.Get("Summary/ieta%i/gScurveSigmaDist_ieta%i"%(ieta,ieta))
             dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                     )
             dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].SetLineColor(getCyclicColor(idx))
@@ -136,8 +141,9 @@ if __name__ == '__main__':
         # Get the detector level plots
         dict_ScurveMean[chamberAndScanDatePair[1]][-1] = scanFile.Get("Summary/gScurveMeanDist_All")
         dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_ScurveMean[chamberAndScanDatePair[1]][-1].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                 )
         dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetLineColor(getCyclicColor(idx))
@@ -146,8 +152,9 @@ if __name__ == '__main__':
 
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1] = scanFile.Get("Summary/gScurveSigmaDist_All")
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetName(
-                    "%s_%s"%(
+                    "%s_%s_%s"%(
                         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].GetName(),
+                        chamberAndScanDatePair[0]),
                         chamberAndScanDatePair[1])
                 )
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetLineColor(getCyclicColor(idx))
