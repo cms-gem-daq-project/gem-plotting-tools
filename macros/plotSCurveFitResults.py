@@ -83,6 +83,7 @@ if __name__ == '__main__':
                     )
             dict_fitSum[chamberAndScanDatePair[1]][vfat].SetLineColor(getCyclicColor(idx))
             dict_fitSum[chamberAndScanDatePair[1]][vfat].SetMarkerColor(getCyclicColor(idx))
+            dict_fitSum[chamberAndScanDatePair[1]][vfat].SetMarkerStyle(20+idx)
 
             # Scurve Mean
             dict_ScurveMean[chamberAndScanDatePair[1]][vfat] = scanFile.Get("VFAT%i/gScurveMeanDist_vfat%i"%(vfat,vfat))
@@ -93,6 +94,7 @@ if __name__ == '__main__':
                     )
             dict_ScurveMean[chamberAndScanDatePair[1]][vfat].SetLineColor(getCyclicColor(idx))
             dict_ScurveMean[chamberAndScanDatePair[1]][vfat].SetMarkerColor(getCyclicColor(idx))
+            dict_ScurveMean[chamberAndScanDatePair[1]][vfat].SetMarkerStyle(20+idx)
             
             # Scurve Width
             dict_ScurveSigma[chamberAndScanDatePair[1]][vfat] = scanFile.Get("VFAT%i/gScurveSigmaDist_vfat%i"%(vfat,vfat))
@@ -103,6 +105,7 @@ if __name__ == '__main__':
                     )
             dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].SetLineColor(getCyclicColor(idx))
             dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].SetMarkerColor(getCyclicColor(idx))
+            dict_ScurveSigma[chamberAndScanDatePair[1]][vfat].SetMarkerStyle(20+idx)
 
             pass
 
@@ -116,6 +119,7 @@ if __name__ == '__main__':
                     )
             dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].SetLineColor(getCyclicColor(idx))
             dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].SetMarkerColor(getCyclicColor(idx))
+            dict_ScurveMeanByiEta[chamberAndScanDatePair[1]][ieta].SetMarkerStyle(20+idx)
 
             # Scurve Sigma
             dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta] = scanFile.Get("Summary/ieta%i/gScurveSigmaDist_ieta%i"%(ieta,ieta))
@@ -126,6 +130,7 @@ if __name__ == '__main__':
                     )
             dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].SetLineColor(getCyclicColor(idx))
             dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].SetMarkerColor(getCyclicColor(idx))
+            dict_ScurveSigmaByiEta[chamberAndScanDatePair[1]][ieta].SetMarkerStyle(20+idx)
             pass
 
         # Get the detector level plots
@@ -137,6 +142,7 @@ if __name__ == '__main__':
                 )
         dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetLineColor(getCyclicColor(idx))
         dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetMarkerColor(getCyclicColor(idx))
+        dict_ScurveMean[chamberAndScanDatePair[1]][-1].SetMarkerStyle(20+idx)
 
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1] = scanFile.Get("Summary/gScurveSigmaDist_All")
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetName(
@@ -146,7 +152,7 @@ if __name__ == '__main__':
                 )
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetLineColor(getCyclicColor(idx))
         dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetMarkerColor(getCyclicColor(idx))
-        
+        dict_ScurveSigma[chamberAndScanDatePair[1]][-1].SetMarkerStyle(20+idx)
         pass
 
     # Define the TMultiGraph dictionaries
@@ -155,7 +161,10 @@ if __name__ == '__main__':
     dict_mGraph_ScurveSigma = ndict()   # key: (0,23) follows vfat #, -1 is summary over all det
    
     dict_mGraph_ScurveMean[-1] = r.TMultiGraph("mGraph_ScurveMeanDist_All","")
+    dict_mGraph_ScurveMean[-1].GetXaxis().SetTitle("scurve mean #left(fC#right)")
+
     dict_mGraph_ScurveSigma[-1] = r.TMultiGraph("mGraph_ScurveSigmaDist_All","")
+    dict_mGraph_ScurveSigma[-1].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
 
     dict_mGraph_ScurveMeanByiEta = ndict()
     dict_mGraph_ScurveSigmaByiEta = ndict() 
@@ -180,6 +189,12 @@ if __name__ == '__main__':
                 dict_mGraph_fitSum[vfat]    = r.TMultiGraph("mGraph_FitSummary_VFAT%i"%(vfat),"")
                 dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat%i"%(vfat),"")
                 dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat%i"%(vfat),"")
+
+                dict_mGraph_fitSum[vfat].GetXaxis().SetTitle(dict_fitSum[chamberAndScanDatePair[1]][vfat].GetXaxis().GetTitle())
+                dict_mGraph_fitSum[vfat].GetYaxis().SetTitle("Threshold #left(fC#right)")
+
+                dict_mGraph_ScurveMean[vfat].GetXaxis().SetTitle("scurve mean #left(fC#right)")
+                dict_mGraph_ScurveSigma[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
 
                 dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT%i"%(vfat),"SCurve Fit Summary - VFAT%i"%(vfat),600,600)
                 dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT%i"%(vfat),"SCurve Mean - VFAT%i"%(vfat),600,600)
@@ -208,6 +223,9 @@ if __name__ == '__main__':
                 dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta%i"%(ieta),"")
                 dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta%i"%(ieta),"")
 
+                dict_mGraph_ScurveMeanByiEta[vfat].GetXaxis().SetTitle("scurve mean #left(fC#right)")
+                dict_mGraph_ScurveSigmaByiEta[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
+                
                 dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta%i"%(ieta),"SCurve Mean - ieta%i"%(ieta),600,600)
                 dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta%i"%(ieta),"SCurve Sigma - ieta%i"%(ieta),600,600)
                 pass
