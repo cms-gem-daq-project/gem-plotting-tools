@@ -193,9 +193,9 @@ if __name__ == '__main__':
         # Draw per VFAT distributions
         for vfat in range(0,24):
             if idx == 0:
-                dict_mGraph_fitSum[vfat]    = r.TMultiGraph("mGraph_FitSummary_VFAT%i"%(vfat),"")
-                dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat%i"%(vfat),"")
-                dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat%i"%(vfat),"")
+                dict_mGraph_fitSum[vfat]    = r.TMultiGraph("mGraph_FitSummary_VFAT%i"%(vfat),"VFAT%i"%(vfat))
+                dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat%i"%(vfat),"VFAT%i"%(vfat))
+                dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat%i"%(vfat),"VFAT%i"%(vfat))
 
                 dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT%i"%(vfat),"SCurve Fit Summary - VFAT%i"%(vfat),600,600)
                 dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT%i"%(vfat),"SCurve Mean - VFAT%i"%(vfat),600,600)
@@ -230,8 +230,8 @@ if __name__ == '__main__':
         # Draw per ieta distributions
         for ieta in range(1,9):
             if idx == 0:
-                dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta%i"%(ieta),"")
-                dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta%i"%(ieta),"")
+                dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta%i"%(ieta),"i#eta = %i"%(ieta))
+                dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta%i"%(ieta),"i#eta = %i"%(ieta))
 
                 dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta%i"%(ieta),"SCurve Mean - ieta%i"%(ieta),600,600)
                 dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta%i"%(ieta),"SCurve Sigma - ieta%i"%(ieta),600,600)
