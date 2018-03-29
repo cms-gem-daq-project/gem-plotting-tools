@@ -190,12 +190,6 @@ if __name__ == '__main__':
                 dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat%i"%(vfat),"")
                 dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat%i"%(vfat),"")
 
-                dict_mGraph_fitSum[vfat].GetXaxis().SetTitle(dict_fitSum[chamberAndScanDatePair[1]][vfat].GetXaxis().GetTitle())
-                dict_mGraph_fitSum[vfat].GetYaxis().SetTitle("Threshold #left(fC#right)")
-
-                dict_mGraph_ScurveMean[vfat].GetXaxis().SetTitle("scurve mean #left(fC#right)")
-                dict_mGraph_ScurveSigma[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
-
                 dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT%i"%(vfat),"SCurve Fit Summary - VFAT%i"%(vfat),600,600)
                 dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT%i"%(vfat),"SCurve Mean - VFAT%i"%(vfat),600,600)
                 dict_canvSCurveSigma[vfat]  = r.TCanvas("canvScurveSigma_VFAT%i"%(vfat),"SCurve Sigma - VFAT%i"%(vfat),600,600)
@@ -206,13 +200,22 @@ if __name__ == '__main__':
             dict_mGraph_ScurveSigma[vfat].Add(dict_ScurveSigma[chamberAndScanDatePair[1]][vfat])
             
             if (idx == (len(listChamberAndScanDate) - 1) ):
+                chanStripOrPanPin = dict_fitSum[chamberAndScanDatePair[1]][vfat].GetXaxis().GetTitle()
+                
                 dict_canvSCurveFitSum[vfat].cd()
+                dict_mGraph_fitSum[vfat].Draw(drawOpt) # The axis doesn't exist unless we draw it first, ROOT magic =/
+                dict_mGraph_fitSum[vfat].GetXaxis().SetTitle(chanStripOrPanPin)
+                dict_mGraph_fitSum[vfat].GetYaxis().SetTitle("Threshold #left(fC#right)")
                 dict_mGraph_fitSum[vfat].Draw(drawOpt)
 
                 dict_canvSCurveMean[vfat].cd()
                 dict_mGraph_ScurveMean[vfat].Draw(drawOpt)
+                dict_mGraph_ScurveMean[vfat].GetXaxis().SetTitle("scurve mean #left(fC#right)")
+                dict_mGraph_ScurveMean[vfat].Draw(drawOpt)
                 
                 dict_canvSCurveSigma[vfat].cd()
+                dict_mGraph_ScurveSigma[vfat].Draw(drawOpt)
+                dict_mGraph_ScurveSigma[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
                 dict_mGraph_ScurveSigma[vfat].Draw(drawOpt)
                 pass
             pass
@@ -223,9 +226,6 @@ if __name__ == '__main__':
                 dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta%i"%(ieta),"")
                 dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta%i"%(ieta),"")
 
-                dict_mGraph_ScurveMeanByiEta[vfat].GetXaxis().SetTitle("scurve mean #left(fC#right)")
-                dict_mGraph_ScurveSigmaByiEta[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
-                
                 dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta%i"%(ieta),"SCurve Mean - ieta%i"%(ieta),600,600)
                 dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta%i"%(ieta),"SCurve Sigma - ieta%i"%(ieta),600,600)
                 pass
@@ -236,8 +236,12 @@ if __name__ == '__main__':
             if (idx == (len(listChamberAndScanDate) - 1) ):
                 dict_canvSCurveMeanByiEta[ieta].cd()
                 dict_mGraph_ScurveMeanByiEta[ieta].Draw(drawOpt)
+                dict_mGraph_ScurveMeanByiEta[ieta].GetXaxis().SetTitle("scurve mean #left(fC#right)")
+                dict_mGraph_ScurveMeanByiEta[ieta].Draw(drawOpt)
 
                 dict_canvSCurveSigmaByiEta[ieta].cd()
+                dict_mGraph_ScurveSigmaByiEta[ieta].Draw(drawOpt)
+                dict_mGraph_ScurveSigmaByiEta[ieta].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
                 dict_mGraph_ScurveSigmaByiEta[ieta].Draw(drawOpt)
                 pass
             pass
