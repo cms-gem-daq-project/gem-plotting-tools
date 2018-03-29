@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
         # Draw per ieta distributions
         for ieta in range(1,9):
-            if idx == 1:
+            if idx == 0:
                 dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta%i"%(ieta),"SCurve Mean - ieta%i"%(ieta),600,600)
                 dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta%i"%(ieta),"SCurve Sigma - ieta%i"%(ieta),600,600)
                 pass
@@ -236,10 +236,10 @@ if __name__ == '__main__':
 
         # ieta level
         for ieta in range(1,9):
-            dict_canvSCurveMeanByiEta.cd()
+            dict_canvSCurveMeanByiEta[ieta].cd()
             plotLeg.Draw("same")
 
-            dict_canvSCurveSigmaByiEta.cd()
+            dict_canvSCurveSigmaByiEta[ieta].cd()
             plotLeg.Draw("same")
             pass
 
