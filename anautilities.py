@@ -320,6 +320,7 @@ def parseCalFile(filename=None):
 
     import numpy as np
     import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
+    import ROOT as r
 
     # Set the CAL DAC to fC conversion
     calDAC2Q_b = np.zeros(24)
