@@ -128,11 +128,10 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="scurves"
 if __name__ == '__main__':
     import os
     import numpy as np
-    import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
     import ROOT as r
     
     from array import array
-    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, saveSummary
+    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary
     from anaInfo import mappingNames, MaskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -174,22 +173,10 @@ if __name__ == '__main__':
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
     if options.performFit:
         myT = r.TTree('scurveFitTree','Tree Holding FitData')
-    
-    # Set the CAL DAC to fC conversion
-    calDAC2Q_Intercept = np.zeros(24)
-    calDAC2Q_Slope = np.zeros(24)
-    if options.calFile is not None:
-        list_bNames = ["vfatN","slope","intercept"]
-        calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
-        calTree.ReadFile(options.calFile)
-        array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
-    
-        for dataPt in array_CalData:
-            calDAC2Q_Intercept[dataPt['vfatN']] = dataPt['intercept']
-            calDAC2Q_Slope[dataPt['vfatN']] = dataPt['slope']
-    else:
-        calDAC2Q_Intercept = -0.8 * np.ones(24)
-        calDAC2Q_Slope = 0.05 * np.ones(24)
+
+    tuple_calInfo = parseCalFile(options.calFile)
+    calDAC2Q_Intercept = tuple_calInfo[0]
+    calDAC2Q_Slope = tuple_calInfo[1]
     
     # Create output plot containers
     vSummaryPlots = ndict()
