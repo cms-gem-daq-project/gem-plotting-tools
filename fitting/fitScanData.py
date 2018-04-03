@@ -219,7 +219,23 @@ class ScanDataFitter(DeadChannelFinder):
             self.feed(event)
         return
 
-def fitScanData(treeFileName, isVFAT3=False):
-    fitter = ScanDataFitter(isVFAT3=isVFAT3)
+def fitScanData(treeFileName, isVFAT3=False, calFileName=None):
+    from anautilities import parseCalFile
+    
+    # Get the fitter
+    if calFileName is not None:
+        tuple_calInfo = parseCalFile(calFileName)
+        fitter = ScanDataFitter(
+                calDAC2Q_m = tuple_calInfo[0],
+                calDAC2Q_b = tuple_calInfo[1],
+                isVFAT3=isVFAT3
+                )
+    else:
+        fitter = ScanDataFitter(isVFAT3=isVFAT3)
+        pass
+
+    # Read the output data
     fitter.readFile(treeFileName)
+
+    # Fit
     return fitter.fit()
