@@ -51,7 +51,26 @@ chamber_vfatMask = {
     8:0x0,
     9:0x0
     }
-    
+   
+# Matches CMS coordinates
+chamber_iEta2VFATPos = {
+        1: { 7:1, 15:2, 23:3 }, #ieta: [ (vfat, iphi), (vfat, iphi), (vfat, iphi) ]
+        2: { 6:1, 14:2, 22:3 },
+        3: { 5:1, 13:2, 21:3 },
+        4: { 4:1, 12:2, 20:3 },
+        5: { 3:1, 11:2, 19:3 },
+        6: { 2:1, 10:2, 18:3 },
+        7: { 1:1,  9:2, 17:3 },
+        8: { 0:1,  8:2, 16:3 }
+        }
+
+chamber_vfatPos2iEta = {}
+for ieta, vfatRow in chamber_iEta2VFATPos.iteritems():
+    for vfat,phi in vfatRow.iteritems():
+        chamber_vfatPos2iEta[vfat] = ieta
+        pass
+    pass
+
 chamber_vfatDACSettings = {    
     # V2b Electronics Instructions:
     # For changing VFAT DAC settings from defaults shown in vfat_user_functions.py
