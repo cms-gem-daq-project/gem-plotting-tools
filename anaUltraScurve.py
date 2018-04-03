@@ -195,7 +195,7 @@ if __name__ == '__main__':
     # Initialize distributions
     for vfat in range(0,24):
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                'VFAT %i;Channels;VCal #lef(fC#right)'%vfat,
+                'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
