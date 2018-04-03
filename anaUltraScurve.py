@@ -132,12 +132,13 @@ if __name__ == '__main__':
     import ROOT as r
     
     from array import array
-    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, saveSummary
+    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, saveSummary, saveSummaryByiEta
     from anaInfo import mappingNames, MaskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck
-  
+    from mapping.chamberInfo import chamber_iEta2VFATPos, chamber_vfatPos2iEta
+
     #defaultVFATList='0'
     #for vfat in range(1,24):
     #    defaultVFATList+=(',%i'%vfat)
@@ -208,13 +209,13 @@ if __name__ == '__main__':
     # Initialize distributions
     for vfat in range(0,24):
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                'VFAT %i;Channels;VCal [fC]'%vfat,
+                'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
         vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
-                'VFAT %i;Channels;VCal [fC]'%vfat,
+                'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
                 calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                 calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
@@ -225,25 +226,25 @@ if __name__ == '__main__':
             pass
         if options.PanPin:
             vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
-                    'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
+                    'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
-                    'VFAT %i_0-63;63 - Panasonic Pin;VCal [fC]'%vfat,
+                    'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
-                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
+                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoMaskedChanPanPin2_%i'%vfat,
-                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal [fC]'%vfat,
+                    'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
                     calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
                     calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
@@ -445,20 +446,30 @@ if __name__ == '__main__':
         print("Storing Output Data")
         fitSummaryPlots = {}
         threshSummaryPlots = {}
+        threshSummaryPlotsByiEta = {}
         encSummaryPlots = {}
+        encSummaryPlotsByiEta = {}
         allThresh = np.zeros(3072)
+        allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
         allENC = np.zeros(3072)
+        allENCByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
         for vfat in range(0,24):
             stripPinOrChanArray = np.zeros(128)
             for chan in range (0, 128):
                 # Store stripChanOrPinType to use as x-axis of fit summary plots
                 stripPinOrChan = dict_vfatChanLUT[vfat][stripChanOrPinType][chan]
-                 
+                
+                # Determine ieta
+                ieta = chamber_vfatPos2iEta[vfat]
+                iphi = chamber_iEta2VFATPos[ieta][vfat]
+
                 # Store Values for making fit summary plots
                 allThresh[vfat*128 + chan] = scanFitResults[0][vfat][chan]
                 allENC[vfat*128 + chan] =  scanFitResults[1][vfat][chan]
                 stripPinOrChanArray[stripPinOrChan] = float(stripPinOrChan)
-
+                
+                allThreshByiEta[ieta][(iphi-1)*chan + chan] = scanFitResults[0][vfat][chan]
+                allENCByiEta[ieta][(iphi-1)*chan + chan] = scanFitResults[1][vfat][chan]
 
                 # Set arrays linked to TBranches
                 chi2[0] = scanFitResults[3][vfat][chan]
@@ -506,7 +517,7 @@ if __name__ == '__main__':
                     np.zeros(128),
                     allENC[(vfat*128):((vfat+1)*128)]
                     )
-            fitSummaryPlots[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold [fC]"%vfat)
+            fitSummaryPlots[vfat].SetTitle("VFAT %i Fit Summary;Channel;Threshold #left(fC#right)"%vfat)
             
             if not (options.channels or options.PanPin):
                 fitSummaryPlots[vfat].GetXaxis().SetTitle("Strip")
@@ -526,7 +537,11 @@ if __name__ == '__main__':
             histThresh.Sumw2()
             if thisVFAT_ThreshStd != 0: # Don't fill if we still at initial values
                 for thresh in allThresh[(vfat*128):((vfat+1)*128)]:
+                    if thresh == 0: # Skip the case where it still equals the inital value
+                        continue
                     histThresh.Fill(thresh)
+                    pass
+                pass
             gThresh = r.TGraphErrors(histThresh)
             gThresh.SetName("gScurveMeanDist_vfat%i"%vfat)
             gThresh.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
@@ -541,10 +556,14 @@ if __name__ == '__main__':
             histENC.Sumw2()
             if thisVFAT_ENCStd != 0: # Don't fill if we are still at initial values
                 for enc in allENC[(vfat*128):((vfat+1)*128)]:
+                    if enc == 0: # Skip the case where it still equals the inital value
+                        continue
                     histENC.Fill(enc)
+                    pass
+                pass
             gENC = r.TGraphErrors(histENC)
             gENC.SetName("gScurveSigmaDist_vfat%i"%vfat)
-            gENC.GetXaxis().SetTitle("scurve width #left(fC#right)")
+            gENC.GetXaxis().SetTitle("scurve sigma #left(fC#right)")
             gENC.GetYaxis().SetTitle("Entries / %f fC"%(thisVFAT_ENCStd/4.))
             encSummaryPlots[vfat] = gENC
             pass
@@ -556,10 +575,13 @@ if __name__ == '__main__':
                             100, detThresh_Mean - 5. * detThresh_Std, detThresh_Mean + 5. * detThresh_Std )
         for thresh in allThresh[allThresh != 0]:
             hDetThresh_All.Fill(thresh)
+            pass
         hDetThresh_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
         hDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
         gDetThresh_All = r.TGraphErrors(hDetThresh_All)
         gDetThresh_All.SetName("gScurveMeanDist_All")
+        gDetThresh_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
+        gDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
 
         # Make a ENC Summary Dist For the entire Detector
         detENC_Mean = np.mean(allENC[allENC != 0]) #Don't consider intial values
@@ -568,12 +590,58 @@ if __name__ == '__main__':
                             100, detENC_Mean - 5. * detENC_Std, detENC_Mean + 5. * detENC_Std )
         for thresh in allENC[allENC != 0]:
             hDetENC_All.Fill(thresh)
-        hDetENC_All.GetXaxis().SetTitle("scurve width #left(fC#right)")
+            pass
+        hDetENC_All.GetXaxis().SetTitle("scurve sigma #left(fC#right)")
         hDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/10.))
         gDetENC_All = r.TGraphErrors(hDetENC_All)
         gDetENC_All.SetName("gScurveSigmaDist_All")
-        pass
+        gDetENC_All.GetXaxis().SetTitle("scurve sigma #left(fC#right)")
+        gDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/10.))
     
+        # Make the plots by iEta
+        for ieta in range(1,9):
+            # S-curve mean position (threshold)
+            ietaThresh_Mean = np.mean(allThreshByiEta[ieta][allThreshByiEta[ieta] != 0])
+            ietaThresh_Std = np.std(allThreshByiEta[ieta][allThreshByiEta[ieta] != 0])
+
+            hThresh_iEta = r.TH1F(
+                    "hScurveMeanDist_ieta%i"%(ieta),
+                    "i#eta=%i;S-Curve Mean #left(fC#right);N"%(ieta),
+                    80, 
+                    ietaThresh_Mean - 5. * ietaThresh_Std, 
+                    ietaThresh_Mean + 5. * ietaThresh_Std )
+            
+            for thresh in allThreshByiEta[ieta][allThreshByiEta[ieta] != 0]:
+                hThresh_iEta.Fill(thresh)
+                pass
+            gThresh_iEta = r.TGraphErrors(hThresh_iEta)
+            gThresh_iEta.SetName("gScurveMeanDist_ieta%i"%(ieta))
+            gThresh_iEta.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
+            gThresh_iEta.GetYaxis().SetTitle("Entries / %f fC"%(ietaThresh_Std/8.))
+            threshSummaryPlotsByiEta[ieta] = gThresh_iEta
+
+            # S-curve sigma (enc)
+            ietaENC_Mean = np.mean(allENCByiEta[ieta][allENCByiEta[ieta] != 0])
+            ietaENC_Std = np.std(allENCByiEta[ieta][allENCByiEta[ieta] != 0])
+
+            hENC_iEta = r.TH1F(
+                    "hScurveSigmaDist_ieta%i"%(ieta),
+                    "i#eta=%i;S-Curve Mean #left(fC#right);N"%(ieta),
+                    80, 
+                    ietaENC_Mean - 5. * ietaENC_Std, 
+                    ietaENC_Mean + 5. * ietaENC_Std )
+            
+            for enc in allENCByiEta[ieta][allENCByiEta[ieta] != 0]:
+                hENC_iEta.Fill(enc)
+                pass
+            gENC_iEta = r.TGraphErrors(hENC_iEta)
+            gENC_iEta.SetName("gScurveSigmaDist_ieta%i"%(ieta))
+            gENC_iEta.GetXaxis().SetTitle("scurve sigma pos #left(fC#right)")
+            gENC_iEta.GetYaxis().SetTitle("Entries / %f fC"%(ietaENC_Std/8.))
+            encSummaryPlotsByiEta[ieta] = gENC_iEta
+            pass
+        pass # end if options.performFit
+
     # Check if inputfile is trimmed
     trimVcal = None
     if options.IsTrimmed:
@@ -604,6 +672,9 @@ if __name__ == '__main__':
         saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None, drawOpt="APE1")
         saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None, drawOpt="AP")
         saveSummary(encSummaryPlots, None, '%s/ScurveSigmaSummary.png'%filename, None, drawOpt="AP")
+
+        saveSummaryByiEta(threshSummaryPlotsByiEta, '%s/ScurveMeanSummaryByiEta.png'%filename, None, drawOpt="AP")
+        saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
         confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
@@ -676,6 +747,14 @@ if __name__ == '__main__':
         gDetThresh_All.Write()
         hDetENC_All.Write()
         gDetENC_All.Write()
-    
+   
+        for ieta in range(1,9):
+            dir_iEta = dirSummary.mkdir("ieta%i"%ieta)
+            dir_iEta.cd()
+            threshSummaryPlotsByiEta[ieta].Write()
+            encSummaryPlotsByiEta[ieta].Write()
+            pass
+        pass
+
     # Close output root file
     outF.Close()

@@ -40,14 +40,14 @@ def getCyclicColor(idx):
 
     colors = {
         0:r.kBlack,
-        1:r.kRed-1,
-        2:r.kGreen-1,
+        1:r.kGreen-1,
+        2:r.kRed-1,
         3:r.kBlue-1,
-        4:r.kRed-2,
-        5:r.kGreen-2,
+        4:r.kGreen-2,
+        5:r.kRed-2,
         6:r.kBlue-2,
-        7:r.kRed-3,
-        8:r.kGreen-3,
+        7:r.kGreen-3,
+        8:r.kRed-3,
         9:r.kBlue-3,
             }
 
@@ -259,6 +259,35 @@ def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
         else:
             return modified_z_score < -1.0 * thresh
 
+def make2x4Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv=None):
+    """
+    Creates a 2x4 canvas for summary plots.
+
+    name - TName of output TCanvas
+    initialContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on the canvas.
+    initialDrawOpt - draw option to be used when drawing elements of initialContent
+    secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
+    secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
+    canv - TCanvas previously produced by make3x8Canvas() or one that has been subdivided into a 3x8 grid
+    """
+
+    import ROOT as r
+    
+    if canv is None:
+        canv = r.TCanvas(name,name,500*8,500*3)
+        canv.Divide(4,2)
+
+    if initialContent is not None:
+        for ieta in range(1,9):
+            canv.cd(ieta)
+            initialContent[ieta].Draw(initialDrawOpt)
+    if secondaryContent is not None:
+        for ieta in range(1,9):
+            canv.cd(ieta)
+            secondaryContent[ieta].Draw("same%s"%secondaryDrawOpt)
+    canv.Update()
+    return canv
+
 def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv=None):
     """
     Creates a 3x8 canvas for summary plots.
@@ -396,7 +425,7 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     Makes an image with summary canvases drawn on it
 
     dictSummary        - dict of TObjects to be drawn, one per VFAT.  Each will be 
-                         drawn on a separate canvas
+                         drawn on a separate pad
     dictSummaryPanPin2 - Optional, as dictSummary but if the independent variable is the
                          readout connector pin this is the other side of the connector
     name               - Name of output image
@@ -440,6 +469,41 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
                 canv.Update()
                 pass
             pass
+        pass
+
+    canv.SaveAs(name)
+
+    return
+
+def saveSummaryByiEta(dictSummary, name='Summary', trimPt=None, drawOpt="colz"):
+    """
+    Makes an image with summary canvases drawn on it
+
+    dictSummary        - dict of TObjects to be drawn, one per ieta.  Each will be 
+                         drawn on a separate pad
+    name               - Name of output image
+    trimPt             - Optional, list of trim points the dependent variable was aligned
+                         to if it is the result of trimming.  One entry per VFAT
+    drawOpt            - Draw option
+    """
+
+    import ROOT as r
+
+    legend = r.TLegend(0.75,0.7,0.88,0.88)
+    r.gStyle.SetOptStat(0)
+    canv = make2x4Canvas(name='canv', initialContent=dictSummary, initialDrawOpt=drawOpt)
+    for ieta in range(0,8):
+        canv.cd(ieta+1)
+        if trimPt is not None and trimLine is not None:
+            trimLine = r.TLine(-0.5, trimVcal[ieta], 127.5, trimVcal[ieta])
+            legend.Clear()
+            legend.AddEntry(trimLine, 'trimVCal is %f'%(trimVcal[vfat]))
+            legend.Draw('SAME')
+            trimLine.SetLineColor(1)
+            trimLine.SetLineWidth(3)
+            trimLine.Draw('SAME')
+            pass
+        canv.Update()
         pass
 
     canv.SaveAs(name)

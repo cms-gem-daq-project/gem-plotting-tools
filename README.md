@@ -30,6 +30,10 @@ Table of Contents
             * [gemSCurveAnaToolkit.py Arguments](#gemscurveanatoolkitpy-arguments)
             * [gemSCurveAnaToolkit.py Input File](#gemscurveanatoolkitpy-input-file)
             * [gemSCurveAnaToolkit.py Example: Making a Plot](#gemscurveanatoolkitpy-example-making-a-plot)
+         * [Comparing Scurves Results Across Scandates: plotSCurveFitResults.py](#comparing-scurves-results-across-scandates-plotscurvefitresultspy)
+            * [plotSCurveFitResults.py Arguments](#plotscurvefitresultspy-arguments)
+            * [plotSCurveFitResults.py Input File](#plotscurvefitresultspy-input-file)
+            * [plotSCurveFitResults.py Example](#plotscurvefitresultspy-example)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -427,3 +431,38 @@ gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna
 ```
 
 This will produce a `*.png` file for each of the scandates defined in `listOfScanDates_Scurve.txt` and one `*.png` file showing all the scurves with their fits drawn on it as a summary.  Additionally an output `TFile` will be produced containing each of the scurves and their fits.
+
+### Comparing Scurves Results Across Scandates: plotSCurveFitResults.py
+While `gemTreeDrawWrapper.py` and `gemPlotter.py` allow you to plot observables from multiple runs sometimes you are interested in seeing the results made from `anaUltraScurve.py`, from multiple scandates, on the same set of `TCanvas`es.  The tool `plotSCurveFitResults.py` allows you to do this.  The tool will create five output `*.png` files and one `TFile` which stores relevant plots for each VFAT from each of the input scandates.  These five `*.png` files are:
+
+- `scurveFitSummaryGridAllScandates.png`, shows the `fitSummary` curves from all input scandates on one `TCanvas` in a 3-by-8 grid,
+- `scurveMeanGridAllScandates.png`, shows the distribution of s-curve mean positions from each VFAT from all input scandates on one `TCanvas` in a 3-by-8 grid,
+- `scurveSigmaGridAllScandates.png`, as `scurveMeanGridAllScandates.png` but for s-curve sigma,
+- `canvSCurveSigmaDetSumAllScandates.png`, shows a summary distribution of s-curve sigma positions from all VFATs of the detector from all scandates on one `TCanvas`, and
+- `canvSCurveMeanDetSumAllScandates.png`, as `canvSCurveSigmaDetSumAllScandates.png` but for s-curve mean.
+
+The files will be found in `$ELOG_PATH` along with the output `TFile`, named `scurveFitResultPlots.root`.
+
+#### plotSCurveFitResults.py Arguments
+
+| Name | Type | Description |
+| :--: | :--: | :---------- |
+| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `plotSCurveFitResults.py`.  The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemPlotterpy-input-file) for more details. |
+| `--alphaLabels` | none | When providing this flag `plotSCurveFitResults.py` will interpret the **Indep. Variable** as a string. |
+| `--anaType` | string | Analysis type to be executed, taken from the list {'scurveAna','trimAna'}. |
+| `--drawLeg` | none | Draws a TLegend on the output plots. For those 3x8 grid plots the legend will only be drawn on the plot for VFAT0. |
+| `--rootName` | string | Name of output `TFile`.  This file will be found in `$ELOG_PATH`. |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
+
+#### plotSCurveFitResults.py Input File
+The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemplotterpy-input-file) for more details.  Note that here the **Indep. Variable** for each row will be used as the `TLegend` entry if the `--drawLeg` argument is supplied.
+
+#### plotSCurveFitResults.py Example
+To plot results from a set of scandates defined in `listOfScanDates_Scurve.txt` taken by either `ultraScurve.py` or `trimChamber.py` and analyzed with `anaUltraScurve.py` you would call:
+
+```
+plotSCurveFitResults.py --anaType=scurveAna --drawLeg -i listOfScanDates_Scurve.txt --alphaLabels
+```
+
+This will produce the five `*.png` files mentioned above along with the output `TFile`.
