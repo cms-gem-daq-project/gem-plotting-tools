@@ -547,7 +547,7 @@ if __name__ == '__main__':
             threshSummaryPlots[vfat] = gThresh
 
             # Make effective pedestal summary plot - bin size is fixed
-            histEffPed = r.TH1F("scurveEffPed_vfat%i"%vfat,"VFAT %i;S-Curve Effective Pedestal #left(fC#right);N"%vfat,
+            histEffPed = r.TH1F("scurveEffPed_vfat%i"%vfat,"VFAT %i;S-Curve Effective Pedestal #left(N#right);N"%vfat,
                                 nPulses+1, -0.5, nPulses+0.5)
             histEffPed.Sumw2()
             for effPed in allEffPed[(vfat*128):((vfat+1)*128)]:
@@ -561,7 +561,7 @@ if __name__ == '__main__':
             histEffPed.SetLineColor(r.kRed)
             #gEffPed = r.TGraphErrors(histEffPed)
             #gEffPed.SetName("gScurveEffPedDist_vfat%i"%vfat)
-            #gEffPed.GetXaxis().SetTitle("scurve effective pedestal #left(fC#right)")
+            #gEffPed.GetXaxis().SetTitle("scurve effective pedestal #left(N#right)")
             #gEffPed.GetYaxis().SetTitle("Entries / %f fC"%(thisVFAT_EffPedStd/4.))
             #effPedSummaryPlots[vfat] = gEffPed
             effPedSummaryPlots[vfat] = histEffPed
@@ -602,7 +602,7 @@ if __name__ == '__main__':
         gDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
 
         # Make a EffPed Summary Dist For the entire Detector
-        hDetEffPed_All = r.TH1F("hScurveEffPedDist_All","All VFATs;S-Curve Effective Pedestal #left(fC#right);N",
+        hDetEffPed_All = r.TH1F("hScurveEffPedDist_All","All VFATs;S-Curve Effective Pedestal #left(N#right);N",
                                 nPulses+1, -0.5, nPulses+0.5)
         for effPed in allEffPed[allEffPed > -1]:
             hDetEffPed_All.Fill(effPed)
@@ -614,7 +614,7 @@ if __name__ == '__main__':
         hDetEffPed_All.SetLineColor(r.kRed)
         gDetEffPed_All = r.TGraphErrors(hDetEffPed_All)
         gDetEffPed_All.SetName("gScurveEffPedDist_All")
-        gDetEffPed_All.GetXaxis().SetTitle("scurve effective pedestal #left(fC#right)")
+        gDetEffPed_All.GetXaxis().SetTitle("scurve effective pedestal #left(N#right)")
         gDetEffPed_All.GetYaxis().SetTitle("Entries")
 
         # Make a ENC Summary Dist For the entire Detector
@@ -657,7 +657,7 @@ if __name__ == '__main__':
             # S-curve effective pedestal
             hEffPed_iEta = r.TH1F(
                     "hScurveEffPedDist_ieta%i"%(ieta),
-                    "i#eta=%i;S-Curve Effective Pedestal #left(fC#right);N"%(ieta),
+                    "i#eta=%i;S-Curve Effective Pedestal #left(N#right);N"%(ieta),
                      nPulses+1, -0.5, nPulses+0.5)
             
             for effPed in allEffPedByiEta[ieta][allEffPedByiEta[ieta] > -1]:
