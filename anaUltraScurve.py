@@ -176,8 +176,8 @@ if __name__ == '__main__':
         myT = r.TTree('scurveFitTree','Tree Holding FitData')
 
     tuple_calInfo = parseCalFile(options.calFile)
-    calDAC2Q_Intercept = tuple_calInfo[0]
-    calDAC2Q_Slope = tuple_calInfo[1]
+    calDAC2Q_Slope = tuple_calInfo[0]
+    calDAC2Q_Intercept = tuple_calInfo[1]
     
     # Create output plot containers
     vSummaryPlots = ndict()
