@@ -607,7 +607,7 @@ if __name__ == '__main__':
         for effPed in allEffPed[allEffPed > -1]:
             hDetEffPed_All.Fill(effPed)
             pass
-        hDetEffPed_All.GetXaxis().SetTitle("scurve effective pedestal #left(fC#right)")
+        hDetEffPed_All.GetXaxis().SetTitle("scurve effective pedestal #left(N#right)")
         hDetEffPed_All.GetYaxis().SetTitle("Entries")
         hDetEffPed_All.SetMarkerStyle(21)
         hDetEffPed_All.SetMarkerColor(r.kRed)
