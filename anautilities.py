@@ -317,6 +317,60 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     canv.Update()
     return canv
 
+def parseCalFile(filename=None):
+    """
+    Gives the conversion between VCal/CFG_CAL_DAC to fC from either
+    an optional external file (filename) or the hard coded vfat2 
+    values.
+
+    Returns a tuple of numpy arrays where index 0 (1) of the tuple
+    corresponds to the slope (intercept) arrays.  The returned 
+    arrays are indexed by VFAT position.
+    
+    The conversion follows via:
+
+    fC = ret_tuple[0][vfat] * CAL_DAC + ret_tuple[1][vfat]
+
+    The structure of filename, if supplied, is expected to be:
+
+        vfatN/I:slope/F:intercept/F
+        0   0.2692  -2.629748
+        1   0.238106    -2.65316
+        2   0.2532  -2.193826
+        3   0.276783    -2.477547
+        ...
+        5   1.000000    0.000000    
+        ...
+        ...
+
+    Inputing a slope (intercept) of 1.0 (0.0) will keep the numbers
+    in DAC units
+    """
+
+    import numpy as np
+    import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
+    import ROOT as r
+
+    # Set the CAL DAC to fC conversion
+    calDAC2Q_b = np.zeros(24)
+    calDAC2Q_m = np.zeros(24)
+    if filename is not None:
+        list_bNames = ["vfatN","slope","intercept"]
+        calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
+        calTree.ReadFile(filename)
+        array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
+    
+        for dataPt in array_CalData:
+            calDAC2Q_b[dataPt['vfatN']] = dataPt['intercept']
+            calDAC2Q_m[dataPt['vfatN']] = dataPt['slope']
+            pass
+    else:
+        calDAC2Q_b = -0.8 * np.ones(24)
+        calDAC2Q_m = 0.05 * np.ones(24)
+        pass
+
+    return (calDAC2Q_m, calDAC2Q_b)
+
 def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     """
     Parses a filename which describes a list of scandates.  Two formats of the filename

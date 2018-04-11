@@ -95,7 +95,7 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="scurves"
     canv_dict = {}
 
     for vfat,histo in vfatHistos.iteritems():
-        canv_dict[vfat] = r.TCanvas("%s_vfat%i"%(obsName,vfat),"%s from VFAT%i"%(obsName,vfat),600,600)
+        canv_dict[vfat] = r.TCanvas("canv_%s_vfat%i"%(obsName,vfat),"%s from VFAT%i"%(obsName,vfat),600,600)
         canv_dict[vfat].Draw()
         canv_dict[vfat].cd()
         for binX in range(1,histo.GetNbinsX()+1):
@@ -128,11 +128,10 @@ def plotAllSCurvesOnCanvas(vfatHistos, vfatHistosPanPin2=None, obsName="scurves"
 if __name__ == '__main__':
     import os
     import numpy as np
-    import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
     import ROOT as r
     
     from array import array
-    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, saveSummary, saveSummaryByiEta
+    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
     from anaInfo import mappingNames, MaskReason
     from fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -175,22 +174,10 @@ if __name__ == '__main__':
     outF = r.TFile(filename+'/'+outfilename, 'recreate')
     if options.performFit:
         myT = r.TTree('scurveFitTree','Tree Holding FitData')
-    
-    # Set the CAL DAC to fC conversion
-    calDAC2Q_Intercept = np.zeros(24)
-    calDAC2Q_Slope = np.zeros(24)
-    if options.calFile is not None:
-        list_bNames = ["vfatN","slope","intercept"]
-        calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
-        calTree.ReadFile(options.calFile)
-        array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
-    
-        for dataPt in array_CalData:
-            calDAC2Q_Intercept[dataPt['vfatN']] = dataPt['intercept']
-            calDAC2Q_Slope[dataPt['vfatN']] = dataPt['slope']
-    else:
-        calDAC2Q_Intercept = -0.8 * np.ones(24)
-        calDAC2Q_Slope = 0.05 * np.ones(24)
+
+    tuple_calInfo = parseCalFile(options.calFile)
+    calDAC2Q_Slope = tuple_calInfo[0]
+    calDAC2Q_Intercept = tuple_calInfo[1]
     
     # Create output plot containers
     vSummaryPlots = ndict()
@@ -292,11 +279,16 @@ if __name__ == '__main__':
     # Refactor this using root_numpy???
     dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
     listOfBranches = inF.scurveTree.GetListOfBranches()
+    nPulses = -1
     for event in inF.scurveTree:
         vthr_list[event.vfatN][event.vfatCH] = event.vthr
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
         trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
         
+        # store event count
+        if nPulses < 0:
+            nPulses = event.Nev
+
         # Store vfatID
         if not (dict_vfatID[event.vfatN] > 0):
             if 'vfatID' in listOfBranches:
@@ -444,15 +436,19 @@ if __name__ == '__main__':
         myT.Branch( 'ztrim', ztrim, 'ztrim/F')
     
         print("Storing Output Data")
-        fitSummaryPlots = {}
-        threshSummaryPlots = {}
-        threshSummaryPlotsByiEta = {}
         encSummaryPlots = {}
         encSummaryPlotsByiEta = {}
-        allThresh = np.zeros(3072)
-        allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+        fitSummaryPlots = {}
+        effPedSummaryPlots = {}
+        effPedSummaryPlotsByiEta = {}
+        threshSummaryPlots = {}
+        threshSummaryPlotsByiEta = {}
         allENC = np.zeros(3072)
         allENCByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+        allEffPed = -1.*np.ones(3072)
+        allEffPedByiEta = { ieta:(-1.*np.ones(3*128)) for ieta in range(1,9) }
+        allThresh = np.zeros(3072)
+        allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
         for vfat in range(0,24):
             stripPinOrChanArray = np.zeros(128)
             for chan in range (0, 128):
@@ -464,12 +460,14 @@ if __name__ == '__main__':
                 iphi = chamber_iEta2VFATPos[ieta][vfat]
 
                 # Store Values for making fit summary plots
-                allThresh[vfat*128 + chan] = scanFitResults[0][vfat][chan]
                 allENC[vfat*128 + chan] =  scanFitResults[1][vfat][chan]
+                allEffPed[vfat*128 + chan] = effectivePedestals[vfat][chan]
+                allThresh[vfat*128 + chan] = scanFitResults[0][vfat][chan]
                 stripPinOrChanArray[stripPinOrChan] = float(stripPinOrChan)
                 
-                allThreshByiEta[ieta][(iphi-1)*chan + chan] = scanFitResults[0][vfat][chan]
                 allENCByiEta[ieta][(iphi-1)*chan + chan] = scanFitResults[1][vfat][chan]
+                allEffPedByiEta[ieta][(iphi-1)*chan + chan] = effectivePedestals[vfat][chan]
+                allThreshByiEta[ieta][(iphi-1)*chan + chan] = scanFitResults[0][vfat][chan]
 
                 # Set arrays linked to TBranches
                 chi2[0] = scanFitResults[3][vfat][chan]
@@ -548,6 +546,26 @@ if __name__ == '__main__':
             gThresh.GetYaxis().SetTitle("Entries / %f fC"%(thisVFAT_ThreshStd/4.))
             threshSummaryPlots[vfat] = gThresh
 
+            # Make effective pedestal summary plot - bin size is fixed
+            histEffPed = r.TH1F("scurveEffPed_vfat%i"%vfat,"VFAT %i;S-Curve Effective Pedestal #left(N#right);N"%vfat,
+                                nPulses+1, -0.5, nPulses+0.5)
+            histEffPed.Sumw2()
+            for effPed in allEffPed[(vfat*128):((vfat+1)*128)]:
+                if effPed < 0: # Skip the case where it still equals the inital value
+                    continue
+                histEffPed.Fill(effPed)
+                pass
+            pass
+            histEffPed.SetMarkerStyle(21)
+            histEffPed.SetMarkerColor(r.kRed)
+            histEffPed.SetLineColor(r.kRed)
+            #gEffPed = r.TGraphErrors(histEffPed)
+            #gEffPed.SetName("gScurveEffPedDist_vfat%i"%vfat)
+            #gEffPed.GetXaxis().SetTitle("scurve effective pedestal #left(N#right)")
+            #gEffPed.GetYaxis().SetTitle("Entries / %f fC"%(thisVFAT_EffPedStd/4.))
+            #effPedSummaryPlots[vfat] = gEffPed
+            effPedSummaryPlots[vfat] = histEffPed
+            
             # Make enc summary plot - bin size is variable
             thisVFAT_ENCMean = np.mean(allENC[(vfat*128):((vfat+1)*128)])
             thisVFAT_ENCStd = np.std(allENC[(vfat*128):((vfat+1)*128)])
@@ -583,13 +601,29 @@ if __name__ == '__main__':
         gDetThresh_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
         gDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
 
+        # Make a EffPed Summary Dist For the entire Detector
+        hDetEffPed_All = r.TH1F("hScurveEffPedDist_All","All VFATs;S-Curve Effective Pedestal #left(N#right);N",
+                                nPulses+1, -0.5, nPulses+0.5)
+        for effPed in allEffPed[allEffPed > -1]:
+            hDetEffPed_All.Fill(effPed)
+            pass
+        hDetEffPed_All.GetXaxis().SetTitle("scurve effective pedestal #left(N#right)")
+        hDetEffPed_All.GetYaxis().SetTitle("Entries")
+        hDetEffPed_All.SetMarkerStyle(21)
+        hDetEffPed_All.SetMarkerColor(r.kRed)
+        hDetEffPed_All.SetLineColor(r.kRed)
+        gDetEffPed_All = r.TGraphErrors(hDetEffPed_All)
+        gDetEffPed_All.SetName("gScurveEffPedDist_All")
+        gDetEffPed_All.GetXaxis().SetTitle("scurve effective pedestal #left(N#right)")
+        gDetEffPed_All.GetYaxis().SetTitle("Entries")
+
         # Make a ENC Summary Dist For the entire Detector
         detENC_Mean = np.mean(allENC[allENC != 0]) #Don't consider intial values
         detENC_Std = np.std(allENC[allENC != 0]) #Don't consider intial values
-        hDetENC_All = r.TH1F("hScurveSigmaDist_All","All VFATs;S-Curve Mean #left(fC#right);N",
+        hDetENC_All = r.TH1F("hScurveSigmaDist_All","All VFATs;S-Curve Sigma #left(fC#right);N",
                             100, detENC_Mean - 5. * detENC_Std, detENC_Mean + 5. * detENC_Std )
-        for thresh in allENC[allENC != 0]:
-            hDetENC_All.Fill(thresh)
+        for enc in allENC[allENC != 0]:
+            hDetENC_All.Fill(enc)
             pass
         hDetENC_All.GetXaxis().SetTitle("scurve sigma #left(fC#right)")
         hDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/10.))
@@ -620,13 +654,32 @@ if __name__ == '__main__':
             gThresh_iEta.GetYaxis().SetTitle("Entries / %f fC"%(ietaThresh_Std/8.))
             threshSummaryPlotsByiEta[ieta] = gThresh_iEta
 
+            # S-curve effective pedestal
+            hEffPed_iEta = r.TH1F(
+                    "hScurveEffPedDist_ieta%i"%(ieta),
+                    "i#eta=%i;S-Curve Effective Pedestal #left(N#right);N"%(ieta),
+                     nPulses+1, -0.5, nPulses+0.5)
+            
+            for effPed in allEffPedByiEta[ieta][allEffPedByiEta[ieta] > -1]:
+                hEffPed_iEta.Fill(effPed)
+                pass
+            hEffPed_iEta.SetMarkerStyle(21)
+            hEffPed_iEta.SetMarkerColor(r.kRed)
+            hEffPed_iEta.SetLineColor(r.kRed)
+            #gEffPed_iEta = r.TGraphErrors(hEffPed_iEta)
+            #gEffPed_iEta.SetName("gScurveEffPedDist_ieta%i"%(ieta))
+            #gEffPed_iEta.GetXaxis().SetTitle("scurve effective pedestal #left(fC#right)")
+            #gEffPed_iEta.GetYaxis().SetTitle("Entries / %f fC"%(ietaEffPed_Std/8.))
+            #effPedSummaryPlotsByiEta[ieta] = gEffPed_iEta
+            effPedSummaryPlotsByiEta[ieta] = hEffPed_iEta
+
             # S-curve sigma (enc)
             ietaENC_Mean = np.mean(allENCByiEta[ieta][allENCByiEta[ieta] != 0])
             ietaENC_Std = np.std(allENCByiEta[ieta][allENCByiEta[ieta] != 0])
 
             hENC_iEta = r.TH1F(
                     "hScurveSigmaDist_ieta%i"%(ieta),
-                    "i#eta=%i;S-Curve Mean #left(fC#right);N"%(ieta),
+                    "i#eta=%i;S-Curve Sigma #left(fC#right);N"%(ieta),
                     80, 
                     ietaENC_Mean - 5. * ietaENC_Std, 
                     ietaENC_Mean + 5. * ietaENC_Std )
@@ -671,9 +724,11 @@ if __name__ == '__main__':
             saveSummary(vSummaryPlotsNoMaskedChan, None, '%s/PrunedSummary.png'%filename, trimVcal)
         saveSummary(fitSummaryPlots, None, '%s/fitSummary.png'%filename, None, drawOpt="APE1")
         saveSummary(threshSummaryPlots, None, '%s/ScurveMeanSummary.png'%filename, None, drawOpt="AP")
+        saveSummary(effPedSummaryPlots, None, '%s/ScurveEffPedSummary.png'%filename, None, drawOpt="E1")
         saveSummary(encSummaryPlots, None, '%s/ScurveSigmaSummary.png'%filename, None, drawOpt="AP")
 
         saveSummaryByiEta(threshSummaryPlotsByiEta, '%s/ScurveMeanSummaryByiEta.png'%filename, None, drawOpt="AP")
+        saveSummaryByiEta(effPedSummaryPlotsByiEta, '%s/ScurveEffPedSummaryByiEta.png'%filename, None, drawOpt="E1")
         saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
@@ -707,7 +762,7 @@ if __name__ == '__main__':
         
         canvOfScurveFits = {}
         for vfat in range(0,24):
-            canvOfScurveFits[vfat] = r.TCanvas("canvScurveFits_vfat%i"%vfat,"Scurve Fits from VFAT%i"%vfat,600,600)
+            canvOfScurveFits[vfat] = r.TCanvas("canv_scurveFits_vfat%i"%vfat,"Scurve Fits from VFAT%i"%vfat,600,600)
             canvOfScurveFits[vfat].cd()
             for chan in range (0,128):
                 if masks[vfat][chan]: # Do not draw fit for masked channels
@@ -736,6 +791,7 @@ if __name__ == '__main__':
                 vSummaryPlotsNoMaskedChanPanPin2[vfat].Write()
             fitSummaryPlots[vfat].Write()
             threshSummaryPlots[vfat].Write()
+            effPedSummaryPlots[vfat].Write()
             encSummaryPlots[vfat].Write()
             canvOfScurveHistosNoMaskedChan[vfat].Write()
             canvOfScurveFits[vfat].Write()
@@ -745,6 +801,8 @@ if __name__ == '__main__':
         dirSummary.cd()
         hDetThresh_All.Write()
         gDetThresh_All.Write()
+        hDetEffPed_All.Write()
+        gDetEffPed_All.Write()
         hDetENC_All.Write()
         gDetENC_All.Write()
    
@@ -752,6 +810,7 @@ if __name__ == '__main__':
             dir_iEta = dirSummary.mkdir("ieta%i"%ieta)
             dir_iEta.cd()
             threshSummaryPlotsByiEta[ieta].Write()
+            effPedSummaryPlotsByiEta[ieta].Write()
             encSummaryPlotsByiEta[ieta].Write()
             pass
         pass

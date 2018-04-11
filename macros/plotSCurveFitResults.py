@@ -53,7 +53,8 @@ if __name__ == '__main__':
     dict_fitSum = ndict()
     dict_ScurveMean = ndict() # Inner key: (0,23) follows vfat #, -1 is summary over all det
     dict_ScurveSigma = ndict() 
-   
+    dict_ScurveEffPed = ndict()
+
     dict_ScurveMeanByiEta = ndict()
     dict_ScurveSigmaByiEta = ndict() 
 
@@ -160,6 +161,17 @@ if __name__ == '__main__':
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetLineColor(getCyclicColor(idx))
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetMarkerColor(getCyclicColor(idx))
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetMarkerStyle(20+idx)
+        
+        dict_ScurveEffPed[chamberAndScanDatePair][-1] = scanFile.Get("Summary/hScurveEffPedDist_All")
+        dict_ScurveEffPed[chamberAndScanDatePair][-1].SetName(
+                    "%s_%s_%s"%(
+                        dict_ScurveEffPed[chamberAndScanDatePair][-1].GetName(),
+                        chamberAndScanDatePair[0],
+                        chamberAndScanDatePair[1])
+                )
+        dict_ScurveEffPed[chamberAndScanDatePair][-1].SetLineColor(getCyclicColor(idx))
+        dict_ScurveEffPed[chamberAndScanDatePair][-1].SetMarkerColor(getCyclicColor(idx))
+        dict_ScurveEffPed[chamberAndScanDatePair][-1].SetMarkerStyle(20+idx)
         pass
 
     # Define the TMultiGraph dictionaries
@@ -186,6 +198,7 @@ if __name__ == '__main__':
     # Make the summary canvases
     canvScurveMean_DetSum = r.TCanvas("canvSCurveMeanDetSumAllScandates","Scurve Mean - Detector Summary",600,600)
     canvScurveSigma_DetSum = r.TCanvas("canvSCurveSigmaDetSumAllScandates","Scurve Sigma - Detector Summary",600,600)
+    canvScurveEffPed_DetSum = r.TCanvas("canvSCurveEffPedDetSumAllScandates","Scurve EffPed - Detector Summary",600,600)
     plotLeg = r.TLegend(0.1,0.65,0.45,0.9)
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
         drawOpt="APE1"
@@ -256,6 +269,12 @@ if __name__ == '__main__':
         dict_mGraph_ScurveMean[-1].Add(dict_ScurveMean[chamberAndScanDatePair][-1])
         dict_mGraph_ScurveSigma[-1].Add(dict_ScurveSigma[chamberAndScanDatePair][-1])
 
+        canvScurveEffPed_DetSum.cd()
+        if idx == 0:
+            dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("E1")
+        else:
+            dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("sameE1")
+
         # Fill Legend - use VFAT0 of each
         plotLeg.AddEntry(dict_fitSum[chamberAndScanDatePair][0],chamberAndScanDatePair[2],"LPE")
         pass
@@ -281,6 +300,8 @@ if __name__ == '__main__':
     #dict_mGraph_ScurveSigma[-1].GetXaxis().SetRangeUser(0,5)
     #dict_mGraph_ScurveSigma[-1].GetYaxis().SetRangeUser(1e-1,1e3)
     #dict_mGraph_ScurveSigma[-1].Draw("APE1")
+
+    canvScurveEffPed_DetSum.cd().SetLogy()
 
     if options.drawLeg:
         # VFAT level
@@ -320,11 +341,15 @@ if __name__ == '__main__':
 
         canvScurveSigma_Grid_iEta.cd(1)
         plotLeg.Draw("same")
-        
+       
+        # Draw legend at the detector level
         canvScurveMean_DetSum.cd()
         plotLeg.Draw("same")
         
         canvScurveSigma_DetSum.cd()
+        plotLeg.Draw("same")
+        
+        canvScurveEffPed_DetSum.cd()
         plotLeg.Draw("same")
         pass
 
@@ -338,6 +363,7 @@ if __name__ == '__main__':
     
     canvScurveMean_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_DetSum.GetName()))
     canvScurveSigma_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_DetSum.GetName()))
+    canvScurveEffPed_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveEffPed_DetSum.GetName()))
 
     # Save summary canvas objects in output root file
     outF = r.TFile("%s/%s"%(elogPath,options.rootName),options.rootOpt)
@@ -378,6 +404,7 @@ if __name__ == '__main__':
     dict_mGraph_ScurveMean[-1].Write()
     canvScurveSigma_DetSum.Write()
     dict_mGraph_ScurveSigma[-1].Write()
+    canvScurveEffPed_DetSum.Write()
 
     print "Your plots can be found in:"
     print ""
