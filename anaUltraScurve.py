@@ -64,7 +64,7 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
         
         # Determine the binY that corresponds to this charge value
         chargeBin = first_index_gt(listOfBinEdgesY[event.vfatN], charge)-1
-        
+
         # Fill Summary Histogram 
         if lutType is mappingNames[1] and vfatHistosPanPin2 is not None:
             if (stripPinOrChan < 64):
@@ -78,6 +78,7 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
             pass
         else:
             vfatHistos[event.vfatN].SetBinContent(stripPinOrChan+1,chargeBin,event.Nhits)
+            pass
 
     return
 
@@ -449,6 +450,7 @@ if __name__ == '__main__':
         allEffPedByiEta = { ieta:(-1.*np.ones(3*128)) for ieta in range(1,9) }
         allThresh = np.zeros(3072)
         allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+        
         for vfat in range(0,24):
             stripPinOrChanArray = np.zeros(128)
             for chan in range (0, 128):
@@ -463,7 +465,7 @@ if __name__ == '__main__':
                 allENC[vfat*128 + chan] =  scanFitResults[1][vfat][chan]
                 allEffPed[vfat*128 + chan] = effectivePedestals[vfat][chan]
                 allThresh[vfat*128 + chan] = scanFitResults[0][vfat][chan]
-                stripPinOrChanArray[stripPinOrChan] = float(stripPinOrChan)
+                stripPinOrChanArray[chan] = float(stripPinOrChan)
                 
                 allENCByiEta[ieta][(iphi-1)*chan + chan] = scanFitResults[1][vfat][chan]
                 allEffPedByiEta[ieta][(iphi-1)*chan + chan] = effectivePedestals[vfat][chan]
