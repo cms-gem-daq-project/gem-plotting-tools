@@ -236,6 +236,7 @@ if __name__ == '__main__':
                 dict_canvSCurveSigma[vfat].cd()
                 dict_mGraph_ScurveSigma[vfat].Draw(drawOpt)
                 dict_mGraph_ScurveSigma[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
+                dict_mGraph_ScurveSigma[vfat].GetXaxis().SetRangeUser(0.,10.)
                 dict_mGraph_ScurveSigma[vfat].Draw(drawOpt)
                 pass
             pass
@@ -262,6 +263,7 @@ if __name__ == '__main__':
                 dict_canvSCurveSigmaByiEta[ieta].cd()
                 dict_mGraph_ScurveSigmaByiEta[ieta].Draw(drawOpt)
                 dict_mGraph_ScurveSigmaByiEta[ieta].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
+                dict_mGraph_ScurveSigmaByiEta[ieta].GetXaxis().SetRangeUser(0.,10.)
                 dict_mGraph_ScurveSigmaByiEta[ieta].Draw(drawOpt)
                 pass
             pass
@@ -297,9 +299,9 @@ if __name__ == '__main__':
     canvScurveSigma_DetSum.cd()
     canvScurveSigma_DetSum.cd().SetLogy()
     dict_mGraph_ScurveSigma[-1].Draw("APE1")
-    #dict_mGraph_ScurveSigma[-1].GetXaxis().SetRangeUser(0,5)
+    dict_mGraph_ScurveSigma[-1].GetXaxis().SetRangeUser(0,10)
     #dict_mGraph_ScurveSigma[-1].GetYaxis().SetRangeUser(1e-1,1e3)
-    #dict_mGraph_ScurveSigma[-1].Draw("APE1")
+    dict_mGraph_ScurveSigma[-1].Draw("APE1")
 
     canvScurveEffPed_DetSum.cd().SetLogy()
 
