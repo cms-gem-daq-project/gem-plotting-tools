@@ -149,3 +149,15 @@ chamber_vfatDACSettings = {
     #        #"CFG_FORCE_EN_ZCC":1
     #        }
     }
+
+# Canvas to VFAT Position Mapping
+chamber_vfatPos2PadIdx = { }
+for vfat in range(0,24):
+    if (0 <= vfat and vfat < 8):
+        chamber_vfatPos2PadIdx[vfat] = vfat+17
+    elif (8 <= vfat and vfat < 16):
+        chamber_vfatPos2PadIdx[vfat] = vfat+1
+    elif (16 <= vfat and vfat < 24):
+        chamber_vfatPos2PadIdx[vfat] = vfat-15
+        pass # end if-elif statement
+    pass # end loop over all VFATs

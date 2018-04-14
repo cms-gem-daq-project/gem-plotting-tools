@@ -301,6 +301,7 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     """
 
     import ROOT as r
+    from mapping.chamberInfo import chamber_vfatPos2PadIdx
     
     if canv is None:
         canv = r.TCanvas(name,name,500*8,500*3)
@@ -308,11 +309,11 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
 
     if initialContent is not None:
         for vfat in range(24):
-            canv.cd(vfat+1)
+            canv.cd(chamber_vfatPos2PadIdx[vfat])
             initialContent[vfat].Draw(initialDrawOpt)
     if secondaryContent is not None:
         for vfat in range(24):
-            canv.cd(vfat+1)
+            canv.cd(chamber_vfatPos2PadIdx[vfat])
             secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
     canv.Update()
     return canv
@@ -489,13 +490,14 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     """
 
     import ROOT as r
+    from mapping.chamberInfo import chamber_vfatPos2PadIdx
 
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
     if dictSummaryPanPin2 is None:
         canv = make3x8Canvas('canv', dictSummary, drawOpt)
         for vfat in range(0,24):
-            canv.cd(vfat+1)
+            canv.cd(chamber_vfatPos2PadIdx[vfat])
             if trimPt is not None and trimLine is not None:
                 trimLine = r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat])
                 legend.Clear()

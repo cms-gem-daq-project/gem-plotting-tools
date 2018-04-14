@@ -47,12 +47,13 @@ for event in inF.rateTree :
 #Save Output
 outF.cd()
 from anautilities import make3x8Canvas
+from mapping.chamberInfo import chamber_vfatPos2PadIdx
 canv_RateSummary = make3x8Canvas('canv_RateSummary', vRate, 'hist')
 dirVFATPlots = outF.mkdir("VFAT_Plots")
 dirRatePlots1D = dirVFATPlots.mkdir("Rate_Plots_1D")
 for vfat in range(0,24):
-    canv_RateSummary.cd(vfat).SetLogy()
-    canv_RateSummary.cd(vfat).Update()
+    canv_RateSummary.cd(chamber_vfatPos2PadIdx[vfat]).SetLogy()
+    canv_RateSummary.cd(chamber_vfatPos2PadIdx[vfat]).Update()
     dirRatePlots1D.cd()
     vRate[vfat].Write()
 canv_RateSummary.SaveAs(filename+'/RateSummary1D.png')
@@ -60,8 +61,8 @@ canv_RateSummary.SaveAs(filename+'/RateSummary1D.png')
 canv_Rate2DSummary = make3x8Canvas('canv_Rate2DSummary', vRate2D, 'colz')
 dirRatePlots2D = dirVFATPlots.mkdir("Rate_Plots_2D")
 for vfat in range(0,24):
-    canv_Rate2DSummary.cd(vfat).SetLogz()
-    canv_Rate2DSummary.cd(vfat).Update()
+    canv_Rate2DSummary.cd(chamber_vfatPos2PadIdx[vfat]).SetLogz()
+    canv_Rate2DSummary.cd(chamber_vfatPos2PadIdx[vfat]).Update()
     dirRatePlots2D.cd()
     vRate2D[vfat].Write()
 canv_Rate2DSummary.SaveAs(filename+'/RateSummary2D.png')
