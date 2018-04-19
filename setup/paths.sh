@@ -49,6 +49,29 @@ then
     python $GEM_PLOTTING_PROJECT/mapping/buildMapFiles.py 
 fi
 
+# Setting python virtualenv
+SYSTEM_INFO="$(uname -a)"
+
+echo $SYSTEM_INFO
+if [[ $SYSTEM_INFO == *"lxplus"* ]];
+then
+    source $GEM_PLOTTING_PROJECT/setup/createVirtualEnv.sh
+elif [[ $SYSTEM_INFO == *"gem904"* ]];
+then
+    print gem904
+    KERNEL_VER="$(uname -r)"
+    if [[ $KERNEL_VER == *"2.6."* ]];
+    then
+        source /data/bigdisk/sw/venvs/slc6/default/bin/activate
+    elif [[ $KERNEL_VER == *"3.10."* ]];
+    then
+        source /data/bigdisk/sw/venvs/cc7/default/bin/activate
+    else
+      echo "operating system not recognized"
+      echo "virtualenv is not set"
+    fi
+fi
+
 # Done
 # echo GEM_PLOTTING_PROJECT $GEM_PLOTTING_PROJECT
 # echo "Setup Complete"
