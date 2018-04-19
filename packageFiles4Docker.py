@@ -49,7 +49,7 @@ if __name__ == '__main__':
                       help="Specify Input Filename for list of scandates for trim files", metavar="fileListTrim")
     parser.add_option("--ignoreFailedReads", action="store_true", dest="ignoreFailedReads",
                       help="Ignore failed read errors in tarball creation (e.g. due to missing files), use wisely", 
-                      dest="ignoreFailedReads", metavar="ignoreFailedReads")
+                      metavar="ignoreFailedReads")
     parser.add_option("--onlyRawData", action="store_true", dest="onlyRawData",
                       help="Files produced by anaUltra*.py scripts will not be included", metavar="onlyRawData")
     parser.add_option("--tarBallName", type="string", dest="tarBallName", default="testFiles.tar",
