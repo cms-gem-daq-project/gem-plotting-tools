@@ -20,4 +20,5 @@
 
 #Don't ignore select scripts
 !macros/gemPlotterAllChannels.sh
+!setup/createVirtualEnv.sh
 !setup/paths.sh
