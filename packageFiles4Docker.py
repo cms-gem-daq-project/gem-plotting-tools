@@ -50,6 +50,8 @@ if __name__ == '__main__':
     parser.add_option("--ignoreFailedReads", action="store_true", dest="ignoreFailedReads",
                       help="Ignore failed read errors in tarball creation (e.g. due to missing files), use wisely", 
                       dest="ignoreFailedReads", metavar="ignoreFailedReads")
+    parser.add_option("--onlyRawData", action="store_true", dest="onlyRawData",
+                      help="Files produced by anaUltra*.py scripts will not be included", metavar="onlyRawData")
     parser.add_option("--tarBallName", type="string", dest="tarBallName", default="testFiles.tar",
                       help="Specify the name of the output tarball", metavar="tarBallName")
     parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
@@ -119,7 +121,8 @@ if __name__ == '__main__':
         anaFile = (tree_names[anaKey])[0]
 
         rawFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], rawFile ) # basePath/scandate/rawFile
-        anaFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], anaFile )# basePath/scandate/anaFile
+        if not options.onlyRawData:
+            anaFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], anaFile )# basePath/scandate/anaFile
         tarBallCmd.append(rawFilePath)
         tarBallCmd.append(anaFilePath)
         
