@@ -48,8 +48,7 @@ if __name__ == '__main__':
     parser.add_option("--fileListTrim", type="string", dest="fileListTrim", default=None,
                       help="Specify Input Filename for list of scandates for trim files", metavar="fileListTrim")
     parser.add_option("--ignoreFailedReads", action="store_true", dest="ignoreFailedReads",
-                      help="Ignore failed read errors in tarball creation (e.g. due to missing files), use wisely", 
-                      metavar="ignoreFailedReads")
+                      help="Ignores failed read errors in tarball creation", metavar="ignoreFailedReads")
     parser.add_option("--onlyRawData", action="store_true", dest="onlyRawData",
                       help="Files produced by anaUltra*.py scripts will not be included", metavar="onlyRawData")
     parser.add_option("--tarBallName", type="string", dest="tarBallName", default="testFiles.tar",
@@ -121,10 +120,11 @@ if __name__ == '__main__':
         anaFile = (tree_names[anaKey])[0]
 
         rawFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], rawFile ) # basePath/scandate/rawFile
+        tarBallCmd.append(rawFilePath)
         if not options.onlyRawData:
             anaFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], anaFile )# basePath/scandate/anaFile
-        tarBallCmd.append(rawFilePath)
-        tarBallCmd.append(anaFilePath)
+            tarBallCmd.append(anaFilePath)
+            pass
         
     # Make the fake chamberInfo.py file
     tmpChamberInfoFile = open("chamberInfo.py_tmp", "w")
