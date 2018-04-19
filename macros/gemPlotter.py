@@ -175,7 +175,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
 
 if __name__ == '__main__':
     from anaInfo import tree_names
-    from anautilities import parsedListOfScanDates
+    from anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from macros.plotoptions import parser
     
