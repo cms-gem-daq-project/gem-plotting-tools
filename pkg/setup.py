@@ -3,7 +3,8 @@ from setuptools import setup,find_packages
 
 from os import listdir
 from os.path import isfile,join
-scriptdir  = 'gempython/gemplotting/bin'
+
+scriptdir  = 'gempython/scripts'
 scriptpath = '/opt/cmsgemos/bin'
 scripts    = listdir(scriptdir)
 
@@ -17,12 +18,13 @@ def getscripts():
     # return dict(('{0:s}/{1:s}'.format(scriptpath,x),
     #       '{0:s}/{1:s}'.format(scriptdir,x)) for x in scripts if isfile(join(scriptdir,x)) )
     return ['{0:s}/{1:s}'.format(scriptdir,x) for x in scripts if isfile(join(scriptdir,x)) ]
+    # return ['gempython/scripts/{0:s}'.format(x) for x in scripts if isfile(join(scriptdir,x)) ]
 
 def getpkgdata():
     # actual package data
     data = dict((pkg,['*.txt','*.so']) for pkg in __pythonmodules__)
     # hack just to get the build to work
-    data['gempython/bin'] = ['gempython/gemplotting/bin/*.py']
+    data['gempython/scripts'] = ['gempython/scripts/*.py']
     return data
 
 def getreqs():
@@ -41,7 +43,7 @@ setup(name             = '__packagename__',
       author_email     = 'cms-gem-online-sw@cern.ch',
       # url              = __url__,
       url              = 'https://cms-gem-daq-project.github.io/gem-plotting-tools',
-      install_requires = getreqs(),
+      # install_requires = getreqs(),
       # install_requires = ['numpy>=1.7', 'root_numpy>=4.7'],
       # scripts          = getscripts(),
       # build_requires   = '__build_requires__',
@@ -49,11 +51,13 @@ setup(name             = '__packagename__',
       # packages         = __pythonmodules__, # for PEP420 native namespace util
       packages           = find_packages(), # for pkgutil namespace method
       # package_dir      = {'' : ''},
+      include_package_data = True,
       package_data     = getpkgdata(),
       # dependency_links   = ['http://cmsgemos.web.cern.ch/cmsgemos/repo/tarball/master#egg=package-1.0']
       zip_safe         = False,
       data_files       = [('/opt/cmsgemos/bin', ['{0:s}/{1:s}'.format(scriptdir,x) for x in scripts if isfile(join(scriptdir,x))])],
+                          # ('gempython/scripts', ['{0:s}/{1:s}'.format(scriptdir,x) for x in scripts if isfile(join(scriptdir,x))])],
       build_requires   = ['importlib; python_version=="2.6"','setuptools>=25.0','setuptools_scm'],
       setup_requires   = ['importlib; python_version=="2.6"','setuptools>=25.0'],
-      license          = '__license__',
+      license          = 'MIT',
 )
