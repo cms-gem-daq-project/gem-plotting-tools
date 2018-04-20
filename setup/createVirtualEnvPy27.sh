@@ -14,9 +14,9 @@ then
     # make env
     mkdir -p $VENV_BASE
     source /opt/rh/python27/enable
+    export PYTHONDIR=/opt/rh/python27/root/usr
     export PYTHONPATH=$PYTHONPATH:$ROOTSYS/lib
     export LD_LIBRARY_PATH=$ROOTSYS/lib:$PYTHONDIR/lib:$LD_LIBRARY_PATH:/opt/rh/python27/root/usr/lib64
-    export PYTHONDIR=/opt/rh/python27/root/usr
     echo VENV_BASE $VENV_BASE
     virtualenv $VENV_BASE -p python --system-site-packages
     source $VENV_BASE/bin/activate
@@ -38,9 +38,9 @@ then
     more $GEM_PLOTTING_PROJECT/requirements.txt 2>&1 | tee -a $VENV_BASE/venvInfo.txt
 else
     source /opt/rh/python27/enable
+    export PYTHONDIR=/opt/rh/python27/root/usr
     export PYTHONPATH=$PYTHONPATH:$ROOTSYS/lib
     export LD_LIBRARY_PATH=$ROOTSYS/lib:$PYTHONDIR/lib:$LD_LIBRARY_PATH:/opt/rh/python27/root/usr/lib64
-    export PYTHONDIR=/opt/rh/python27/root/usr
     source $VENV_BASE/bin/activate
     #echo "virtualenv info:"
     #more $VENV_BASE/venvInfo.txt
