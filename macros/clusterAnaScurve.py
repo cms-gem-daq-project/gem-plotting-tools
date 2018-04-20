@@ -7,7 +7,7 @@ if __name__ == '__main__':
     launch anaUltraScurve.py
     """
     
-    from optparse import OptionParser
+    from optparse import OptionParser, OptionGroup
     parser = OptionParser()
     parser.add_option("--anaType", type="string", dest="anaType",
                       help="Analysis type to be executed, from list {'scurve','trim'}", metavar="anaType")
@@ -26,7 +26,7 @@ if __name__ == '__main__':
                       help="Tab delimited file specifying chamber name and scandates to analyze", metavar="filename")
     parser.add_option("-p","--panasonic", action="store_true", dest="PanPin",
                       help="Make plots vs Panasonic pins instead of strips", metavar="PanPin")
-    parser.add_option("-q","--queue", type="string", dest="queue", default="8nm",
+    parser.add_option("-q","--queue", type="string", dest="queue", default="1nh",
                         help="queue to submit your jobs to", metavar="queue")
     parser.add_option("-t", "--type", type="string", dest="GEBtype", default="long",
                       help="Specify GEB (long/short)", metavar="GEBtype")
@@ -34,6 +34,24 @@ if __name__ == '__main__':
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
     parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
                       help="Specify the p value of the trim", metavar="ztrim")
+    
+    chanMaskGroup = OptionGroup(
+            parser,
+            "Options for channel mask decisions"
+            "Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
+    chanMaskGroup.add_option("--maxEffPedPercent", type="float", dest="maxEffPedPercent", default=0.05,
+                      help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set",
+                      metavar="maxEffPedPercent")
+    chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
+                      help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
+                      metavar="highNoiseCut")
+    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=4.14E-02,
+                      help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
+                      metavar="deadChanCutLow")
+    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=1.09E-01,
+                      help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
+                      metavar="deadChanCutHigh")
+    parser.add_option_group(chanMaskGroup)
     
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
@@ -110,11 +128,15 @@ if __name__ == '__main__':
         jobScript.write('source %s/gem-plotting-tools/setup/paths.sh\n'%buildHome)
 
         # make the python command
-        pythonCmd = 'anaUltraScurve.py -i %s -t %s --zscore=%f --ztrim=%f'%(
+        pythonCmd = 'anaUltraScurve.py -i %s -t %s --zscore=%f --ztrim=%f --maxEffPedPercent=%f --highNoiseCut=%f --deadChanCutLow=%f --deadChanCutHigh=%f'%(
                 jobInputFile,
                 options.GEBtype,
                 options.zscore,
-                options.ztrim)
+                options.ztrim,
+                options.maxEffPedPercent,
+                options.highNoiseCut,
+                options.deadChanCutLow,
+                options.deadChanCutHigh)
         if options.calFile is not None:
             pythonCmd += ' --calFile=%s'%(options.calFile)
             pass
@@ -177,4 +199,4 @@ if __name__ == '__main__':
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=2")
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=ped_eff --make2D --alphaLabels -c -a --axisMax=1")
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1")
-    print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=1")
+    print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32")
