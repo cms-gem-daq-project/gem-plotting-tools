@@ -76,12 +76,13 @@ if __name__ == '__main__':
 
     # Prepare the commands for making the
     from gempython.utils.wrappers import envCheck, runCommand
-    envCheck('DATA_PATH')
     envCheck('BUILD_HOME')
-    #envCheck('ELOG_PATH')
+    envCheck('DATA_PATH')
+    envCheck('ELOG_PATH')
 
-    dataPath = os.getenv('DATA_PATH')
     buildHome= os.getenv('BUILD_HOME')
+    dataPath = os.getenv('DATA_PATH')
+    elogPath = os.getenv('ELOG_PATH')
 
     # Get info from input file
     from anautilities import getDirByAnaType, filePathExists, parseListOfScanDatesFile
@@ -121,11 +122,20 @@ if __name__ == '__main__':
         # script to be run by the cluster
         jobScriptName = "%s/clusterJob.sh"%dirPath
         jobScript = open(jobScriptName, 'w+')
+        #jobScript.write('scl enable python27 - << \EOF\n')
         jobScript.write('#!/bin/zsh\n')
+        jobScript.write('echo `python --version`\n')
+        jobScript.write('echo `gcc --version | grep "gcc"`\n')
+        jobScript.write('source /opt/rh/python27/enable\n')
+        jobScript.write('source /afs/cern.ch/sw/lcg/contrib/gcc/4.8.4/x86_64-slc6/setup.sh\n')
         jobScript.write('export BUILD_HOME=%s\n'%buildHome)
-        #jobScript.write('export DATA_PATH=%s'%dataPath)
+        jobScript.write('export DATA_PATH=%s\n'%dataPath)
+        jobScript.write('export ELOG_PATH=%s\n'%elogPath)
         jobScript.write('source %s/cmsgemos/setup/paths.sh\n'%buildHome)
         jobScript.write('source %s/gem-plotting-tools/setup/paths.sh\n'%buildHome)
+        jobScript.write('source $BUILD_HOME/venv/slc6/py27/bin/activate\n')
+        jobScript.write('echo `python --version`\n')
+        jobScript.write('echo `gcc --version | grep "gcc"`\n')
 
         # make the python command
         pythonCmd = 'anaUltraScurve.py -i %s -t %s --zscore=%f --ztrim=%f --maxEffPedPercent=%f --highNoiseCut=%f --deadChanCutLow=%f --deadChanCutHigh=%f'%(
@@ -155,6 +165,7 @@ if __name__ == '__main__':
         pythonCmd += '\n'
         
         jobScript.write(pythonCmd)
+        #jobScript.write('EOF')
         jobScript.close()
         runCommand( ['chmod', '+x', jobScriptName] )
 
@@ -163,9 +174,9 @@ if __name__ == '__main__':
                 '-q',
                 options.queue,
                 '-o',
-                jobStdOut,
+                "%s/jobOut.txt"%jobStdOut,
                 '-e',
-                jobStdErr,
+                "%s/jobErr.txt"%jobStdErr,
                 jobScriptName ]
 
         if options.debug:
