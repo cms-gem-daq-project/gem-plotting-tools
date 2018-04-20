@@ -51,7 +51,6 @@ fi
 
 # Setting python virtualenv
 SYSTEM_INFO="$(uname -a)"
-#echo $SYSTEM_INFO
 if [[ $SYSTEM_INFO == *"lxplus"* ]];
 then
     source /afs/cern.ch/sw/lcg/contrib/gcc/4.8.4/x86_64-slc6/setup.sh
