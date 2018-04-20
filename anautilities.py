@@ -434,6 +434,8 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
         if i==0:
             if len(analysisList) == 3:
                 strIndepVar = analysisList[2]
+            elif len(analysisList) == 2:
+                strIndepVar = analysisList[1]
             continue
 
         cName = analysisList[0]
