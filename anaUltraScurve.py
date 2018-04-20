@@ -363,18 +363,30 @@ if __name__ == '__main__':
             reason = np.zeros(128, dtype=int) # Not masked
             reason[hot] |= MaskReason.HotChannel
             reason[fitFailed] |= MaskReason.FitFailed
-            reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
-            reason[channelNoise > 20] |= MaskReason.HighNoise
-            reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
+            #reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
+            nDeadChan = 0
+            for chan in len(0,channelNoise):
+                if (4.14e-02 < channelNoise[chan] and channelNoise[chan] < 1.09e-01):
+                    reason[chan] |= MaskReason.DeadChannel
+                    nDeadChan+=1
+                    pass
+                pass
+            #reason[channelNoise > 20] |= MaskReason.HighNoise
+            reason[channelNoise > 1 ] |= MaskReason.HighNoise
+            #reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
+            reason[effectivePedestals[vfat] > (0.05 *fitter.Nev[vfat]) ] |= MaskReason.HighEffPed
             maskReasons.append(reason)
             masks.append(reason != MaskReason.NotMasked)
             print '| %i | %i | %i | %i | %i | %i |'%(
                     vfat,
-                    np.count_nonzero(fitter.isDead[vfat]),
+                    #np.count_nonzero(fitter.isDead[vfat]),
+                    np.count_nonzero(nDeadChan),
                     np.count_nonzero(hot),
                     np.count_nonzero(fitFailed),
-                    np.count_nonzero(channelNoise > 20),
-                    np.count_nonzero(effectivePedestals[vfat] > 50))
+                    #np.count_nonzero(channelNoise > 20),
+                    np.count_nonzero(channelNoise > 1),
+                    #np.count_nonzero(effectivePedestals[vfat] > 50))
+                    np.count_nonzero(effectivePedestals[vfat] > (0.05 *fitter.Nev[vfat])))
     
     # Make Distributions w/o Hot Channels
     if options.performFit:
