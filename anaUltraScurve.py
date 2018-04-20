@@ -139,10 +139,6 @@ if __name__ == '__main__':
     from gempython.utils.wrappers import envCheck
     from mapping.chamberInfo import chamber_iEta2VFATPos, chamber_vfatPos2iEta
 
-    #defaultVFATList='0'
-    #for vfat in range(1,24):
-    #    defaultVFATList+=(',%i'%vfat)
-
     from anaoptions import parser
     parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
                       help="Draw fit overlays for Chi2 > 10000", metavar="drawbad")
@@ -155,8 +151,6 @@ if __name__ == '__main__':
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
-    #parser.add_option("--vfatList", type="string", dest="vfatList", default=",".join([str(x) for x in range(0,24)]),
-    #                  help="Comma separated list of vfats positions to analyze", metavar="vfatList")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
 
@@ -186,8 +180,6 @@ if __name__ == '__main__':
     filename = options.filename[:-5]
     os.system("mkdir " + filename)
     
-    #listOfVFATs = options.vfatList.split(',')
-    #listOfVFATs = [int(vfat) for vfat in range(0,24)]
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
@@ -356,6 +348,7 @@ if __name__ == '__main__':
     
         # Determine hot channels
         print("Determining hot channels")
+        print("")
         masks = []
         maskReasons = []
         effectivePedestals = [ np.zeros(128) for vfat in range(0,24) ]
@@ -383,7 +376,6 @@ if __name__ == '__main__':
             reason = np.zeros(128, dtype=int) # Not masked
             reason[hot] |= MaskReason.HotChannel
             reason[fitFailed] |= MaskReason.FitFailed
-            #reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
             nDeadChan = 0
             for chan in range(0,len(channelNoise)):
                 if (options.deadChanCutLow < channelNoise[chan] and channelNoise[chan] < options.deadChanCutHigh):
@@ -391,9 +383,7 @@ if __name__ == '__main__':
                     nDeadChan+=1
                     pass
                 pass
-            #reason[channelNoise > 20] |= MaskReason.HighNoise
             reason[channelNoise > options.highNoiseCut ] |= MaskReason.HighNoise
-            #reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
             nHighEffPed = 0
             for chan in range(0, len(effectivePedestals)):
                 if (effectivePedestals[vfat][chan] > (options.maxEffPedPercent * fitter.Nev[vfat][chan]) ):
@@ -777,8 +767,8 @@ if __name__ == '__main__':
                     dict_vfatID[vfat],
                     chan,
                     trim_list[vfat][chan],
-                    masks[vfat][chan]),
-                    maskReasons[vfat][chan])
+                    masks[vfat][chan],
+                    maskReasons[vfat][chan]))
                 pass
             pass
         confF.close()
