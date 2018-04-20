@@ -778,7 +778,7 @@ if __name__ == '__main__':
                     chan,
                     trim_list[vfat][chan],
                     masks[vfat][chan]),
-                    maskReason[vfat][chan])
+                    maskReasons[vfat][chan])
                 pass
             pass
         confF.close()
