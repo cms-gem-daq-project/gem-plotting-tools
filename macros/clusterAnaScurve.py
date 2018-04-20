@@ -104,9 +104,9 @@ if __name__ == '__main__':
 
         # Check if file exists, if it does not write to output as commented line but skip to next input
         if not filePathExists(dirPath, tree_names[options.anaType][0]):
-            outputScanDatesFile.write('#%s\t%s'%(chamberAndScanDatePair[0],chamberAndScanDatePair[1]))
+            outputScanDatesFile.write('#%s\t%s\n'%(chamberAndScanDatePair[0],chamberAndScanDatePair[1]))
             continue
-        outputScanDatesFile.write('%s\t%s'%(chamberAndScanDatePair[0],chamberAndScanDatePair[1]))
+        outputScanDatesFile.write('%s\t%s\n'%(chamberAndScanDatePair[0],chamberAndScanDatePair[1]))
 
         # Input file
         jobInputFile = "%s/%s"%(dirPath, tree_names[options.anaType][0])
