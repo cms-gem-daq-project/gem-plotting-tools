@@ -159,6 +159,25 @@ if __name__ == '__main__':
     #                  help="Comma separated list of vfats positions to analyze", metavar="vfatList")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
+
+    from optparse import OptionGroup
+    chanMaskGroup = OptionGroup(
+            parser,
+            "Options for channel mask decisions"
+            "Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
+    chanMasks.add_option("--maxEffPedPercent", type="float", dest="maxEffPedPercent", default=0.05,
+                      help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set",
+                      metavar="maxEffPedPercent")
+    chanMasks.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
+                      help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
+                      metavar="highNoiseCut")
+    chanMasks.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=4.14E-02,
+                      help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
+                      metavar="deadChanCutLow")
+    chanMasks.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=4.14E-02,
+                      help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
+                      metavar="deadChanCutHigh")
+
     parser.set_defaults(outfilename="SCurveFitData.root")
     (options, args) = parser.parse_args()
     
@@ -365,16 +384,17 @@ if __name__ == '__main__':
             reason[fitFailed] |= MaskReason.FitFailed
             #reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
             nDeadChan = 0
-            for chan in len(0,channelNoise):
-                if (4.14e-02 < channelNoise[chan] and channelNoise[chan] < 1.09e-01):
+            for chan in range(0,len(channelNoise)):
+                if (options.deadChanCutLow < channelNoise[chan] and channelNoise[chan] < options.deadChanCutHigh):
                     reason[chan] |= MaskReason.DeadChannel
                     nDeadChan+=1
                     pass
                 pass
             #reason[channelNoise > 20] |= MaskReason.HighNoise
-            reason[channelNoise > 1 ] |= MaskReason.HighNoise
+            reason[channelNoise > options.highNoiseCut ] |= MaskReason.HighNoise
             #reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
-            reason[effectivePedestals[vfat] > (0.05 *fitter.Nev[vfat]) ] |= MaskReason.HighEffPed
+            hitsPerChan = np.array(fitter.Nev[vfat])
+            reason[effectivePedestals[vfat] > (options.maxEffPedPercent * hitsPerChan ) ] |= MaskReason.HighEffPed
             maskReasons.append(reason)
             masks.append(reason != MaskReason.NotMasked)
             print '| %i | %i | %i | %i | %i | %i |'%(
@@ -384,9 +404,9 @@ if __name__ == '__main__':
                     np.count_nonzero(hot),
                     np.count_nonzero(fitFailed),
                     #np.count_nonzero(channelNoise > 20),
-                    np.count_nonzero(channelNoise > 1),
+                    np.count_nonzero(channelNoise > options.highNoiseCut),
                     #np.count_nonzero(effectivePedestals[vfat] > 50))
-                    np.count_nonzero(effectivePedestals[vfat] > (0.05 *fitter.Nev[vfat])))
+                    np.count_nonzero(effectivePedestals[vfat] > (options.maxEffPedPercent * hitsPerChan)))
     
     # Make Distributions w/o Hot Channels
     if options.performFit:
