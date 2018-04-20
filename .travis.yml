@@ -98,7 +98,7 @@ script:
     - ls -laZ CHANGELOG.md
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm "
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
     - ls -laZ rpm
     - find ./rpm -iname '*.rpm' -o -iname '*.tar.gz' -o -iname '*.tbz2'
@@ -106,10 +106,11 @@ script:
     - "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop"
 
 .release: &release_template
+  skip_cleanup: true
   # publish to Github releases
   provider: releases
   api_key:
-    secure: GITHUB OAUTH TOKEN
+    secure: IZG4HXpAMFkAWzEnOG52/D3qg405xiNZQtVd+B6swV9Bb6/2/KGhPYWyb6ky06x83ZXZUtKG5QqE5/r7ohjcKuP1b25A3sSKr1iVdv9+8pRjahQ3aXWzQftmWW49ZAa/2GSwn+pHgXSHNcNW+CfidOSwCC6owt4RQxZuppoSjF7PeVWMUhNrwGukws0/jpBytahuhLIO4lOb4ShlsQqNjzkbmEsE2z0+zWpDeHN/sz0U71jFzaIG90Ygu/5huemS4g+jo7MWqtKVlKXe3j1qPgN15Wg5Rnm/osRwPpPTQz6MTOehn4WswYwYwGoMQ9I97RhxbB3QszRJHl4L7OxNJIcY2Pr3Nk9iRuvBSsdmgFBA8l2pxD14xCp1st4UfU35aQm84yG2VuLwys8KFjNFNap71BdoVQoZISThlagMKG6oWVLri1vfRaIcEJjT+s6blcK0CZ9xhMd6lVnYTOwDdJuIv3KcsQkzvF/9iiENkuH5PUU9HLVUw5/Nxjq3JoNzs9+ohIpgNLT4vNOMq5ZewCib5GDnIq732gOcuqNRZMTCRKY+/IgcPJJv935yGlcGiJ246Al1jhSS45rcvazgFty4NRwM41McaN83ZPqvqRLDRI4hRjlaEmb6fnDIZJbOLldJYjOOJxm+FbhPzWiYOOpjKllj/xQ7x0lsjLXEubY=
   file_glob: true
   file:
     - LICENSE
@@ -126,10 +127,9 @@ script:
   ## only deploy full release when the tag exactly matches vX.Y.Z (with or without the v)
   prerelease: false # for tags with pre in the name
   draft: false # for tags with pre in the nameprerelease: false
-  skip_cleanup: true
   on:
-    repo: cms-gem-daq-project/gem-plotting-tools
-    branch: master
+    repo: jsturdy/gem-plotting-tools
+    # branch: master
     tags: true
   after_deploy: skip
 
