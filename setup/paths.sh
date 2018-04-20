@@ -51,14 +51,18 @@ fi
 
 # Setting python virtualenv
 SYSTEM_INFO="$(uname -a)"
-
-echo $SYSTEM_INFO
+#echo $SYSTEM_INFO
 if [[ $SYSTEM_INFO == *"lxplus"* ]];
 then
-    source $GEM_PLOTTING_PROJECT/setup/createVirtualEnv.sh
+    source /afs/cern.ch/sw/lcg/contrib/gcc/4.8.4/x86_64-slc6/setup.sh
+    cd /afs/cern.ch/sw/lcg/app/releases/ROOT/6.06.08/x86_64-slc6-gcc48-opt/root
+    source bin/thisroot.sh
+    cd $BUILD_HOME
+    source $GEM_PLOTTING_PROJECT/setup/createVirtualEnvPy27.sh
+    export PYTHONPATH=$PYTHONPATH:$ROOTSYS/lib
 elif [[ $SYSTEM_INFO == *"gem904"* ]];
 then
-    print gem904
+    #print gem904
     KERNEL_VER="$(uname -r)"
     if [[ $KERNEL_VER == *"2.6."* ]];
     then
