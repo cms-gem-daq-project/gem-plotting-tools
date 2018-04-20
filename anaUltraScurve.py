@@ -165,18 +165,19 @@ if __name__ == '__main__':
             parser,
             "Options for channel mask decisions"
             "Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
-    chanMasks.add_option("--maxEffPedPercent", type="float", dest="maxEffPedPercent", default=0.05,
+    chanMaskGroup.add_option("--maxEffPedPercent", type="float", dest="maxEffPedPercent", default=0.05,
                       help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set",
                       metavar="maxEffPedPercent")
-    chanMasks.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
+    chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
                       help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
                       metavar="highNoiseCut")
-    chanMasks.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=4.14E-02,
+    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=4.14E-02,
                       help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
                       metavar="deadChanCutLow")
-    chanMasks.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=4.14E-02,
+    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=1.09E-01,
                       help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
                       metavar="deadChanCutHigh")
+    parser.add_option_group(chanMaskGroup)
 
     parser.set_defaults(outfilename="SCurveFitData.root")
     (options, args) = parser.parse_args()
