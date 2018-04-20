@@ -394,20 +394,22 @@ if __name__ == '__main__':
             #reason[channelNoise > 20] |= MaskReason.HighNoise
             reason[channelNoise > options.highNoiseCut ] |= MaskReason.HighNoise
             #reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
-            hitsPerChan = np.array(fitter.Nev[vfat])
-            reason[effectivePedestals[vfat] > (options.maxEffPedPercent * hitsPerChan ) ] |= MaskReason.HighEffPed
+            nHighEffPed = 0
+            for chan in range(0, len(effectivePedestals)):
+                if (effectivePedestals[vfat][chan] > (options.maxEffPedPercent * fitter.Nev[vfat][chan]) ):
+                    reason[chan] |= MaskReason.HighEffPed
+                    nHighEffPed+=1
+                    pass
+                pass
             maskReasons.append(reason)
             masks.append(reason != MaskReason.NotMasked)
             print '| %i | %i | %i | %i | %i | %i |'%(
                     vfat,
-                    #np.count_nonzero(fitter.isDead[vfat]),
-                    np.count_nonzero(nDeadChan),
+                    nDeadChan,
                     np.count_nonzero(hot),
                     np.count_nonzero(fitFailed),
-                    #np.count_nonzero(channelNoise > 20),
                     np.count_nonzero(channelNoise > options.highNoiseCut),
-                    #np.count_nonzero(effectivePedestals[vfat] > 50))
-                    np.count_nonzero(effectivePedestals[vfat] > (options.maxEffPedPercent * hitsPerChan)))
+                    nHighEffPed)
     
     # Make Distributions w/o Hot Channels
     if options.performFit:
@@ -767,15 +769,16 @@ if __name__ == '__main__':
         saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
-        confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
+        confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I:maskReason/I\n')
         for vfat in range(0,24):
             for chan in range (0, 128):
-                confF.write('%i\t%i\t%i\t%i\t%i\n'%(
+                confF.write('%i\t%i\t%i\t%i\t%i\t%i\n'%(
                     vfat,
                     dict_vfatID[vfat],
                     chan,
                     trim_list[vfat][chan],
-                    masks[vfat][chan]))
+                    masks[vfat][chan]),
+                    maskReason[vfat][chan])
                 pass
             pass
         confF.close()
