@@ -1,22 +1,15 @@
 #!/usr/bin/env python
 
-def makeInputList(chamberName, scanType):
-    ofname = getDirByAnaType(scanType,chamberName)+'listOfScanDates_gemPlotter.txt'
-    with open(template,"rt") as fin:
-        with open(ofname, "wt") as fout:
-            for line in fin:
-                fout.write(line.replace("GEMINI", chamberName)) 
-
 def makePlots(chamberName, scanType, vt1bump, elog_path):
-    call_command = 'gemPlotter.py --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
     os.system(call_command)
-    call_command = 'gemPlotter.py --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
     os.system(call_command)
-    call_command = 'gemPlotter.py --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
     os.system(call_command)
-    call_command = 'gemPlotter.py --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32'
     os.system(call_command)
-    call_command = 'gemPlotter.py --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates_gemPlotter.txt --anaType=scurveAna --branchName=vthr --alphaLabels -c -a'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=vthr --alphaLabels -c -a'
     os.system(call_command)
     call_command = 'mkdir -p '+elog_path+'/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
     os.system(call_command)
@@ -27,18 +20,31 @@ def makePlots(chamberName, scanType, vt1bump, elog_path):
   
 if __name__== '__main__':
     import os
-    from optparse import OptionParser
+    from optparse import OptionParser, OptionGroup
     from gempython.utils.wrappers import envCheck
-    from anautilities import getDirByAnaType
-    
+    from anautilities import getDirByAnaType, makeListOfScanDatesFile
+
     parser = OptionParser()
-    parser.add_option("-t", "--templatefile", type="string", dest="tfilename", default="listOfScanDates_gemPlotter.txt",
-                      help="Specify Template Filename", metavar="tfilename")
     parser.add_option("--vt1bump", type="int", dest="vt1bump", default=0,
                       help="Specify the value of vt1bump", metavar="vt1bump")
     parser.add_option("--scanType", type="string", dest="scanType", default="scurve",
                       help="Specify Scan Type", metavar="scanType")
-    
+    parser.add_option("--listOfScanDatesOnly", action="store_true", dest="listOfScanDatesOnly",
+                      help="Make a listOfScanDates.txt for each detector, no plots are made", metavar="listOfScanDatesOnly")
+
+    from datetime import datetime, timedelta 
+    date_two_weeks_ago = datetime.now() - timedelta(days=14)
+    defaultStartTime = date_two_weeks_ago.strftime("%Y.%m.%d.%H.%M")
+
+    dateOptions = OptionGroup(parser,
+            "Date Options"
+            "Options for specifying the starting and ending date range")
+    dateOptions.add_option("--startDate", type="string", dest="startDate", default=defaultStartTime,
+                      help="Starting date range in YYYY.MM.DD format", metavar="startDate")
+    dateOptions.add_option("--endDate", type="string", dest="endDate", default=None,
+                      help="Starting date range in YYYY.MM.DD format", metavar="endDate")
+
+    parser.add_option_group(dateOptions)
     (options, args) = parser.parse_args()
     
     from mapping.chamberInfo import chamber_config
@@ -47,15 +53,15 @@ if __name__== '__main__':
     envCheck('ELOG_PATH')
     dataPath  = os.getenv('DATA_PATH')
     elog_path = os.getenv("ELOG_PATH")
-    template = options.tfilename
     vt1bump = 'vt1bump'+str(options.vt1bump)
     scanType = options.scanType
-    
-    print "Options: vt1bump=%s, template=%s, dataPath=%s, scanType=%s"%(vt1bump, template, dataPath, scanType)
+   
+    print "Options: vt1bump=%s, dataPath=%s, scanType=%s"%(vt1bump, dataPath, scanType)
     for chamber in chamber_config.values():
-        makeInputList(chamber, scanType)
-        makePlots(chamber, scanType, vt1bump, elog_path)
-        call_command = 'rm '+getDirByAnaType(scanType,chamber)+'listOfScanDates_gemPlotter.txt'
-        os.system(call_command) # remove the file lists
-
-
+        makeListOfScanDatesFile(chamber, scanType, options.startDate, options.endDate)
+        if not options.listOfScanDatesOnly:
+            makePlots(chamber, scanType, vt1bump, elog_path)
+            call_command = 'rm '+getDirByAnaType(scanType,chamber)+'listOfScanDates.txt'
+            os.system(call_command) # remove the file lists
+            pass
+        pass

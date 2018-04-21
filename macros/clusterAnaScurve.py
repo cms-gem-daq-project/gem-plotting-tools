@@ -14,6 +14,8 @@ if __name__ == '__main__':
     parser.add_option("--calFile", type="string", dest="calFile", default=None,
                       help="File specifying CAL_DAC/VCAL to fC equations per VFAT",
                       metavar="calFile")
+    parser.add_option("--chamberName", type="string", dest="chamberName", default=None,
+                      help="Detector to submit jobs for. Use instead of --infilename", metavar="chamberName")
     parser.add_option("-c","--channels", action="store_true", dest="channels",
                       help="Make plots vs channels instead of strips", metavar="channels")
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
@@ -22,7 +24,7 @@ if __name__ == '__main__':
                       help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
-    parser.add_option("-i", "--infilename", type="string", dest="filename",
+    parser.add_option("-i", "--infilename", type="string", dest="filename", default=None
                       help="Tab delimited file specifying chamber name and scandates to analyze", metavar="filename")
     parser.add_option("-p","--panasonic", action="store_true", dest="PanPin",
                       help="Make plots vs Panasonic pins instead of strips", metavar="PanPin")
@@ -53,9 +55,9 @@ if __name__ == '__main__':
                       metavar="deadChanCutHigh")
     parser.add_option_group(chanMaskGroup)
     
-    parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
-    
+    listOfScanDatesFile = options.filename
+
     # Check if the queue is supported
     # See: https://cern.service-now.com/service-portal/article.do?n=KB0000470
     import os
@@ -85,12 +87,16 @@ if __name__ == '__main__':
     elogPath = os.getenv('ELOG_PATH')
 
     # Get info from input file
-    from anautilities import getDirByAnaType, filePathExists, parseListOfScanDatesFile
-    parsedTuple = parseListOfScanDatesFile(options.filename, alphaLabels=True)
+    from anautilities import getDirByAnaType, filePathExists, makeListOfScanDatesFile, parseListOfScanDatesFile
+    if (listOfScanDatesFile is None and options.chamberName is not None):
+        makeListOfScanDatesFile(options.chamberName, options.anaType, ztrim=options.ztrim)
+        listOfScanDatesFile = '%s/listOfScanDates.txt'%(getDirByAnaType(options.anaType, options.chamberName, options.ztrim))
+        pass
+    parsedTuple = parseListOfScanDatesFile(listOfScanDatesFile, alphaLabels=True)
     listChamberAndScanDate = parsedTuple[0]
 
     # Setup output scandates list
-    outputScanDatesName = options.filename.strip('.txt')
+    outputScanDatesName = listOfScanDatesFile.strip('.txt')
     outputScanDatesName += "_Input4GemPlotter.txt"
     outputScanDatesFile = open(outputScanDatesName, 'w+')
     outputScanDatesFile.write('ChamberName\tscandate\n')
