@@ -24,7 +24,7 @@ if __name__ == '__main__':
                       help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
-    parser.add_option("-i", "--infilename", type="string", dest="filename", default=None
+    parser.add_option("-i", "--infilename", type="string", dest="filename", default=None,
                       help="Tab delimited file specifying chamber name and scandates to analyze", metavar="filename")
     parser.add_option("-p","--panasonic", action="store_true", dest="PanPin",
                       help="Make plots vs Panasonic pins instead of strips", metavar="PanPin")
@@ -101,6 +101,10 @@ if __name__ == '__main__':
     outputScanDatesFile = open(outputScanDatesName, 'w+')
     outputScanDatesFile.write('ChamberName\tscandate\n')
 
+    # invert chamber_config
+    from mapping.chamberInfo import chamber_config, GEBtype
+    linkByChamber = { value:key for key,value in chamber_config.iteritems() }
+    
     # Make and launch a job for each file
     import time
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
@@ -143,10 +147,15 @@ if __name__ == '__main__':
         jobScript.write('echo `python --version`\n')
         jobScript.write('echo `gcc --version | grep "gcc"`\n')
 
+        thisGEB = options.GEBtype
+        if chamberAndScanDatePair[0] in linkByChamber.keys():
+            thisGEB = GEBtype[linkByChamber[chamberAndScanDatePair[0]]]
+            pass
+
         # make the python command
         pythonCmd = 'anaUltraScurve.py -i %s -t %s --zscore=%f --ztrim=%f --maxEffPedPercent=%f --highNoiseCut=%f --deadChanCutLow=%f --deadChanCutHigh=%f'%(
                 jobInputFile,
-                options.GEBtype,
+                thisGEB,
                 options.zscore,
                 options.ztrim,
                 options.maxEffPedPercent,
@@ -213,7 +222,7 @@ if __name__ == '__main__':
     print("Finally for a time series output of the data call:")
     print("")
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a --axisMax=10"%outputScanDatesName)
-    print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=2"%outputScanDatesName)
+    print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMin=0.05 --axisMax=0.3"%outputScanDatesName)
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=ped_eff --make2D --alphaLabels -c -a --axisMax=1"%outputScanDatesName)
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1"%outputScanDatesName)
     print("\tgemPlotter.py --infilename=%s --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32"%outputScanDatesName)
