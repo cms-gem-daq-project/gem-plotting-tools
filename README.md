@@ -110,13 +110,13 @@ The analysis software will record the `maskReason` in decimal reprementation.  S
 ### Deriving Channel Configuration
 The following procedure is used, note these steps must be executed one after another, without LV power cycle or action to cause a reset of the VFAT settings (e.g. SCA reset):
 
-| Step | Tool | VFAT Data | Input Config | Generates |
-| :--: | :--: | :-------: | :----------: | :-------- |
-| 1 | `trimChamber(V3).py` | Tracking | `VThreshold1 (CFG_THR_ARM_DAC) = 100`, `ztrim=4` | Initial channel configuration `chConfig.txt` and `trimRange` settings. |
+| Step | Tool v2b (v3) | VFAT Data | Input Config | Generates |
+| :--: | :-----------: | :-------: | :----------: | :-------- |
+| 1 | `trimChamber.py (trimChamberV3.py)` | Tracking | `VThreshold1 (CFG_THR_ARM_DAC) = 100`, `ztrim=4` | Initial channel configuration `chConfig.txt` and `trimRange` settings. |
 | 2 | `confChamber.py` | N/A | `chConfig.txt`, `trimRange` in memory | Nothing |
 | 3 | `ultraThreshold.py` | Tracking | Nothing | Generates updated channel config `chConfig_MasksUpdated.txt` and initial VFAT settings storing `VThreshold1` and `trimRange` in `vfatConfig.txt`. |
 | 4 | `confChamber.py` | N/A | `chConfig_MasksUpdated.txt` and `vfatConfig.txt` | Nothing |
-| 5 | `ultraThreshold.py` | Trigger | Nothing | Generates updated VFAT settings `vfatConfig_Updated.txt` with final `VThreshold1` values. |
+| 5 | `ultraThreshold.py (sbitThreshScanParallel.py)` | Trigger | Nothing | Generates updated VFAT settings `vfatConfig_Updated.txt` with final `VThreshold1` values. |
 
 Please note that while `DeadChannel` is given in `maskReason` these channels are **never** masked such that they can be tracked overtime.
 
