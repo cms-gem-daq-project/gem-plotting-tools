@@ -366,10 +366,12 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
     
     listOfScanDatesFile.write('ChamberName%sscandate\n'%delim)
     for scandate in listOfScanDates:
+	if "current" == scandate:
+	    continue
         try:
             scandateInfo = [ int(info) for info in scandate.split('.') ]
         except ValueError as e:
-            print "Skipping directory %s contents %s"%(dirPath,scandate)
+            print "Skipping directory %s/%s"%(dirPath,scandate)
             continue
         thisDay = datetime.date(scandateInfo[0],scandateInfo[1],scandateInfo[2])
 
@@ -379,6 +381,7 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
         pass
 
     listOfScanDatesFile.close()
+    runCommand( ['chmod','g+rw','%s/listOfScanDates.txt'%dirPath] )
 
     return
 
