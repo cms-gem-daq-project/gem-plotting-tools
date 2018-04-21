@@ -629,6 +629,8 @@ The following table shows the mandatory inputs:
 
 While the following table shows the optional additional inputs:
 
+| Name | Type | Description |
+| :--: | :--: | :---------- |
 | `--calFile` | string | File specifying CAL_DAC/VCAL to fC equations per VFAT.  If this is not provided the analysis will default to hardcoded conversion for VFAT2 |
 | `-c`, `--channels` | none | Output plots will be made vs VFAT channel instead of ROB strip |
 | ` -d`, `--debug` | none | If provided all cluster files will be created for inspection, and job submission commands printed to terminal, but no jobs will be submitted to the cluster.  Strongly recommended calling with this option before submitting a large number of jobs. |
