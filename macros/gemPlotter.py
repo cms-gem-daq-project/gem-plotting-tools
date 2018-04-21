@@ -42,6 +42,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
             if skipBad:
+                print 'Skipping'
                 continue
             else:
                 print 'Please cross-check, exiting!'
@@ -55,12 +56,13 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
         except Exception as e:
-            print '%s may not exist in %s, please cross check'%(treeName,filename)
+            print '%s may not exist in %s'%(treeName,filename)
             print e
             if skipBad:
+                print 'Skipping'
                 continue
             else:
-                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
+                print 'Please cross-check, exiting!'
                 exit(os.EX_DATAERR)
                 pass
             pass
@@ -73,7 +75,6 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
                 exit(os.EX_DATAERR)
 
         # Get dependent variable value
@@ -140,6 +141,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
             if skipBad:
+                print 'Skipping'
                 continue
             else:
                 print 'Please cross-check, exiting!'
@@ -153,13 +155,15 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
         except Exception as e:
-            print '%s may not exist in %s, please cross check'%(treeName,filename)
+            print '%s may not exist in %s'%(treeName,filename)
             print e
             if skipBad:
+                print 'Skipping'
                 continue
             else:
-                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
+                print 'Please cross-check, exiting!'
                 exit(os.EX_DATAERR)
+                pass
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -170,7 +174,6 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
                 exit(os.EX_DATAERR)
 
         # Get dependent variable value - VFAT Level
@@ -325,7 +328,7 @@ if __name__ == '__main__':
 
         # Make the output canvas, use a temp name and temp title for now
         strCanvName = ""
-        canvPlot = r.TCanvas("canv_VFAT%i"%(vfat),"VFAT%i"%(vfat),1800,600)
+        canvPlot = r.TCanvas("canv_VFAT%i"%(vfat),"VFAT%i"%(vfat),2400,800)
 
         # Make the plot, either 2D or 1D
         if options.make2D:
