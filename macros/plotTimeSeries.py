@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 def makePlots(chamberName, anaType, vt1bump, elog_path):
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a --axisMax=10'
     os.system(call_command)
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMin=0.05 --axisMax=0.3'
+    os.system(call_command)
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=ped_eff --make2D --alphaLabels -c -a --axisMax=1'
     os.system(call_command)
     call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
     os.system(call_command)
