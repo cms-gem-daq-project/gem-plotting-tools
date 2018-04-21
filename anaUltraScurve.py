@@ -386,6 +386,8 @@ if __name__ == '__main__':
             reason[channelNoise > options.highNoiseCut ] |= MaskReason.HighNoise
             nHighEffPed = 0
             for chan in range(0, len(effectivePedestals)):
+                if chan not in fitter.Nev[vfat].keys():
+                    continue
                 if (effectivePedestals[vfat][chan] > (options.maxEffPedPercent * fitter.Nev[vfat][chan]) ):
                     reason[chan] |= MaskReason.HighEffPed
                     nHighEffPed+=1
