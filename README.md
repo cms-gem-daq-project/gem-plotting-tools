@@ -640,7 +640,7 @@ While the following table shows the optional additional inputs:
 | `--zscore` | float | Z-Score for Outlier Identification in the MAD Algorithm.  For details see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf) |
 | `--ztrim` | float | Specify the p value of the trim in the quantity: `scurve_mean - ztrim * scurve_sigma` |
 
-Finally `clusterAnaScurve.py` can also be passed the cut values used in assigning a maskReason described at [Providing Cuts for maskReason at Runtime](#providing-cuts-for-maskReason-at-runtime).
+Finally `clusterAnaScurve.py` can also be passed the cut values used in assigning a maskReason described at [Providing Cuts for maskReason at Runtime](#providing-cuts-for-maskreason-at-runtime).
 
 #### Full Example For P5 S-Curve Data
 First connect to the P5 dqm machine. Then after setting up the env execute if you are intereted in a chamber ChamberName execute:
