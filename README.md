@@ -5,12 +5,19 @@ Table of Contents
 
    * [gem-plotting-tools](#gem-plotting-tools)
       * [Setup:](#setup)
+      * [Masking Channels Algorithmically](#masking-channels-algorithmically)
+         * [Definitions](#definitions)
+         * [Deriving Channel Configuration](#deriving-channel-configuration)
+         * [Providing Cuts for maskReason at Runtime](#providing-cuts-for-maskreason-at-runtime)
+      * [List Of Scandate Input Files](#list-of-scandate-input-files)
+         * [Two Column Format](#two-column-format)
+         * [Three Column Format](#three-column-format)
+         * [Automatically Generating Set of listOfScanDates.txt](#automatically-generating-set-of-listofscandatestxt)
       * [Analyzing Scans:](#analyzing-scans)
          * [Analyzing Python Ultra Scan Data](#analyzing-python-ultra-scan-data)
             * [plot_eff.py](#plot_effpy)
             * [plot_eff.py Arguments](#plot_effpy-arguments)
             * [plot_eff.py Input File](#plot_effpy-input-file)
-            * [plot_eff.py Example](#plot_effpy-example)
          * [Analyzing xDAQ Scan Data](#analyzing-xdaq-scan-data)
       * [Arbitray Plotting Tools](#arbitray-plotting-tools)
          * [gemPlotter.py](#gemplotterpy)
@@ -34,6 +41,14 @@ Table of Contents
             * [plotSCurveFitResults.py Arguments](#plotscurvefitresultspy-arguments)
             * [plotSCurveFitResults.py Input File](#plotscurvefitresultspy-input-file)
             * [plotSCurveFitResults.py Example](#plotscurvefitresultspy-example)
+      * [Packaging Tool: packageFiles4Docker.py](#packaging-tool-packagefiles4dockerpy)
+         * [packageFiles4Docker.py Arguments](#packagefiles4dockerpy-arguments)
+         * [packageFiles4Docker.py Input Files](#packagefiles4dockerpy-input-files)
+         * [packageFiles4Docker.py Example](#packagefiles4dockerpy-example)
+      * [Cluster Computing Tools](#cluster-computing-tools)
+         * [Cluster Analysis of S-Curve Data: clusterAnaScurve.py](#cluster-analysis-of-s-curve-data-clusteranascurvepy)
+            * [clusterAnaScurve.py: Arguments](#clusteranascurvepy-arguments)
+            * [Full Example For P5 S-Curve Data](#full-example-for-p5-s-curve-data)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -47,7 +62,161 @@ The following `$SHELL` variables should be defined:
 Then execute:
 
 ```
+source $BUILD_HOME/cmsgemos/setup/paths.sh
 source $BUILD_HOME/gem-plotting-tools/setup/paths.sh
+```
+
+If this is the first time you are executing the above commands on `lxplus` it will create a `python v2.7` `virtualenv` for you.  It may take some time to download the necessary packages so be patient and do not interrupt the installation.  To disable this python env execute:
+
+```
+deactivate
+```
+
+To re-enable the python env execute:
+
+```
+source $BUILD_HOME/venv/slc6/py27/bin/activate
+```
+
+If you are working on a 904 machine, regardless if it is the first time you are executing the above commands or not, the default python `virtualenv` available on the 904 NAS for your operating system (e.g. `cc7` or `slc6`) will be enabled.
+
+## Masking Channels Algorithmically
+
+### Definitions
+When the analysis software decides a channel should be masked it is because it falls under one of the categories defined in the `maskReason` class of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anaInfo.py). Multiple reasons can be assigned to a channel for why it is masked, and the total `maskReason` is a 6-bit binary number. Presently these reasons are:
+
+| Name | Bit | Reason |
+| :--: | :---: | :----- |
+| `NotMasked` | 0 | the channel is not masked. |
+| `HotChannel` | 1 | the channel was identified as an outlier using the MAD algorithm, see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf). |
+| `FitFailed` | 2 | the s-curve fit of the channel failed. |
+| `DeadChannel` | 3 | the channel has a burned or disconnected input. |
+| `HighNoise` | 4 | the channel has an scurve sigma above the cut value. | 
+| `HighEffPed` | 5 | the channel has an effective pedestal above the cut value. |
+
+The scurve sigma is the sigma of the modified error function used to fit the s-curve measurements.  It comes from the `TF1` object used to fit scurves in `ScanDataFitter::fit()` of [fitScanData.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/fitting/fitScanData.py).
+
+A channel's effective pedestal is the percent of time a channel's comparator fires when injected charge is zero.  This is determined from an s-curve measurement via:
+
+```
+effPed = scurve_fit_func.Eval(0) / n_pulses
+```
+
+Where `n_pulses` are the number of charge injections for a given DAC value performed by the calibration module.
+
+The analysis software will record the `maskReason` in decimal reprementation.  So for example a channel having `maskReason = 48` corresponds to `0b110000` which means the channel was assigned the `HighEffPed` and `HighNoise` maskReasons.
+
+### Deriving Channel Configuration
+The following procedure is used, note these steps must be executed one after another, without LV power cycle or action to cause a reset of the VFAT settings (e.g. SCA reset):
+
+| Step | Tool | VFAT Data | Input Config | Generates |
+| :--: | :--: | :-------: | :----------: | :-------- |
+| 1 | `trimChamber(V3).py` | Tracking | `VThreshold1 (CFG_THR_ARM_DAC) = 100`, `ztrim=4` | Initial channel configuration `chConfig.txt` and `trimRange` settings. |
+| 2 | `confChamber.py` | N/A | `chConfig.txt`, `trimRange` in memory | Nothing |
+| 3 | `ultraThreshold.py` | Tracking | Nothing | Generates updated channel config `chConfig_MasksUpdated.txt` and initial VFAT settings storing `VThreshold1` and `trimRange` in `vfatConfig.txt`. |
+| 4 | `confChamber.py` | N/A | `chConfig_MasksUpdated.txt` and `vfatConfig.txt` | Nothing |
+| 5 | `ultraThreshold.py` | Trigger | Nothing | Generates updated VFAT settings `vfatConfig_Updated.txt` with final `VThreshold1` values. |
+
+Please note that while `DeadChannel` is given in `maskReason` these channels are **never** masked such that they can be tracked overtime.
+
+If a channel was masked at the time of acquisition of a test involving an s-curve measurement (e.g. `trimChamber(V3).py` or `ultraScurve.py`) then it will be assigned the `FitFailed` reason since the original reason is not known without referencing a previous scan.
+
+### Providing Cuts for maskReason at Runtime
+When analyzing the above s-curves taken by `trimChamber(V3).py` The following command line arguments are available for specifying the cut values for assigning the `DeadChannel`, `HighNoise`, and `HighEffPed` pedestal.
+
+| Name | Type | Description |
+| :--: | :--: | :---------- |
+| `--maxEffPedPercent` | float | Value from 0 to 1. Threshold for setting the `HighEffPed` mask reason, if channel `effPed > maxEffPedPercent * nevts` then `HighEffPed` is set. |
+| `--highNoiseCut` | float | Threshold for setting the `HighNoise` `maskReason`, if channel `scurve_sigma > highNoiseCut` then `HighNoise` is set. |
+| `--deadChanCutLow` | float | If channel `deadChanCutLow < scurve_sigma < deadChanCutHigh` then `DeadChannel` is set, see [Slide 22](https://indico.cern.ch/event/721622/contributions/2968019/attachments/1631961/2602748/BDorney_GEMDAQMtg_20180412_BurnedVFATInputs.pdf) for the origin of the default values in fC. |
+| `--deadChanCutHigh` | float | If channel `deadChanCutHigh < scurve_sigma < deadChanCutHigh` then `DeadChannel` is set, , see [Slide 22](https://indico.cern.ch/event/721622/contributions/2968019/attachments/1631961/2602748/BDorney_GEMDAQMtg_20180412_BurnedVFATInputs.pdf) for the origin of the default values in fC. |
+
+## List Of Scandate Input Files
+Many of the tools found in the `macros/` directory require a `listOfScanDates.txt` file.  These come in either two or three column versions and the `parseListOfScanDatesFile(...)` of [anautilities.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anautilities.py) is designed to parse either version and provide the tool with the correct information.  This means that, baring other command line arguments, the two formats are relatively interchangeable.
+
+### Two Column Format
+This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
+
+```
+ChamberName scandate
+```
+
+Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in `mapping/chamberInfo.py`.  The next column is for `scandate` values.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
+
+A complete example for a single detector is given as:
+
+```
+ChamberName scandate
+GE11-VI-L-CERN-0001    2017.08.11.16.30
+GE11-VI-L-CERN-0001    2017.08.14.20.54
+GE11-VI-L-CERN-0001    2017.08.30.15.03
+GE11-VI-L-CERN-0001    2017.08.30.21.39
+GE11-VI-L-CERN-0001    2017.08.31.08.28
+GE11-VI-L-CERN-0001    2017.08.31.15.46
+GE11-VI-L-CERN-0001    2017.09.05.11.41
+GE11-VI-L-CERN-0001    2017.09.12.14.24
+GE11-VI-L-CERN-0001    2017.09.13.16.45
+```
+
+### Three Column Format
+This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
+
+```
+ChamberName scandate    <Indep. Variable Name>
+```
+
+Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in [mapping/chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/mapping/chamberInfo.py).  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against, if it is *not* numeric please use the `--alphaLabels` command line option.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
+
+A complete example for a single detector is given as:
+
+```
+ChamberName scandate    VT_{1}
+GE11-VI-L-CERN-0002 2017.09.04.20.12    10
+GE11-VI-L-CERN-0002 2017.09.04.22.52    20
+GE11-VI-L-CERN-0002 2017.09.05.01.33    30
+GE11-VI-L-CERN-0002 2017.09.05.04.21    40
+GE11-VI-L-CERN-0002 2017.09.05.07.11    50
+```
+
+Here the `ChamberName` is always `GE11-VI-L-CERN-0002` and `--branchName` will be plotted against `VT_{1}` which is the **Indep. Variable Name**.  Note the axis of interest will be assigned the label, with subscripts in this case, of `VT_{1}`.
+
+A complete example for multiple detectors is given as:
+
+```
+ChamberName scandate    Layer
+GEMINIm27L1 2019.09.04.20.12    GEMINIm27L1
+GEMINIm27L2 2019.09.04.22.52    GEMINIm27L2
+GEMINIm28L1 2019.09.05.01.33    GEMINIm28L1
+GEMINIm28L2 2019.09.05.04.21    GEMINIm28L2
+GEMINIp02L1 2019.09.05.07.11    GEMINIp02L1
+GEMINIp02L2 2019.09.05.07.11    GEMINIp02L2
+```
+
+Here the `ChamberName` is different for each line and `--branchName` will be plotted against `Layer`.  Note since the **Indep. Variable Name** is not numeric the command line option `--alphaLabels` must be used.
+
+### Automatically Generating Set of listOfScanDates.txt
+To automatically generate a set of `listOfScanDates.txt` files for all s-curve measurements for each of the chambers defined in `chamber_config.values()` of [chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/mapping/chamberInfo.py) execute:
+
+```
+plotTimeSeries.py --listOfScanDatesOnly --startDate=2017.01.01
+```
+
+For each detector defined in `chamber_config.values()` the `listOfScanDAtes.txt` file will be found at:
+
+```
+$DATA_PATH/<ChamberName>/scurve/
+```
+
+If you are interested in generating a set of `listOfScanDates.txt` files for measurements other than scurves supply the `--anaType` argument at the time of execution like:
+
+```
+plotTimeSeries.py --listOfScanDatesOnly --startDate=2017.01.01 --anaType=<type>
+```
+
+The list of supported `anaType`'s are from `ana_config.keys()` of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anaInfo.py).  In this case the `listOfScanDAtes.txt` file for each chamber will be found at:
+
+```
+$DATA_PATH/<ChamberName>/<anaType>/
 ```
 
 ## Analyzing Scans:
@@ -70,25 +239,25 @@ For some test stands where you have configured the input L1A to pass only throug
 The following table shows the mandatory inputs that must be supplied to execute the script:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | ` --latSig` | int | Latency bin for which efficiency should be determined from. |
-| `-i`, `--infilename` | string | physical filename of the input file to be passed to `plot_eff.py`.  The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemplotterpy-input-file) for more details. |
+| `-i`, `--infilename` | string | physical filename of the input file to be passed to `plot_eff.py`.  The format of this input file should follow the [Three Column Format](#three-column-format). |
 | `-p`, `--print` | none | Prints a comma separated table of the plot's data to the terminal.  The format of this table will be compatible with the `genericPlotter` executable of the [CMS_GEM_Analysis_Framework](https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter). | 
 | `-v`, `--vfat` | int | Specify VFAT to use when calculating the efficiency. |
 
 The following table shows the optional inputs that can be supplied when executing the script:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | ` --bkgSub` | none | Background subtraction is used to determine the efficiency instead of a single latency bin. May be used instead of the `--latSig` option. |
 | `--vfatList` | Comma separated list of int's | List of VFATs to use when calculating the efficiency.  May be used instead of the `--vfat` option. |
 
 Note if the `--bkgSub` option is used then you **must** first call `anaUltraLatency.py` for each of the scandates given in the `--infilename`.
 
 #### plot_eff.py Input File
-The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemplotterpy-input-file) for more details.
+The format of this input file should follow the [Three Column Format](#three-column-format).
 
-#### plot_eff.py Example
+, , see [Slide 22](https://indico.cern.ch/event/721622/contributions/2968019/attachments/1631961/2602748/BDorney_GEMDAQMtg_20180412_BurnedVFATInputs.pdf) for the origin of the default values in fC. |#### plot_eff.py Example
 To calculate the efficiency using VFATs 12 & 13 in latency bin 39 for a list of scandates defined in `listOfScanDates.txt` call:
 
 ```
@@ -125,10 +294,10 @@ Each plot produced will be stored as an output `*.png` file. Additionally an out
 The following table shows the mandatory inputs that must be supplied to execute the script:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `--anaType` | string | Analysis type to be executed, see `tree_names.keys()` of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/anaInfo.py) for possible inputs |
 | `--branchName` | string | Name of TBranch where dependent variable is found, note that this TBranch should be found in the `TTree` that corresponds to the value given to the `--anaType` argument |
-| `-i`, `--infilename` | string | physical filename of the input file to be passed to `gemPlotter.py`.  See [gemPlotter.py Input File](#gemplotterpy-input-file) for details on the format and contents of this file. |
+| `-i`, `--infilename` | string | physical filename of the input file to be passed to `gemPlotter.py`.  See [Three Column Format](#three-column-format) for details on the format and contents of this file. |
 | `-v`, `--vfat` | int | Specify VFAT to plot |
 
 Note for those `anaType` values which have the substring `Ana` in their names it is expected that the user has already run `ana_scans.py` on the corresponding `scandate` to produce the necessary input file for `gemPlotter.py`.
@@ -136,7 +305,7 @@ Note for those `anaType` values which have the substring `Ana` in their names it
 The following table shows the optional inputs that can be supplied when executing the script:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `-a`, `--all` | none | When providing this flag data from all 24 VFATs will be plotted.  Additionally a summary plot in the typical 3x8 grid will be created showing the results of all 24 VFATs. May be used instead of the `--vfat` option. |
 | `--alphaLabels` | none | When providing this flag `gemPlotter.py` will interpret the **Indep. Variable** as a string and modify the output X axis accordingly |
 | `--axisMax` | float | Maximum value for the axis depicting `--branchName`. |
@@ -146,62 +315,23 @@ The following table shows the optional inputs that can be supplied when executin
 | `--make2D` | none| When providing this flag a 2D plot of ROB strip/vfat channel vs. independent variable will be plotted whose z-axis value is `--branchName`. |
 | `-p`, `--print` | none | Prints a comma separated table of the plot's data to the terminal.  The format of this table will be compatible with the `genericPlotter` executable of the [CMS_GEM_Analysis_Framework](https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter). | 
 | `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--skipBadFiles` | none | TFiles that fail to load, or where the TTree cannot be successfully loaded, will be skipped. |
 | `--showStat` | none | Causes the statistics box to be drawn on created plots. Note only applicable when used with `--make2D`. |
 | `--vfatList` | Comma separated list of int's | List of VFATs that should be plotted.  May be used instead of the `--vfat` option. |
 | `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
 #### gemPlotter.py Input File
-This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
-
-```
-ChamberName scandate    <Indep. Variable Name>
-```
-
-Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in [mapping/chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/mapping/chamberInfo.py).  The **Indep. Variable Name** is the independent variable that `--branchName` will be plotted against, if it is *not* numeric please use the `--alphaLabels` command line option.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
-
-A complete example for a single detector is given as:
-
-```
-ChamberName scandate    VT_{1}
-GE11-VI-L-CERN-0002 2017.09.04.20.12    10
-GE11-VI-L-CERN-0002 2017.09.04.22.52    20
-GE11-VI-L-CERN-0002 2017.09.05.01.33    30
-GE11-VI-L-CERN-0002 2017.09.05.04.21    40
-GE11-VI-L-CERN-0002 2017.09.05.07.11    50
-```
-
-Here the `ChamberName` is always `GE11-VI-L-CERN-0002` and `--branchName` will be plotted against `VT_{1}` which is the **Indep. Variable Name**.  Note the axis of interest will be assigned the label, with subscripts in this case, of `VT_{1}`.
-
-A complete example for multiple detectors is given as:
-
-```
-ChamberName scandate    Layer
-GEMINIm27L1 2019.09.04.20.12    GEMINIm27L1
-GEMINIm27L2 2019.09.04.22.52    GEMINIm27L2
-GEMINIm28L1 2019.09.05.01.33    GEMINIm28L1
-GEMINIm28L2 2019.09.05.04.21    GEMINIm28L2
-GEMINIp02L1 2019.09.05.07.11    GEMINIp02L1
-GEMINIp02L2 2019.09.05.07.11    GEMINIp02L2
-```
-
-Here the `ChamberName` is different for each line and `--branchName` will be plotted against `Layer`.  Note since the **Indep. Variable Name** is not numeric the command line option `--alphaLabels` must be used.
+The format of this input file should follow the [Three Column Format](#three-column-format).
 
 #### gemPlotter.py Example: Making a time series with plotTimeSeries.py
-Prepare the template with timestamps. It should look like this (note that the second and third columns are identical):
+To automatically consider the last two weeks worth of s-curve scans, run the script specifying `vt1bump` option like this:
 
 ```
-ChambeName	scandate	scandate
-GEMINI	2017.10.11.11.24	2017.10.11.10.59
-GEMINI	2017.10.13.13.37	2017.10.13.12.53
-GEMINI	2017.10.16.10.56	2017.10.16.10.34
-```
-
-Now run the script specifying vt1bump and path to the template above like this:
-```
-<path>/plotTimeSeries.py --vt1bump=10 -t listOfScanDates_gemPlotter_10-24Oct2017_vt1bump10.txt
+plotTimeSeries.py --vt1bump=10
 ```
 
 resulting plots will be stored under
+
 ```
 $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
 ```
@@ -282,9 +412,9 @@ Each plot produced will be stored as an output `*.png` file. Additionally an out
 The following table shows the mandatory inputs that must be supplied to execute the script:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `--anaType` | string | Analysis type to be executed, see `tree_names.keys()` of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/master/anaInfo.py) for possible inputs |
-| `-i`, `--infilename` | string | physical filename of the input file to be passed to `gemTreeDrawWrapper.py`.  See [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file) for details on the format and contents of this file. |
+| `-i`, `--infilename` | string | physical filename of the input file to be passed to `gemTreeDrawWrapper.py`.  See [Two Column Format](two-column-format) for details on the format and contents of this file. |
 | `--treeExpress` | string | Expression to be drawn, corresponds to the `varexp` argument of [TTree::Draw()](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45). |
 
 Note for those `anaType` values which have the substring `Ana` in their names it is expected that the user has already run `ana_scans.py` on the corresponding `scandate` to produce the necessary input file for `gemTreeDrawWrapper.py`.
@@ -292,7 +422,7 @@ Note for those `anaType` values which have the substring `Ana` in their names it
 The following table shows the optional inputs that can be supplied when executing the script:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `--axisMaxX` | float | Maximum value for X-axis range. |
 | `--axisMinX` | float | Minimum value for X-axis range, note this parameter will default to 0 `--axisMaxX` is given. | 
 | `--axisMaxY` | float | Maximum value for Y-axis range. |
@@ -301,7 +431,7 @@ The following table shows the optional inputs that can be supplied when executin
 | `--fitFunc` | string | Expression following the [TFormula syntax](https://root.cern.ch/doc/master/classTFormula.html) for defining a TF1 to be fit to the plot. |
 | `--fitGuess` | string | Initial guess for fit parameters defined in `--fitFunc`. Note, order of params here should match that of `--fitFunc`. |
 | `--fitOpt` | string | Option to be used when fitting, a complete list can be found [here](https://root.cern.ch/doc/master/classTH1.html#a7e7d34c91d5ebab4fc9bba3ca47dabdd). |
-| `--fitRange | Comma separated list of float's | Defines the range the fit function is valid on. |
+| `--fitRange` | Comma separated list of float's | Defines the range the fit function is valid on. |
 | `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
 | `--showStat` | none | Causes the statistics box to be drawn on created plots. |
 | `--summary` | none | Make a summary canvas with all created plots drawn on it. |
@@ -310,28 +440,7 @@ The following table shows the optional inputs that can be supplied when executin
 | `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
 #### gemTreeDrawWrapper.py Input File
-This should be a `tab` deliminited text file.  The first line of this file should be a list of column headers formatted as:
-
-```
-ChamberName scandate
-```
-
-Subsequent lines of this file are the values that correspond to these column headings.  The value of the `ChamberName` column must correspond to the value of one entry in the `chamber_config` dictionary found in `mapping/chamberInfo.py`.  The next column is for `scandate` values.  Please note the `#` character is  understood as a comment, lines starting with a `#` will be skipped.
-
-A complete example for a single detector is given as:
-
-```
-ChamberName scandate
-GE11-VI-L-CERN-0001    2017.08.11.16.30
-GE11-VI-L-CERN-0001    2017.08.14.20.54
-GE11-VI-L-CERN-0001    2017.08.30.15.03
-GE11-VI-L-CERN-0001    2017.08.30.21.39
-GE11-VI-L-CERN-0001    2017.08.31.08.28
-GE11-VI-L-CERN-0001    2017.08.31.15.46
-GE11-VI-L-CERN-0001    2017.09.05.11.41
-GE11-VI-L-CERN-0001    2017.09.12.14.24
-GE11-VI-L-CERN-0001    2017.09.13.16.45
-```
+The format of this input file should follow the [Two Column Format](#two-column-format).
 
 #### gemTreeDrawWrapper.py Example: Making a Plot
 For example to make a plot from a latency scan, `Nhits` vs. `lat` for VFAT12, use the following example:
@@ -360,7 +469,6 @@ myFunc.SetParameter(0,10)
 The fit option that will be used will be `RM`.  This fit will be applied to the scurve generated from VFAT12 channel 45 for each (ChamberName,scandate) pair found in `listOfScanDates_TreeDraw.txt`.
 
 ## Scurve Plotting Tools
-
 The following tools exist for helping to understand scurve data:
 
 1. `gemSCurveAnaToolkit.py`
@@ -387,7 +495,7 @@ Tool 5 `summary_plots.py` produces the following plots from a single input file 
 The command line options for tools 2-5 are:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `-c`, `--channels` | none | Make plots vs VFAT channels instead of ROB strips. |
 | `-i`, `--infilename` | string | Physical filename of the input file.  Note this must be a `TFile` which contains the `scurveFitTree` `TTree` object. |
 | `-s`, `--strip` | int | If the `-c` option is (not) supplied this will be the VFAT channel (ROB strip) the plot will be made for. |
@@ -396,7 +504,7 @@ The command line options for tools 2-5 are:
 Additionally tool 5 `summary_plots.py` has the following additional command line options:
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `-a`, `--all` | none | Equivalent to supplying `-f` and `-x` options. |
 | `-f`, `--fit` | none | Make fit parameter plots. |
 | `-x`, `--chi2` | none | Make Chi2 plots. |
@@ -409,9 +517,9 @@ The `gemSCurveAnaToolkit.py` tool is for plotting scurves and their fits from a 
 #### gemSCurveAnaToolkit.py Arguments
 
 | Name | Type | Description |
-| ---- | ---- | ----------- |
+| :--: | :--: | :---------- |
 | `-c`, `--channels` | none | Make plots vs VFAT channels instead of ROB strips. |
-| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `gemSCurveAnaToolkit.py`.  The format of this input file is the same as for the `gemTreeDrawWrapper.py` tool, see [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file) for more details. |
+| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `gemSCurveAnaToolkit.py`.  The format of this input file should follow the [Two Column Format](two-column-format). |
 | `-s`, `--strip` | int | If the `-c` option is (not) supplied this will be the VFAT channel (ROB strip) the plot will be made for. |
 | `-v`, `--vfat` | int | The VFAT to plot. |
 | `--anaType` | string | Analysis type to be executed, taken from the list {'scurveAna','trimAna'}. |
@@ -421,7 +529,7 @@ The `gemSCurveAnaToolkit.py` tool is for plotting scurves and their fits from a 
 | `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
 #### gemSCurveAnaToolkit.py Input File
-The format of this input file is the same as for the `gemTreeDrawWrapper.py` tool, see [gemTreeDrawWrapper.py Input File](#gemtreedrawwrapperpy-input-file) for more details.
+The format of this input file should follow the [Two Column Format](two-column-format).
 
 #### gemSCurveAnaToolkit.py Example: Making a Plot
 To plot the scurves, and their fits, for VFAT0 channel 29 from a set of scandates defined in `listOfScanDates_Scurve.txt` taken by `ultraScurve.py` and analyzed with `anaUltraScurve.py` you would call:
@@ -447,7 +555,7 @@ The files will be found in `$ELOG_PATH` along with the output `TFile`, named `sc
 
 | Name | Type | Description |
 | :--: | :--: | :---------- |
-| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `plotSCurveFitResults.py`.  The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemPlotterpy-input-file) for more details. |
+| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `plotSCurveFitResults.py`.  The format of this input file should follow the [Three Column Format](#three-column-format). |
 | `--alphaLabels` | none | When providing this flag `plotSCurveFitResults.py` will interpret the **Indep. Variable** as a string. |
 | `--anaType` | string | Analysis type to be executed, taken from the list {'scurveAna','trimAna'}. |
 | `--drawLeg` | none | Draws a TLegend on the output plots. For those 3x8 grid plots the legend will only be drawn on the plot for VFAT0. |
@@ -456,7 +564,7 @@ The files will be found in `$ELOG_PATH` along with the output `TFile`, named `sc
 | `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
 #### plotSCurveFitResults.py Input File
-The format of this input file is the same as for the `gemPlotter.py` tool, see [gemPlotter.py Input File](#gemplotterpy-input-file) for more details.  Note that here the **Indep. Variable** for each row will be used as the `TLegend` entry if the `--drawLeg` argument is supplied.
+The format of this input file should follow the [Three Column Format](#three-column-format).  Note that here the **Indep. Variable** for each row will be used as the `TLegend` entry if the `--drawLeg` argument is supplied.
 
 #### plotSCurveFitResults.py Example
 To plot results from a set of scandates defined in `listOfScanDates_Scurve.txt` taken by either `ultraScurve.py` or `trimChamber.py` and analyzed with `anaUltraScurve.py` you would call:
@@ -466,3 +574,105 @@ plotSCurveFitResults.py --anaType=scurveAna --drawLeg -i listOfScanDates_Scurve.
 ```
 
 This will produce the five `*.png` files mentioned above along with the output `TFile`.
+
+## Packaging Tool: packageFiles4Docker.py
+You may occasionally need to update the `travis CI` docker which checks the code quality *or* you may want to transfer a number of files corresponding to a series of scandates from the P5 machine to another area.  The `packageFiles4Docker.py` tool enables you to do this.  The output of `packageFiles4Docker.py` will be a `*.tar` file that:
+
+- mimics the file structure of `$DATA_PATH`, and 
+- each of the input `listOfScandates.txt` files supplied at runtime, and 
+- a temorary `chamberInfo.py` file which can be placed in the docker for testing.
+
+### packageFiles4Docker.py Arguments
+
+| Name | Type | Description |
+| :--: | :--: | :---------- |
+| `--fileListLat` | string | Specify Input Filename for list of scandates for latency files. |
+| `--fileListScurve` | string | Specify Input Filename for list of scandates for scurve files. |
+| `--fileListThresh` | string | Specify Input Filename for list of scandates for threshold files. |
+| `--fileListTrim` | string | Specify Input Filename for list of scandates for trim files. |
+| `--ignoreFailedReads` | none | Ignores failed read errors in tarball creation, useful for ignoring scans that did not finish successfully. |
+| `--onlyRawData` | none | Files produced by `anaUltra*.py` scripts will not be included. |
+| `--tarBallName` | string | Specify the name of the output tarball. |
+| `--ztrim` | int | The ztrim value of interest for scandates given in `--fileListTrim`. |
+| `-d`, `--debug` | none | prints the tarball command but does not make one. |
+
+Please note that multiple `--fileListX` arguments can be supplied at runtime, but at least one must be supplied.
+
+### packageFiles4Docker.py Input Files
+Each of the `--fileListX` arguments can be supplied with a `listOfScanDates.txt` file that follows either the [Two Column Format](#two-column-format) or the [Three Column Format](#three-column-format).
+
+### packageFiles4Docker.py Example
+To make a `tarball` of containing scurve scandates defined in `listOfScanDates.txt` for `GEMINIm01L1` execute:
+
+```
+packageFiles4Docker.py --ignoreFailedReads --fileListScurve=$DATA_PATH/GEMINIm01L1/scurve/listOfScanDates.txt --tarBallName=GEMINIm01L1_scurves.tar --ztrim=4 --onlyRawData
+```
+
+In this case failed read errors in the `tar` command will be ignored and only the raw data, e.g. `SCurveData.root` files, will be stored in the tarball following the appropriate file structure.
+
+## Cluster Computing Tools
+It may be that eventually you will need to re-analyze a large portion of the calibration dataset.  While this is expected to be rare it would be excessively time consuming to analyze the data by hand.  This section details the tools that exist to assist you in this process.  All tools below are designed to work with the lxplus batch submission system based on [LSF](https://cern.service-now.com/service-portal/service-element.do?name=batch).  Please note CERN IT plans to eventually transition from LSF to HTCondor.  When this occurs these tools will need to be migrated to the new system.  Instructions for doing so are available [here](http://batchdocs.web.cern.ch/batchdocs/).
+ 
+### Cluster Analysis of S-Curve Data: clusterAnaScurve.py
+This tool will allow you to re-analyze the scurve data in a straight forward way without the time consuming process of launching it by hand.
+
+#### clusterAnaScurve.py: Arguments
+The following table shows the mandatory inputs:
+
+| Name | Type | Description |
+| :--: | :--: | :---------- |
+| `--anaType` | string | Analysis type to be executed, from list {'scurve','trim'} |
+| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `clusterAnaScurve.py`.  The format of this input file should follow the [Two Column Format](two-column-format). |
+| `-q`, `--queue` | string | queue to submit your jobs to.  Suggested options are {`8nm`, `1nh`} |
+| ` -t`, `--type` | string | Specify GEB/detector type, e.g. "long" or "short" |
+
+While the following table shows the optional additional inputs:
+
+| `--calFile` | string | File specifying CAL_DAC/VCAL to fC equations per VFAT.  If this is not provided the analysis will default to hardcoded conversion for VFAT2 |
+| `-c`, `--channels` | none | Output plots will be made vs VFAT channel instead of ROB strip |
+| ` -d`, `--debug` | none | If provided all cluster files will be created for inspection, and job submission commands printed to terminal, but no jobs will be submitted to the cluster.  Strongly recommended calling with this option before submitting a large number of jobs. |
+| `--extChanMapping` | string | Physical filename of a custom, non-default, channel mapping file.  If not provided the default slice test ROB strip to VFAT channel mapping will be used. |
+| `-f`, `--fit` | none | Fit scurves and save fit information to output TFile |
+| `-p`, `--panasonic` | none | Output plots will be made vs Panasonic pins instead of ROB strip |
+| `--zscore` | float | Z-Score for Outlier Identification in the MAD Algorithm.  For details see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf) |
+| `--ztrim` | float | Specify the p value of the trim in the quantity: `scurve_mean - ztrim * scurve_sigma` |
+
+Finally `clusterAnaScurve.py` can also be passed the cut values used in assigning a maskReason described at [Providing Cuts for maskReason at Runtime](#providing-cuts-for-maskReason-at-runtime).
+
+#### Full Example For P5 S-Curve Data
+First connect to the P5 dqm machine. Then after setting up the env execute if you are intereted in a chamber ChamberName execute:
+
+```
+cd ~
+plotTimeSeries.py --listOfScanDatesOnly --startDate=2017.01.01
+packageFiles4Docker.py --ignoreFailedReads --fileListScurve=/gemdata/<ChamberName>/scurve/listOfScanDates.txt --tarBallName=<ChamberName>_scurves.tar --ztrim=4 --onlyRawData
+```
+
+Then connect to `lxplus`.  Checkout the repository if you have not done so already. Then after setting up the env execute:
+
+```
+cd $DATA_PATH
+scp <your-user-name>@cmsusr.cms:/nfshome0/<your-user-name>/<ChamberName>_scurves.tar .
+tar -xf <ChamberName>_scurves.tar
+mv gemdata/<ChamberName> .
+clusterAnaScurve.py -i <ChamberName>/scurve/listOfScanDates.txt --anaType=scurve -f -q 1nh
+```
+
+It may take some time to finish the job submission.  Please pay attention to the output at the end of the `clusterAnaScurve.py` command as it provodes helpful information for managing jobs and undersanding what comes next.  Once your jobs are complete you can re-package the re-analyzed files into a `tarball` using:
+
+```
+packageFiles4Docker.py --ignoreFailedReads --fileListScurve=<ChamberName>/scurve/listOfScanDates.txt --tarBallName=<ChamberName>_scurves_reanalyzed.tar --ztrim=4
+mv <ChamberName>_scurves_reanalyzed.tar $HOME/public
+chmod 755 $HOME/public/<ChamberName>_scurves_reanalyzed.tar
+echo $HOME/public/<ChamberName>_scurves_reanalyzed.tar
+```
+
+Provide the terminal output of this last command to one of the GEM DAQ Experts for mass-storage.
+
+Finally due to space limitations on `AFS` it is strongly recommended that your `$DATA_PATH` variable point to the work area rather than the user area, e.g.:
+
+```
+export DATA_PATH=/afs/cern.ch/work/<first-letter-of-your-username>/<your-user-name>/<somepath>
+```
+
+In your work area you can have up to 100GB of space. If this is your first time using `lxplus` you may want to increase your storage quota by following instructions [here](https://resources.web.cern.ch/resources/Help/?kbid=067040).
