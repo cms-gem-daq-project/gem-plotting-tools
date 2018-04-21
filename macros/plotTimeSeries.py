@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-def makePlots(chamberName, scanType, vt1bump, elog_path):
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
+def makePlots(chamberName, anaType, vt1bump, elog_path):
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -c -a'
     os.system(call_command)
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=noise --make2D --alphaLabels -c -a --axisMax=25'
     os.system(call_command)
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=mask --make2D --alphaLabels -c -a --axisMax=1'
     os.system(call_command)
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=maskReason --make2D --alphaLabels -c -a --axisMax=32'
     os.system(call_command)
-    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(scanType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=vthr --alphaLabels -c -a'
+    call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=vthr --alphaLabels -c -a'
     os.system(call_command)
     call_command = 'mkdir -p '+elog_path+'/timeSeriesPlots/'+chamberName+'/'+vt1bump+'/'
     os.system(call_command)
@@ -27,8 +27,8 @@ if __name__== '__main__':
     parser = OptionParser()
     parser.add_option("--vt1bump", type="int", dest="vt1bump", default=0,
                       help="Specify the value of vt1bump", metavar="vt1bump")
-    parser.add_option("--scanType", type="string", dest="scanType", default="scurve",
-                      help="Specify Scan Type", metavar="scanType")
+    parser.add_option("--anaType", type="string", dest="anaType", default="scurve",
+                      help="Specify Scan Type", metavar="anaType")
     parser.add_option("--listOfScanDatesOnly", action="store_true", dest="listOfScanDatesOnly",
                       help="Make a listOfScanDates.txt for each detector, no plots are made", metavar="listOfScanDatesOnly")
 
@@ -54,14 +54,14 @@ if __name__== '__main__':
     dataPath  = os.getenv('DATA_PATH')
     elog_path = os.getenv("ELOG_PATH")
     vt1bump = 'vt1bump'+str(options.vt1bump)
-    scanType = options.scanType
+    anaType = options.anaType
    
-    print "Options: vt1bump=%s, dataPath=%s, scanType=%s"%(vt1bump, dataPath, scanType)
+    print "Options: vt1bump=%s, dataPath=%s, anaType=%s"%(vt1bump, dataPath, anaType)
     for chamber in chamber_config.values():
-        makeListOfScanDatesFile(chamber, scanType, options.startDate, options.endDate)
+        makeListOfScanDatesFile(chamber, anaType, options.startDate, options.endDate)
         if not options.listOfScanDatesOnly:
-            makePlots(chamber, scanType, vt1bump, elog_path)
-            call_command = 'rm '+getDirByAnaType(scanType,chamber)+'listOfScanDates.txt'
+            makePlots(chamber, anaType, vt1bump, elog_path)
+            call_command = 'rm '+getDirByAnaType(anaType,chamber)+'listOfScanDates.txt'
             os.system(call_command) # remove the file lists
             pass
         pass
