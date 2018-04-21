@@ -17,6 +17,7 @@ Table of Contents
          * [Analyzing Python Ultra Scan Data](#analyzing-python-ultra-scan-data)
             * [plot_eff.py](#plot_effpy)
             * [plot_eff.py Arguments](#plot_effpy-arguments)
+            * [plot_eff.py Example](#plot_effpy-example)
             * [plot_eff.py Input File](#plot_effpy-input-file)
          * [Analyzing xDAQ Scan Data](#analyzing-xdaq-scan-data)
       * [Arbitray Plotting Tools](#arbitray-plotting-tools)
@@ -257,7 +258,7 @@ Note if the `--bkgSub` option is used then you **must** first call `anaUltraLate
 #### plot_eff.py Input File
 The format of this input file should follow the [Three Column Format](#three-column-format).
 
-, , see [Slide 22](https://indico.cern.ch/event/721622/contributions/2968019/attachments/1631961/2602748/BDorney_GEMDAQMtg_20180412_BurnedVFATInputs.pdf) for the origin of the default values in fC. |#### plot_eff.py Example
+#### plot_eff.py Example
 To calculate the efficiency using VFATs 12 & 13 in latency bin 39 for a list of scandates defined in `listOfScanDates.txt` call:
 
 ```
