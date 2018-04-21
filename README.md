@@ -646,7 +646,7 @@ Finally `clusterAnaScurve.py` can also be passed the cut values used in assignin
 First connect to the P5 dqm machine. Then after setting up the env execute if you are intereted in a chamber ChamberName execute:
 
 ```
-cd ~
+cd $HOME
 plotTimeSeries.py --listOfScanDatesOnly --startDate=2017.01.01
 packageFiles4Docker.py --ignoreFailedReads --fileListScurve=/gemdata/<ChamberName>/scurve/listOfScanDates.txt --tarBallName=<ChamberName>_scurves.tar --ztrim=4 --onlyRawData
 ```
