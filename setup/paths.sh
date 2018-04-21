@@ -54,9 +54,10 @@ SYSTEM_INFO="$(uname -a)"
 if [[ $SYSTEM_INFO == *"lxplus"* ]];
 then
     source /afs/cern.ch/sw/lcg/contrib/gcc/4.8.4/x86_64-slc6/setup.sh
+    ORIG_DIR=$PWD
     cd /afs/cern.ch/sw/lcg/app/releases/ROOT/6.06.08/x86_64-slc6-gcc48-opt/root
     source bin/thisroot.sh
-    cd $BUILD_HOME
+    cd $ORIG_DIR
     source $GEM_PLOTTING_PROJECT/setup/createVirtualEnvPy27.sh
     export PYTHONPATH=$PYTHONPATH:$ROOTSYS/lib
 elif [[ $SYSTEM_INFO == *"gem904"* ]];
