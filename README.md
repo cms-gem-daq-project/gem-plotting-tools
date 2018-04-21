@@ -729,7 +729,7 @@ And ensure the only uncommented entries of the `chamber_config` dictionary match
 plotTimeSeries.py --startDate=2017.01.01 --anaType=scurve
 ```
 
-And a series of output `*.png` and `*.root` files will be found at:
+Please note the above command may take some time to process depending on the number of detectors worth of data you are trying to analyze.  Then a series of output `*.png` and `*.root` files will be found at:
 
 ```
 $ELOG_PATH/timeSeriesPlots/<ChamberName>/0/
