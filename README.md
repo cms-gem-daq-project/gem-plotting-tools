@@ -314,7 +314,7 @@ The following table shows the optional inputs that can be supplied when executin
 | `-s`, `--strip` | int | Specific ROB strip number to plot for `--branchName`.  Note for ROB strip level `--branchName` values (e.g. `trimDAC`) if this option is *not* provided the data point (error bar) will represent the mean (standard deviation) of `--branchName` from all strips. |
 | `--make2D` | none| When providing this flag a 2D plot of ROB strip/vfat channel vs. independent variable will be plotted whose z-axis value is `--branchName`. |
 | `-p`, `--print` | none | Prints a comma separated table of the plot's data to the terminal.  The format of this table will be compatible with the `genericPlotter` executable of the [CMS_GEM_Analysis_Framework](https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter). | 
-| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {`RECREATE`,`UPDATE`} |
 | `--skipBadFiles` | none | TFiles that fail to load, or where the TTree cannot be successfully loaded, will be skipped. |
 | `--showStat` | none | Causes the statistics box to be drawn on created plots. Note only applicable when used with `--make2D`. |
 | `--vfatList` | Comma separated list of int's | List of VFATs that should be plotted.  May be used instead of the `--vfat` option. |
@@ -432,7 +432,7 @@ The following table shows the optional inputs that can be supplied when executin
 | `--fitGuess` | string | Initial guess for fit parameters defined in `--fitFunc`. Note, order of params here should match that of `--fitFunc`. |
 | `--fitOpt` | string | Option to be used when fitting, a complete list can be found [here](https://root.cern.ch/doc/master/classTH1.html#a7e7d34c91d5ebab4fc9bba3ca47dabdd). |
 | `--fitRange` | Comma separated list of float's | Defines the range the fit function is valid on. |
-| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {`RECREATE`,`UPDATE`} |
 | `--showStat` | none | Causes the statistics box to be drawn on created plots. |
 | `--summary` | none | Make a summary canvas with all created plots drawn on it. |
 | `--treeSel` | string | Selection to be used when making the plot, corresponds to the `selection` argument of [TTree::Draw()](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45). |
@@ -524,7 +524,7 @@ The `gemSCurveAnaToolkit.py` tool is for plotting scurves and their fits from a 
 | `-v`, `--vfat` | int | The VFAT to plot. |
 | `--anaType` | string | Analysis type to be executed, taken from the list {'scurveAna','trimAna'}. |
 | `--drawLeg` | none | When used with `--summary` option draws a TLegend on the output plot. |
-| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {`RECREATE`,`UPDATE`} |
 | `--summary` | none | Make a summary canvas with all created plots drawn on it. |
 | `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
@@ -560,7 +560,7 @@ The files will be found in `$ELOG_PATH` along with the output `TFile`, named `sc
 | `--anaType` | string | Analysis type to be executed, taken from the list {'scurveAna','trimAna'}. |
 | `--drawLeg` | none | Draws a TLegend on the output plots. For those 3x8 grid plots the legend will only be drawn on the plot for VFAT0. |
 | `--rootName` | string | Name of output `TFile`.  This file will be found in `$ELOG_PATH`. |
-| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {'RECREATE','UPDATE'} |
+| `--rootOpt` | string | Option for creating the output `TFile`, e.g. {`RECREATE`,`UPDATE`} |
 | `--ztrim` | int | The ztrim value that was used when running the scans listed in `--infilename` |
 
 #### plotSCurveFitResults.py Input File
