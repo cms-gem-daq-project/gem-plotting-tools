@@ -526,7 +526,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
             print "\t%s"%(line)
             print "Exiting"
             exit(os.EX_USAGE)
-
+            pass
         
         parsedListOfScanDates.append( (cName, scandate, indepVar) )
 

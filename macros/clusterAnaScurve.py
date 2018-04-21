@@ -124,10 +124,16 @@ if __name__ == '__main__':
         # stdout
         jobStdOut = "%s/stdout"%dirPath
         runCommand( ["mkdir","-p", jobStdOut ] )
+        if len(os.listdir(jobStdOut)) > 0:
+            runCommand( ['rm','%s/jobOut.txt'%(jobStdOut) ] )
+            pass
 
         # stderr
         jobStdErr = "%s/stderr"%dirPath
         runCommand( ["mkdir","-p", jobStdErr ] )
+        if len(os.listdir(jobStdErr)) > 0:
+            runCommand( ['rm','%s/jobErr.txt'%(jobStdErr) ] )
+            pass
 
         # script to be run by the cluster
         jobScriptName = "%s/clusterJob.sh"%dirPath
