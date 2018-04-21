@@ -643,7 +643,15 @@ While the following table shows the optional additional inputs:
 Finally `clusterAnaScurve.py` can also be passed the cut values used in assigning a maskReason described at [Providing Cuts for maskReason at Runtime](#providing-cuts-for-maskreason-at-runtime).
 
 #### Full Example For P5 S-Curve Data
-First connect to the P5 dqm machine. Then after setting up the env execute if you are intereted in a chamber ChamberName execute:
+Before you start due to space limitations on `AFS` it is strongly recommended that your `$DATA_PATH` variable on lxplus point to the work area rather than the user area, e.g.:
+
+```
+export DATA_PATH=/afs/cern.ch/work/<first-letter-of-your-username>/<your-user-name>/<somepath>
+```
+
+In your work area you can have up to 100GB of space. If this is your first time using `lxplus` you may want to increase your storage quota by following instructions [here](https://resources.web.cern.ch/resources/Help/?kbid=067040).
+
+Now connect to the P5 `dqm` machine. Then after setting up the env execute if you are intereted in a chamber ChamberName execute:
 
 ```
 cd $HOME
@@ -661,7 +669,44 @@ mv gemdata/<ChamberName> .
 clusterAnaScurve.py -i <ChamberName>/scurve/listOfScanDates.txt --anaType=scurve -f -q 1nh
 ```
 
-It may take some time to finish the job submission.  Please pay attention to the output at the end of the `clusterAnaScurve.py` command as it provodes helpful information for managing jobs and undersanding what comes next.  Once your jobs are complete you can re-package the re-analyzed files into a `tarball` using:
+It may take some time to finish the job submission.  Please pay attention to the output at the end of the `clusterAnaScurve.py` command as it provodes helpful information for managing jobs and undersanding what comes next.  Once your jobs are complete you should check that they all finished successfully.  One way to do this is to check if any of them exited with status `Exited` and check for the exit code.  To do this execute:
+
+```
+grep -R "exit code" <ChamberName>/scurve/*/stdout/jobOut.txt --color 
+```
+
+This will print a single line from all files where the string `exit code` appears.  For example:
+
+```
+% grep -R "exit code" GEMINIm01L1/scurve/*/stdout/jobOut.txt --color 
+GEMINIm01L1/scurve/2017.04.10.20.33/stdout/jobOut.txt:Exited with exit code 255.
+GEMINIm01L1/scurve/2017.04.26.12.25/stdout/jobOut.txt:Exited with exit code 255.
+GEMINIm01L1/scurve/2017.04.27.13.27/stdout/jobOut.txt:Exited with exit code 255.
+GEMINIm01L1/scurve/2017.06.07.12.17/stdout/jobOut.txt:Exited with exit code 255.
+GEMINIm01L1/scurve/2017.07.18.11.09/stdout/jobOut.txt:Exited with exit code 255.
+GEMINIm01L1/scurve/2017.07.18.18.34/stdout/jobOut.txt:Exited with exit code 255.
+```
+
+For those lines that appear in the `grep` output command you will need to check the standard err of the job which can be found in:
+
+```
+<ChamberName>/scurve/<scandate>/stderr/jobErr.txt
+```
+
+Note since some scans at P5 may have failed to complete successfully some jobs may intrinsically fail and be non-recoverable.  If you have questions about a particular job you can try to search in the e-log around the scandate in time to see if anything occurred around this time that might cause problems for the scan. If you would like to re-analyze a failed job you can do so by calling:
+
+```
+source $DATA_PATH/<ChamberName>/scurve/<scandate>/clusterJob.sh
+```
+
+If a large number of jobs have failed you should spend some time trying to understand why, and then re-submit to the cluster, rather than attempting to analyze them all by hand.
+
+Finally after you are satisfied that all the jobs that could complete successfully have completed you can:
+
+1. re-package the re-analyzed data into a tarball, and/or
+2. create time series plots to summarize the entire dataset.
+
+For case 1, re-packaging the re-analyzed files into a `tarball`, execute:
 
 ```
 packageFiles4Docker.py --ignoreFailedReads --fileListScurve=<ChamberName>/scurve/listOfScanDates.txt --tarBallName=<ChamberName>_scurves_reanalyzed.tar --ztrim=4
@@ -670,12 +715,24 @@ chmod 755 $HOME/public/<ChamberName>_scurves_reanalyzed.tar
 echo $HOME/public/<ChamberName>_scurves_reanalyzed.tar
 ```
 
-Provide the terminal output of this last command to one of the GEM DAQ Experts for mass-storage.
+Then provide the terminal output of this last command to one of the GEM DAQ Experts for mass-storage.
 
-Finally due to space limitations on `AFS` it is strongly recommended that your `$DATA_PATH` variable point to the work area rather than the user area, e.g.:
+For case 2, create time series plots to summarize the entire dataset, execute:
 
 ```
-export DATA_PATH=/afs/cern.ch/work/<first-letter-of-your-username>/<your-user-name>/<somepath>
+<editor of your choice> $GEM_PLOTTING_PROJECT/mapping/chamberInfo.py
 ```
 
-In your work area you can have up to 100GB of space. If this is your first time using `lxplus` you may want to increase your storage quota by following instructions [here](https://resources.web.cern.ch/resources/Help/?kbid=067040).
+And ensure the only uncommented entries of the `chamber_config` dictionary match the set of `ChamberName`'s that you have submitted jobs for.  Then execute:
+
+```
+plotTimeSeries.py --startDate=2017.01.01 --anaType=scurve
+```
+
+And a series of output `*.png` and `*.root` files will be found at:
+
+```
+$ELOG_PATH/timeSeriesPlots/<ChamberName>/0/
+```
+
+If you encounter issues in this procedure please spend some time trying to figure out what wrong on your side first.  If after studying the documentation and reviewing the commands you have exeuted you still do not understand the failure please ask on the `Software` channel of the `CMS GEM Ops` Mattermost team or submit an issue to the [github page](https://github.com/cms-gem-daq-project/gem-plotting-tools/issues/new).
