@@ -392,7 +392,8 @@ if __name__ == '__main__':
                     pass
                 pass
             maskReasons.append(reason)
-            masks.append(reason != MaskReason.NotMasked)
+            #masks.append(reason != MaskReason.NotMasked)
+            masks.append((reason != MaskReason.NotMasked) * (reason != MaskReason.DeadChannel))
             print '| %i | %i | %i | %i | %i | %i |'%(
                     vfat,
                     nDeadChan,
