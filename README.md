@@ -732,7 +732,9 @@ plotTimeSeries.py --startDate=2017.01.01 --anaType=scurve
 Please note the above command may take some time to process depending on the number of detectors worth of data you are trying to analyze.  Then a series of output `*.png` and `*.root` files will be found at:
 
 ```
-$ELOG_PATH/timeSeriesPlots/<ChamberName>/0/
+$ELOG_PATH/timeSeriesPlots/<ChamberName>/vt1bump0/
 ```
+
+If you would prefer to analyze `ChamberName`'s one at a time, or to have an output `*.png` file for each VFAT, you can produce time series plots individually by executing the `gemPlotter.py` commands provided at the end of the `clusterAnaScurve.py` output.  This might be preferred as when analyzing a large period of time the 3-by-8 grid plots that `plotTimeSeries.py` will produce for you may be hard to read.  In either case `gemPlotter.py` or `plotTimeSeries.py` will produce a `TFile` for you in which the plots at the per VFAT level are stored for you to later investigate.
 
 If you encounter issues in this procedure please spend some time trying to figure out what wrong on your side first.  If after studying the documentation and reviewing the commands you have exeuted you still do not understand the failure please ask on the `Software` channel of the `CMS GEM Ops` Mattermost team or submit an issue to the [github page](https://github.com/cms-gem-daq-project/gem-plotting-tools/issues/new).
