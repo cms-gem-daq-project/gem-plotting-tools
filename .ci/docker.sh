@@ -57,7 +57,7 @@ then
     echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
     docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on docker for `cat /etc/system-release`"
     docker logs $DOCKER_CONTAINER_ID
-    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user pip importlib"
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user importlib"
     docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user setuptools"
     docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user codecov"
 else

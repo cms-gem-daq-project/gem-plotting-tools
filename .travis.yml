@@ -99,6 +99,7 @@ after_script: skip
     - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} start"
     - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
+    - sudo chown :daqbuild -R .
     - gem install github_changelog_generator
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
