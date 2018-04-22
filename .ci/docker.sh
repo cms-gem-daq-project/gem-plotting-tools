@@ -6,11 +6,10 @@
 
 # Version of CentOS/RHEL
 OS_VERSION=$1
-PY_VER=$2
-DOCKER_IMAGE=$3
-COMMAND=$4
+DOCKER_IMAGE=$2
+COMMAND=$3
 
-ls -lZ
+# ls -lZ
 
 # need a varaible to point to the .ci directory
 # Run tests in Container
@@ -58,9 +57,9 @@ then
     echo DOCKER_CONTAINER_ID=${DOCKER_CONTAINER_ID}
     docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "echo Testing build on docker for `cat /etc/system-release`"
     docker logs $DOCKER_CONTAINER_ID
-    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "sudo pip install -U pip importlib"
-    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "sudo pip install -U setuptools"
-    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "sudo pip install -U codecov"
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user pip importlib"
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user setuptools"
+    docker exec -ti ${DOCKER_CONTAINER_ID} /bin/bash -ec "pip install -I --user codecov"
 else
     DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     docker logs $DOCKER_CONTAINER_ID
