@@ -8,29 +8,31 @@ stages:
   - test
   - coverage
   - name: buildrpm
-    ## CONDITIONAL STUFF BROKEN
   - name: docs
-    if: ((branch = master) OR (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev|pre|rc))?((\\d+$)|(-git[0-9a-z]{6,8})?)$))
+    if: ( ( branch = master ) OR ( tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc|alpha|dev)([0-9]+$))?|(-git[0-9a-z]{6,8})?$ ) )
   - name: prerelease
-    if: (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(pre|rc))((\\d+$)|(-git[0-9a-z]{6,8})?)$)
+    if: tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc)([0-9]+))$
   - name: devrelease
-    if: (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev))((\\d+$)|(-git[0-9a-z]{6,8})?)$)
+    if: tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc)([0-9]+))$
   - name: release
-    if: ((branch = master) AND (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-git[0-9a-z]{6,8})?)$))
-  - name: deploy
-    if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
-    
-## CONDITIONAL STUFF BROKEN
+    if: tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)$
+  - name: deployment
+    if: tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc|alpha|dev)([0-9]+$))?|(-git[0-9a-z]{6,8})?$
+
 .docs: &docs_cond
-  if: ((branch = master) OR (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev|pre|rc))?((\\d+$)|(-git[0-9a-z]{6,8})?)$))
-.prerelease: &prerelease_cond
-  if: (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(pre|rc))((\\d+$)|(-git[0-9a-z]{6,8})?)$)
-.devrelease: &devrelease_cond
-  if: (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-(alpha|dev))((\\d+$)|(-git[0-9a-z]{6,8})?)$)
-.release: &release_cond
-  if: ((branch = master) AND (tag =~ ^v?(\\d+).(\\d+).(\\d+)(-git[0-9a-z]{6,8})?)$))
-.deploy: &deploy_cond
-  if: tag =~ ^v?(\d+).(\d+).(\d+)(-(alpha|dev|pre|rc))?((\d+$)|(-git[0-9a-z]{6,8})?)$
+  if: ( ( branch = master ) OR ( tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc|alpha|dev)([0-9]+$))?|(-git[0-9a-z]{6,8})?$ ) )
+.draftrelease: &draftrelease_cond
+  condition: $TRAVIS_TAG =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc|dev|alpha)([0-9]+))?(-git[0-9a-z]{6,8})$
+.prerelease:   &prerelease_cond
+  condition: $TRAVIS_TAG =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc)([0-9]+))$
+.devrelease:   &devrelease_cond
+  condition: $TRAVIS_TAG =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(dev|alpha)([0-9]+))$
+.release:      &release_cond
+  condition: $TRAVIS_TAG =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)$
+# .deploy:       &deploy_cond
+#   condition: $TRAVIS_TAG =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc|alpha|dev)([0-9]+$))?|(-git[0-9a-z]{6,8})?$
+.deploy:       &deploy_cond
+  if: tag =~ ^v?(.)?([0-9]+).([0-9]+).([0-9]+)(-(pre|rc|alpha|dev)([0-9]+$))?|(-git[0-9a-z]{6,8})?$
 
 env:
   global:
@@ -81,6 +83,14 @@ script:
   - echo 'Running test stage on docker container $DOCKER_CONTAINER_ID'
   - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /home/daqbuild/gem-plotting-tools/.ci/test_on_docker.sh ${OS_VERSION} ${PY_VER} ${ROOT_VER}"
 
+## Defaults, applied to the 'test' stage
+after_success:
+  - "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop"
+
+after_failure: skip
+
+after_script: skip
+
 # How to link the environments/outputs from above with the jobs below?
 .rpmbuild: &rpmbuild_template
   before_install:
@@ -92,12 +102,6 @@ script:
     - gem install github_changelog_generator
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
-    - if ! test -z ${CHANGELOG_GITHUB_TOKEN+x}; then github_changelog_generator; else echo "Not updating changelog"; fi
-    - ls -laZ CHANGELOG.md
-    - sudo chown :daqbuild -R .
-    - ls -laZ CHANGELOG.md
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
-    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; make && make rpm"
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "cd /home/daqbuild/gem-plotting-tools; rpm -q --filesbypkg -p rpm/*.rpm"
     - ls -laZ rpm
@@ -110,7 +114,9 @@ script:
   # publish to Github releases
   provider: releases
   api_key:
-    secure: IZG4HXpAMFkAWzEnOG52/D3qg405xiNZQtVd+B6swV9Bb6/2/KGhPYWyb6ky06x83ZXZUtKG5QqE5/r7ohjcKuP1b25A3sSKr1iVdv9+8pRjahQ3aXWzQftmWW49ZAa/2GSwn+pHgXSHNcNW+CfidOSwCC6owt4RQxZuppoSjF7PeVWMUhNrwGukws0/jpBytahuhLIO4lOb4ShlsQqNjzkbmEsE2z0+zWpDeHN/sz0U71jFzaIG90Ygu/5huemS4g+jo7MWqtKVlKXe3j1qPgN15Wg5Rnm/osRwPpPTQz6MTOehn4WswYwYwGoMQ9I97RhxbB3QszRJHl4L7OxNJIcY2Pr3Nk9iRuvBSsdmgFBA8l2pxD14xCp1st4UfU35aQm84yG2VuLwys8KFjNFNap71BdoVQoZISThlagMKG6oWVLri1vfRaIcEJjT+s6blcK0CZ9xhMd6lVnYTOwDdJuIv3KcsQkzvF/9iiENkuH5PUU9HLVUw5/Nxjq3JoNzs9+ohIpgNLT4vNOMq5ZewCib5GDnIq732gOcuqNRZMTCRKY+/IgcPJJv935yGlcGiJ246Al1jhSS45rcvazgFty4NRwM41McaN83ZPqvqRLDRI4hRjlaEmb6fnDIZJbOLldJYjOOJxm+FbhPzWiYOOpjKllj/xQ7x0lsjLXEubY=
+    # secure: "l3w7DGKblwk+XRj9jDKLNfz99BXhyScEN2T6toDca3d1YQaCmbCaJzFYjxkdCuu70/uZtI2NbWfAbL6vjqMaqJqa75xxHguz1gDqOYro5SJQ1nV8MWTPH39qiUBRZEXE61CiDJTAree+l1Br0hvIaaNXmW2V+m8hpOzHy+V15HS2aanKUr0XSwZgzuCkKxapY5Ha2ippdniiW6GVt9Tr4UK1qFlBZPSK/vHxPrs/7bJzVPhsSKD66WJo1tHlBZTCjmEBMdsN3GlMSmcq6tEv37Ugu7/NMB79JQ3Ccyc5ty7yw1m+gi1EDQRuA0Ztf+IAJU8KYtCjGvFLSirDvIBFGmwQhY3CyFDg20RBlX32p+b7JvzsLFMc/9nkOmLlTpWr68Eb/HZSOabEiR/ETufloQx9RUwa+LFYsmfNMywdzedckenYHRltJP+8zKuSAiQeaHJWuCFCP0irRhTCgFLSZy+GFeWiP8tH/Xj1ZbCBP9Rulr3Jy99rqme7iflcxAqnjgmFAOKbwlXUV47P/QKh/Ec2jb9dNrJPQ3WWkP9va6MdQo9C+cfg/6du0UmMlNmALX9DMCWTRJcR1OtYKVrgeDJ67V6YJpqi9kXdWhvYORUBdJkkazJwparRm7FPnKXg0fThdlSAKUaN4P+6uDwZLYL5ispINUmkyBF1TZ89OyU="
+    # secure: "LKzmbCOo8PGN+MXe1EE1AjxxxejQa9GuJ3e3J67B2o3JWTAEZmH6tawPcChj1bSFyCpLbEnOLAOhHSRID6lB136pos2/TXpQZncMWWgO+SYLMZwiK4GDCAGPZ9cxgkOQZGm7OacXxTbpEVen8OTNU5M37+zN06dHUgfoU7lZk6M66h56BIuxNgc+ViucsUmzc3cZXlynglWvR0LX+Vlf2Gh8OsyJXDFDfKxEcWqv5QW1oyTVUowvseO7QF5jdgI12K9EGygplbXkVjsPsJem37HnaZTnukdG1CTt2v7aP56c6UdgsXDbhB1XLzcIh0x50liGLpEhWWmhOU2SMmy4XxhXLpjCT5Q92SahLjX28Y1A753nSZGDCSSNYOYpu2X8rQ9/jxHhQsEj5uHTB0Ht2DLJ8rq3DhacRinokXoCqulmIhJ4oztXRn3KIXOvnrl95m4dmHuYoVndV/2TmDtlOt/6LHvtXHoePi0yDS+ukI+c21uJ0iPxE+4dLToo05K8SdHbGu0x1NaGyN/IJV2CgZzrD0sBiZggNh5u7UcdsJpG9qVuNmpJenMWT/LfMynhkSCyDMs9xz0MwQkiNnpsfzGtn6P2vZBxlJkAFI/UXvvzZf1nR7x12JTAW7z8BAUSxefXM3Uw0zbQtriNkHLmWERzK6tBRUi6d1FZU34Z02I="
+    secure: "IZG4HXpAMFkAWzEnOG52/D3qg405xiNZQtVd+B6swV9Bb6/2/KGhPYWyb6ky06x83ZXZUtKG5QqE5/r7ohjcKuP1b25A3sSKr1iVdv9+8pRjahQ3aXWzQftmWW49ZAa/2GSwn+pHgXSHNcNW+CfidOSwCC6owt4RQxZuppoSjF7PeVWMUhNrwGukws0/jpBytahuhLIO4lOb4ShlsQqNjzkbmEsE2z0+zWpDeHN/sz0U71jFzaIG90Ygu/5huemS4g+jo7MWqtKVlKXe3j1qPgN15Wg5Rnm/osRwPpPTQz6MTOehn4WswYwYwGoMQ9I97RhxbB3QszRJHl4L7OxNJIcY2Pr3Nk9iRuvBSsdmgFBA8l2pxD14xCp1st4UfU35aQm84yG2VuLwys8KFjNFNap71BdoVQoZISThlagMKG6oWVLri1vfRaIcEJjT+s6blcK0CZ9xhMd6lVnYTOwDdJuIv3KcsQkzvF/9iiENkuH5PUU9HLVUw5/Nxjq3JoNzs9+ohIpgNLT4vNOMq5ZewCib5GDnIq732gOcuqNRZMTCRKY+/IgcPJJv935yGlcGiJ246Al1jhSS45rcvazgFty4NRwM41McaN83ZPqvqRLDRI4hRjlaEmb6fnDIZJbOLldJYjOOJxm+FbhPzWiYOOpjKllj/xQ7x0lsjLXEubY="
   file_glob: true
   file:
     - LICENSE
@@ -125,44 +131,45 @@ script:
   # draft: true # for tags with dev/alpha in the name, or
   # prerelease: true # for tags with pre in the name
   ## only deploy full release when the tag exactly matches vX.Y.Z (with or without the v)
-  prerelease: false # for tags with pre in the name
-  draft: false # for tags with pre in the nameprerelease: false
+  prerelease: true
+  draft: false
+  name: $TRAVIS_TAG
+  body: "Please fill me, preferably with release notes for $TRAVIS_TAG"
   on:
-    repo: jsturdy/gem-plotting-tools
-    # branch: master
     tags: true
+  #   before_deploy:
+  #     #Set up git user name and tag this commit
+  #     - git config --local user.name "YOUR GIT USER NAME"
+  #     - git config --local user.email "YOUR GIT USER EMAIL"
+  #     # ?create the changelog
+  #     # ?update release notes
+  #     # ?run our cmsgemostag script instead?
+  #     # Sign the tags
+  #   # - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
   after_deploy: skip
+    # - push docs to SaaS docs website, readthedocs style, with versioning
+    # - push API to SaaS docs website, Doxygen style, with versioning
+    # - push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
 
 jobs:
   include:
     - stage: buildrpm
-      env: OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+      env:
+        - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:slc6
+        - OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
       <<: *rpmbuild_template
-      deploy: # Deploy from the RPM build stage, but only on conditions
-        - <<: *release_template
-          # prerelease: true # for tags with dev/alpha in the name
-          # draft: true # for tags with pre/rc in the name
-          <<: *deploy_cond
-          on:
-            repo: jsturdy/gem-plotting-tools
-            tags: true
+
     - stage: buildrpm
       env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
       <<: *rpmbuild_template
-      deploy: # Deploy from the RPM build stage, but only on conditions
-        - <<: *release_template
-          # prerelease: true # for tags with dev/alpha in the name
-          # draft: true # for tags with pre/rc in the name
-          <<: *deploy_cond
-          on:
-            repo: jsturdy/gem-plotting-tools
-            tags: true
+
     - stage: docs
       before_script: skip
       before_install: skip
       script:
         - ls -laZ
       after_success: skip
+
     - stage: coverage
       before_script: skip
       before_install: skip
@@ -172,61 +179,42 @@ jobs:
         - codecov
         - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 
-    # - stage: prerelease
-    #   <<: *prerelease_cond
-    #   env: OS_TYPE=centos PY_VER=python OS_VERSION=7 DOCKER_IMAGE=gitlab-registry.cern.ch/sturdy/gemdaq_ci_worker/extrapy/withroot:cc7
-    #   <<: *rpmbuild_template
-    #   deploy:
-    #     - <<: *release_template
-    #       prerelease: true # for tags with dev/alpha in the name
-    #       on:
-    #         repo: jsturdy/gem-plotting-tools
-    #         tags: true
-    #   after_success: skip
-
-    # - stage: devrelease
-    #   script:
-    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   before_deploy: skip
-    #   deploy:
-    #     - <<: *release_template
-    #       draft: true # for tags with dev/alpha in the name
-    #   after_success: skip
-    #   after_deploy: skip
-
-    # - stage: release
-    #   script:
-    #     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg to generate changelog"
-    #   before_deploy:
-    #     #Set up git user name and tag this commit
-    #     - git config --local user.name "YOUR GIT USER NAME"
-    #     - git config --local user.email "YOUR GIT USER EMAIL"
-    #     # ?create the changelog
-    #     # ?update release notes
-    #     # ?run our cmsgemostag script instead?
-    #     # Sign the tags
-    #   # - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
-    #   deploy:
-    #     - <<: *release_template
-    #   after_success: skip
-    #   after_deploy:
-    #   ## push docs to SaaS docs website, readthedocs style, with versioning
-    #   ## push API to SaaS docs website, Doxygen style, with versioning
-    #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
-
-    # - stage: deploy
-    #   ## push docs to SaaS docs website, readthedocs style, with versioning
-    #   ## push API to SaaS docs website, Doxygen style, with versioning
-    #   ## push RPMs to repo on openstack SaaS, updates and devel-testing depending on tag
-    #   before_script: skip
-    #   before_install: skip
-    #   - script: skip
-    #   after_success: skip
-
-## Defaults, applied to the 'test' stage
-after_success:
-  - "./.ci/docker.sh ${OS_VERSION} ${PY_VER} ${DOCKER_IMAGE} stop"
-
-after_failure: skip
-
-after_script: skip
+    - stage: deployment
+      <<: *rpmbuild_template
+      before_deploy:
+        - echo "Preparing ChangeLog"
+        - if ! test -z ${CHANGELOG_GITHUB_TOKEN+x}; then github_changelog_generator; else echo "Not updating changelog"; fi
+        - sudo chown :daqbuild -R .
+        - ls -laZ CHANGELOG.md
+        # - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
+        # - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
+      deploy:
+        - <<: *release_template
+          prerelease: false
+          draft: false
+          on:
+            tags: true
+            <<: *release_cond
+          after_deploy:
+            - echo "Successfully deployed prerelease"
+        - <<: *release_template
+          on:
+            tags: true
+            <<: *prerelease_cond
+          after_deploy:
+            - echo "Successfully deployed prerelease"
+        - <<: *release_template
+          prerelease: false
+          draft: true
+          on:
+            tags: true
+            <<: *draftrelease_cond
+          after_deploy:
+            - echo "Successfully deployed draft release"
+        - <<: *release_template
+          prerelease: true
+          on:
+            tags: true
+            <<: *devrelease_cond
+          after_deploy:
+            - echo "Successfully deployed devrelease"
