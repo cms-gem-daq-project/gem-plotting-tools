@@ -623,7 +623,8 @@ The following table shows the mandatory inputs:
 | Name | Type | Description |
 | :--: | :--: | :---------- |
 | `--anaType` | string | Analysis type to be executed, from list {'scurve','trim'} |
-| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `clusterAnaScurve.py`.  The format of this input file should follow the [Two Column Format](two-column-format). |
+| `--chamberName` | string | Name of detector to be analyzed, must be present in `chamber_config.values()` of [mapping/chamberInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/mapping/chamberInfo.py). Either this option or `--infilename` must be supplied. |
+| `-i`, `--infilename` | string | Physical filename of the input file to be passed to `clusterAnaScurve.py`.  The format of this input file should follow the [Two Column Format](two-column-format). Either this option or `--chamberName` must be supplied. |
 | `-q`, `--queue` | string | queue to submit your jobs to.  Suggested options are {`8nm`, `1nh`} |
 | ` -t`, `--type` | string | Specify GEB/detector type, e.g. "long" or "short" |
 
@@ -634,9 +635,11 @@ While the following table shows the optional additional inputs:
 | `--calFile` | string | File specifying CAL_DAC/VCAL to fC equations per VFAT.  If this is not provided the analysis will default to hardcoded conversion for VFAT2 |
 | `-c`, `--channels` | none | Output plots will be made vs VFAT channel instead of ROB strip |
 | ` -d`, `--debug` | none | If provided all cluster files will be created for inspection, and job submission commands printed to terminal, but no jobs will be submitted to the cluster.  Strongly recommended calling with this option before submitting a large number of jobs. |
+| `--endDate | string | If `--infilename` is not supplied this is the ending scandate, in YYYY.MM.DD formate, to be considered for job submission. Default is `None` so the default behavior will be whatever `datetime.today()` evaluates to. |
 | `--extChanMapping` | string | Physical filename of a custom, non-default, channel mapping file.  If not provided the default slice test ROB strip to VFAT channel mapping will be used. |
 | `-f`, `--fit` | none | Fit scurves and save fit information to output TFile |
 | `-p`, `--panasonic` | none | Output plots will be made vs Panasonic pins instead of ROB strip |
+| `--startDate | string | If `--infilename` is not supplied this is the starting scandate, in YYYY.MM.DD formate, to be considered for job submission.  Default is `2017.01.01` so the start of the slice test will be used. |
 | `--zscore` | float | Z-Score for Outlier Identification in the MAD Algorithm.  For details see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf) |
 | `--ztrim` | float | Specify the p value of the trim in the quantity: `scurve_mean - ztrim * scurve_sigma` |
 
