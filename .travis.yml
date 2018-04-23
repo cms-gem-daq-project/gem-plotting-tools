@@ -36,6 +36,7 @@ stages:
 
 env:
   global:
+    ## Encrypted variables:
     ##  * CHANGELOG_GITHUB_TOKEN: for running github_changelog_generator without API rate limits
     # - secure: i4K316XPS0ANZeU6bF0JIsxZOaD/7gD5IwXR+kQwbENLpf6DsrLTE6ZJKgS/r9jClOAvbAQj9R7O61uRCHPYzQemKkXhCLSlqMlk0/RdvLVlcFCR6C7SDPF5DKnA8QQ3r7c2jdv27/TFfk60VWOYbQln94Mh8n3kH+6NGOwFwjxLBce88v8lsZXb3NDiHzwxXMeTbqqrAAbhCrjr7hrIvpm7eJwXVhOCz2HR7SpDOIFhwaDgGNgotqleF2szXwVnOUE4RxOgR7zBKLLFwjOtcdS0nRvOctf7l6kiq0t16V+BRIr0kad9hMUscNEKHDmQmRWF9zI83k2j/Ux4kgq1NUy6Jx+fbs/Y0WIwrd+LCyGIuaw/Y+Y3LVwT1EmUzYoga7oq2VB7j07PrOvGa4BwFDN1zm+7n2EZtmDw5aZwTtMeCkm4L+dL8HoiVVWAaFMZ8l/EYDDqWea5dcg9uazdI/wUFLavuc1lRzGTGHK+fxEYmX5DOfK35nyJQqDjB6dCKFjsty9NR1nF1wnsk49IuvviN6IfpCiIaGTxgAUrV8mT32gxPB9DdDyiPsQXHS6Z8ha2aq9Eeq7Zm/TXA5WkbUcw3RJsmdX6oDj89FzElX5EK0KjwRJgqgFfDP7yIhQHsRSk0QnWhIO6YI78A30DaTwR7vKNex09eT3igm+4ppU=
     - secure: KJbkEj0oKPEdHIAemqb9724uG0G3DDahzpl0ExEkQy/u5Gfkt5QgfFx8Ft5gzZtBkecLoC9weuUMzlFE4UEOi41alxZsJ8kKJCpPV8d0zzzQ7aDR8tpVE7CbCf0r7sScsq5sLXiXHgY5QMDRKjx40a+48cd3WrnGtoGDw7AKWiFS5hg/9fhZzwxnSlYALyMNYNnnaITsiBRlllRKIiEzBHqQOtCxHXKMLGgetwNnw58oRD64F6+l/aqIWAnrjZAdKtH4EUIIPJOEr2zWvlFQzIFzPLAo7O4ygVhOEituF/149s4/uPRWv06BcEQ0NIqP3qppT//voI832xaiQPrY2oiBD8lDoDiVfFKcM9lWzhtaxoJKRQ19DJGO9E0yXstwwjE/UOMJoYU4x6wdMbx7Tu6wlFgvxjBb56Pufvanq5QwsfioOU/aIvR75bPn6CfsYED8UXIHuOmRtKo41ApXru2OfqjAP2d67rBjW60aTwLv8J36zH1497DunbFkckqSOIHhi7MqUNn4+ghZGWVYMKXBmqLecW8hmdbHq2Jw95ZHDaHX8Ve4Z5LQ+0VF2Ydas9ULBQjH5viMDpRPURfpxlDGfgBe1E4rdZXrUpPpyJejumD8qJCHLwuHRjLKhBFUOuuyEGnQ1NVZN80LK+Xzw4Faujvkb9QY2npeGNVSTIY=
@@ -72,9 +73,9 @@ services:
   - docker
 
 before_install:
-  - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} setup"
+  - ./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} setup
   - sleep 2
-  - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} start"
+  - ./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} start
   - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
   - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
 
@@ -85,7 +86,7 @@ script:
 
 ## Defaults, applied to the 'test' stage
 after_success:
-  - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} stop"
+  - ./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} stop
 
 after_failure: skip
 
@@ -94,9 +95,9 @@ after_script: skip
 # How to link the environments/outputs from above with the jobs below?
 .rpmbuild: &rpmbuild_template
   before_install:
-    - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} setup"
+    - ./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} setup
     - sleep 2
-    - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} start"
+    - ./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} start
     - DOCKER_CONTAINER_ID=$(docker ps | grep ${DOCKER_IMAGE} | awk '{print $1}')
     - echo DOCKER_CONTAINER_ID=$DOCKER_CONTAINER_ID
     - sudo chown :daqbuild -R .
@@ -114,7 +115,7 @@ after_script: skip
     - pip install rpm/*.zip
     - echo "Install the dependencies"
     - echo "Run the predefined test"
-    - "./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} stop"
+    - ./.ci/docker.sh ${OS_VERSION} ${DOCKER_IMAGE} stop
 
 .release: &release_template
   skip_cleanup: true
@@ -133,7 +134,6 @@ after_script: skip
     - "./rpm/*.tgz"
     - "./rpm/*.tbz2"
     - "./rpm/*.rpm"
-
   ## pre-releases and draft releases for tags with pre/alpha/dev/gitHASH in the name
   # draft: true # for tags with dev/alpha in the name, or
   # prerelease: true # for tags with pre in the name
@@ -189,6 +189,7 @@ jobs:
       script: skip
       after_success:
         - sudo pip install -U codecov
+        # - coverage run -a scripta.py
         - codecov
         - bash <(curl -s https://codecov.io/bash) && echo "Uploaded code coverage"
 
@@ -199,8 +200,6 @@ jobs:
         - if ! test -z ${CHANGELOG_GITHUB_TOKEN+x}; then github_changelog_generator; else echo "Not updating changelog"; fi
         - sudo chown :daqbuild -R .
         - ls -laZ CHANGELOG.md
-        # - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "echo running gcg/github_changelog_generator to generate updated ChangeLog"
-        # - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec "touch /home/daqbuild/gem-plotting-tools/CHANGELOG.md"
       deploy:
         - <<: *release_template
           prerelease: false
