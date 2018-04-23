@@ -55,6 +55,15 @@ if __name__ == '__main__':
                       metavar="deadChanCutHigh")
     parser.add_option_group(chanMaskGroup)
     
+    dateOptions = OptionGroup(parser,
+            "Date Options"
+            "Options for specifying the starting and ending date range")
+    dateOptions.add_option("--startDate", type="string", dest="startDate", default="2017.01.01",
+                      help="Starting date range in YYYY.MM.DD format", metavar="startDate")
+    dateOptions.add_option("--endDate", type="string", dest="endDate", default=None,
+                      help="Starting date range in YYYY.MM.DD format", metavar="endDate")
+    parser.add_option_group(dateOptions)
+    
     (options, args) = parser.parse_args()
     listOfScanDatesFile = options.filename
 
@@ -89,7 +98,7 @@ if __name__ == '__main__':
     # Get info from input file
     from anautilities import getDirByAnaType, filePathExists, makeListOfScanDatesFile, parseListOfScanDatesFile
     if (listOfScanDatesFile is None and options.chamberName is not None):
-        makeListOfScanDatesFile(options.chamberName, options.anaType, ztrim=options.ztrim)
+        makeListOfScanDatesFile(options.chamberName, options.anaType, options.startDate, options.endDate, ztrim=options.ztrim)
         listOfScanDatesFile = '%s/listOfScanDates.txt'%(getDirByAnaType(options.anaType, options.chamberName, options.ztrim))
         pass
     parsedTuple = parseListOfScanDatesFile(listOfScanDatesFile, alphaLabels=True)
@@ -138,10 +147,7 @@ if __name__ == '__main__':
         # script to be run by the cluster
         jobScriptName = "%s/clusterJob.sh"%dirPath
         jobScript = open(jobScriptName, 'w+')
-        #jobScript.write('scl enable python27 - << \EOF\n')
         jobScript.write('#!/bin/zsh\n')
-        jobScript.write('echo `python --version`\n')
-        jobScript.write('echo `gcc --version | grep "gcc"`\n')
         jobScript.write('source /opt/rh/python27/enable\n')
         jobScript.write('source /afs/cern.ch/sw/lcg/contrib/gcc/4.8.4/x86_64-slc6/setup.sh\n')
         jobScript.write('export BUILD_HOME=%s\n'%buildHome)
@@ -186,7 +192,6 @@ if __name__ == '__main__':
         pythonCmd += '\n'
         
         jobScript.write(pythonCmd)
-        #jobScript.write('EOF')
         jobScript.close()
         runCommand( ['chmod', '+x', jobScriptName] )
 
