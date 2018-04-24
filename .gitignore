@@ -20,4 +20,6 @@
 
 #Don't ignore select scripts
 !macros/gemPlotterAllChannels.sh
+!setup/createVirtualEnvPy26.sh
+!setup/createVirtualEnvPy27.sh
 !setup/paths.sh

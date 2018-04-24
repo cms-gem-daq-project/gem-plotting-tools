@@ -139,10 +139,6 @@ if __name__ == '__main__':
     from gempython.utils.wrappers import envCheck
     from mapping.chamberInfo import chamber_iEta2VFATPos, chamber_vfatPos2iEta
 
-    #defaultVFATList='0'
-    #for vfat in range(1,24):
-    #    defaultVFATList+=(',%i'%vfat)
-
     from anaoptions import parser
     parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
                       help="Draw fit overlays for Chi2 > 10000", metavar="drawbad")
@@ -155,10 +151,28 @@ if __name__ == '__main__':
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
-    #parser.add_option("--vfatList", type="string", dest="vfatList", default=",".join([str(x) for x in range(0,24)]),
-    #                  help="Comma separated list of vfats positions to analyze", metavar="vfatList")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
+
+    from optparse import OptionGroup
+    chanMaskGroup = OptionGroup(
+            parser,
+            "Options for channel mask decisions"
+            "Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
+    chanMaskGroup.add_option("--maxEffPedPercent", type="float", dest="maxEffPedPercent", default=0.05,
+                      help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set",
+                      metavar="maxEffPedPercent")
+    chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
+                      help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
+                      metavar="highNoiseCut")
+    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=4.14E-02,
+                      help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
+                      metavar="deadChanCutLow")
+    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=1.09E-01,
+                      help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
+                      metavar="deadChanCutHigh")
+    parser.add_option_group(chanMaskGroup)
+
     parser.set_defaults(outfilename="SCurveFitData.root")
     (options, args) = parser.parse_args()
     
@@ -166,8 +180,6 @@ if __name__ == '__main__':
     filename = options.filename[:-5]
     os.system("mkdir " + filename)
     
-    #listOfVFATs = options.vfatList.split(',')
-    #listOfVFATs = [int(vfat) for vfat in range(0,24)]
     outfilename = options.outfilename
     GEBtype = options.GEBtype
    
@@ -336,6 +348,7 @@ if __name__ == '__main__':
     
         # Determine hot channels
         print("Determining hot channels")
+        print("")
         masks = []
         maskReasons = []
         effectivePedestals = [ np.zeros(128) for vfat in range(0,24) ]
@@ -363,18 +376,33 @@ if __name__ == '__main__':
             reason = np.zeros(128, dtype=int) # Not masked
             reason[hot] |= MaskReason.HotChannel
             reason[fitFailed] |= MaskReason.FitFailed
-            reason[fitter.isDead[vfat]] |= MaskReason.DeadChannel
-            reason[channelNoise > 20] |= MaskReason.HighNoise
-            reason[effectivePedestals[vfat] > 50] |= MaskReason.HighEffPed
+            nDeadChan = 0
+            for chan in range(0,len(channelNoise)):
+                if (options.deadChanCutLow < channelNoise[chan] and channelNoise[chan] < options.deadChanCutHigh):
+                    reason[chan] |= MaskReason.DeadChannel
+                    nDeadChan+=1
+                    pass
+                pass
+            reason[channelNoise > options.highNoiseCut ] |= MaskReason.HighNoise
+            nHighEffPed = 0
+            for chan in range(0, len(effectivePedestals)):
+                if chan not in fitter.Nev[vfat].keys():
+                    continue
+                if (effectivePedestals[vfat][chan] > (options.maxEffPedPercent * fitter.Nev[vfat][chan]) ):
+                    reason[chan] |= MaskReason.HighEffPed
+                    nHighEffPed+=1
+                    pass
+                pass
             maskReasons.append(reason)
-            masks.append(reason != MaskReason.NotMasked)
+            #masks.append(reason != MaskReason.NotMasked)
+            masks.append((reason != MaskReason.NotMasked) * (reason != MaskReason.DeadChannel))
             print '| %i | %i | %i | %i | %i | %i |'%(
                     vfat,
-                    np.count_nonzero(fitter.isDead[vfat]),
+                    nDeadChan,
                     np.count_nonzero(hot),
                     np.count_nonzero(fitFailed),
-                    np.count_nonzero(channelNoise > 20),
-                    np.count_nonzero(effectivePedestals[vfat] > 50))
+                    np.count_nonzero(channelNoise > options.highNoiseCut),
+                    nHighEffPed)
     
     # Make Distributions w/o Hot Channels
     if options.performFit:
@@ -734,15 +762,16 @@ if __name__ == '__main__':
         saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
-        confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
+        confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I:maskReason/I\n')
         for vfat in range(0,24):
             for chan in range (0, 128):
-                confF.write('%i\t%i\t%i\t%i\t%i\n'%(
+                confF.write('%i\t%i\t%i\t%i\t%i\t%i\n'%(
                     vfat,
                     dict_vfatID[vfat],
                     chan,
                     trim_list[vfat][chan],
-                    masks[vfat][chan]))
+                    masks[vfat][chan],
+                    maskReasons[vfat][chan]))
                 pass
             pass
         confF.close()

@@ -47,6 +47,10 @@ if __name__ == '__main__':
                       help="Specify Input Filename for list of scandates for threshold files", metavar="fileListThresh")
     parser.add_option("--fileListTrim", type="string", dest="fileListTrim", default=None,
                       help="Specify Input Filename for list of scandates for trim files", metavar="fileListTrim")
+    parser.add_option("--ignoreFailedReads", action="store_true", dest="ignoreFailedReads",
+                      help="Ignores failed read errors in tarball creation", metavar="ignoreFailedReads")
+    parser.add_option("--onlyRawData", action="store_true", dest="onlyRawData",
+                      help="Files produced by anaUltra*.py scripts will not be included", metavar="onlyRawData")
     parser.add_option("--tarBallName", type="string", dest="tarBallName", default="testFiles.tar",
                       help="Specify the name of the output tarball", metavar="tarBallName")
     parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
@@ -58,7 +62,11 @@ if __name__ == '__main__':
     import os
 
     # Start the tar ball command
-    tarBallCmd = ["tar", "-cf", options.tarBallName]
+    if options.ignoreFailedReads:
+        tarBallCmd = ["tar", "--ignore-failed-read", "-cf", options.tarBallName]
+    else:
+        tarBallCmd = ["tar", "-cf", options.tarBallName]
+        pass
     list_cmd_tuple = [] # 0 -> cName; 1 -> anaType; 2 -> scandate
     
     # Add Latency
@@ -112,9 +120,11 @@ if __name__ == '__main__':
         anaFile = (tree_names[anaKey])[0]
 
         rawFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], rawFile ) # basePath/scandate/rawFile
-        anaFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], anaFile )# basePath/scandate/anaFile
         tarBallCmd.append(rawFilePath)
-        tarBallCmd.append(anaFilePath)
+        if not options.onlyRawData:
+            anaFilePath = "%s/%s/%s"%(getDirByAnaType(anaType=item[0], cName=item[1], ztrim=options.ztrim), item[2], anaFile )# basePath/scandate/anaFile
+            tarBallCmd.append(anaFilePath)
+            pass
         
     # Make the fake chamberInfo.py file
     tmpChamberInfoFile = open("chamberInfo.py_tmp", "w")

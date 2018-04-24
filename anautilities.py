@@ -318,6 +318,73 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     canv.Update()
     return canv
 
+def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, delim='\t', ztrim=4):
+    """
+    Given a starting scandate startDate and an ending scandate endDate this
+    will make a text file for chamberName which is a two-column list of 
+    scandates for anaType compatible with parseListOfScanDatesFile()
+
+    chamberName - Chamber name, expected to be in chamber_config.values()
+    startDate   - starting scandate in YYYY.MM.DD.hh.mm format, if None then
+                  the earliest possible date is used
+    endDate     - ending scandate in YYYY.MM.DD.hh.mm format, if None then
+                  today is used (latest possible date)
+    delim       - delimiter to use in output file name
+    """
+
+    from gempython.utils.wrappers import envCheck, runCommand
+    envCheck('DATA_PATH')
+
+    import datetime
+    startDay = datetime.date(datetime.MINYEAR,1,1)
+    if startDate is not None:
+        startDateInfo = [ int(info) for info in startDate.split(".") ]
+        startDay = datetime.date(startDateInfo[0], startDateInfo[1], startDateInfo[2])
+        pass
+
+    endDay = datetime.date.today()
+    if endDate is not None:
+        endDateInfo = [ int(info) for info in endDate.split(".") ]
+        endDat = datetime.date(endDateInfo[0], endDateInfo[1], endDateInfo[2])
+        pass
+
+    import os
+    dirPath = getDirByAnaType(anaType, chamberName, ztrim)
+    listOfScanDates = os.listdir(dirPath)
+
+    try:
+        listOfScanDatesFile = open('%s/listOfScanDates.txt'%dirPath,'w+')
+    except IOError as e:
+        print "Exception:", e
+        print "Failed to open write output file"
+        print "Is the below directory writeable?"
+        print ""
+        print "\t%s"%dirPath
+        print ""
+        exit(os.EX_IOERR)
+        pass
+    
+    listOfScanDatesFile.write('ChamberName%sscandate\n'%delim)
+    for scandate in listOfScanDates:
+	if "current" == scandate:
+	    continue
+        try:
+            scandateInfo = [ int(info) for info in scandate.split('.') ]
+        except ValueError as e:
+            print "Skipping directory %s/%s"%(dirPath,scandate)
+            continue
+        thisDay = datetime.date(scandateInfo[0],scandateInfo[1],scandateInfo[2])
+
+        if (startDay < thisDay and thisDay <= endDay):
+            listOfScanDatesFile.write('%s%s%s\n'%(chamberName,delim,scandate))
+            pass
+        pass
+
+    listOfScanDatesFile.close()
+    runCommand( ['chmod','g+rw','%s/listOfScanDates.txt'%dirPath] )
+
+    return
+
 def parseCalFile(filename=None):
     """
     Gives the conversion between VCal/CFG_CAL_DAC to fC from either
@@ -459,7 +526,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
             print "\t%s"%(line)
             print "Exiting"
             exit(os.EX_USAGE)
-
+            pass
         
         parsedListOfScanDates.append( (cName, scandate, indepVar) )
 

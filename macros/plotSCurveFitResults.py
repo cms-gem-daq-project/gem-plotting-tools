@@ -63,7 +63,7 @@ if __name__ == '__main__':
         # Setup the path
         dirPath = getDirByAnaType(options.anaType.strip("Ana"), chamberAndScanDatePair[0], options.ztrim)
         if not filePathExists(dirPath, chamberAndScanDatePair[1]):
-            print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
+            print 'Filepath %s/%s does not exist!'%(dirPath, chamberAndScanDatePair[1])
             print 'Please cross-check, exiting!'
             outF.Close()
             exit(os.EX_DATAERR)

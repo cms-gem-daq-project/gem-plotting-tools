@@ -1,6 +1,6 @@
 #!/bin/env python
 
-def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4):
+def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4, skipBad=False):
     """
     Provides a list of tuples for 1D data where each element is of the form: (indepVarVal, depVarVal, depVarValErr)
 
@@ -12,6 +12,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     vfat - vfat number that plots should be made for
     vfatCH - channel of the vfat that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/strip
     strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCH
+    skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
     """
   
     from anautilities import filePathExists, getDirByAnaType
@@ -40,8 +41,13 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim)
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
-            print 'Please cross-check, exiting!'
-            exit(os.EX_DATAERR)
+            if skipBad:
+                print 'Skipping'
+                continue
+            else:
+                print 'Please cross-check, exiting!'
+                exit(os.EX_DATAERR)
+                pass
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         # Get TTree
@@ -50,10 +56,15 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
         except Exception as e:
-            print '%s may not exist in %s, please cross check'%(treeName,filename)
+            print '%s may not exist in %s'%(treeName,filename)
             print e
-            #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
-            exit(os.EX_DATAERR)
+            if skipBad:
+                print 'Skipping'
+                continue
+            else:
+                print 'Please cross-check, exiting!'
+                exit(os.EX_DATAERR)
+                pass
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -64,7 +75,6 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
                 exit(os.EX_DATAERR)
 
         # Get dependent variable value
@@ -88,7 +98,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     # Return Data
     return listData
 
-def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, ROBstr=True, ztrim=4):
+def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, ROBstr=True, ztrim=4, skipBad=False):
     """
     Provides a list of tuples for 2D data where each element is of the (x,y,z) form: (indepVarVal, vfatCHOrROBstr, depVarVal)
 
@@ -98,6 +108,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     treeName - name of the TTree inside rootFileName
     branchName - name of a branch inside treeName that the dependent variable will be extracted from
     vfat - vfat number that plots should be made for
+    skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
     """
   
     from anautilities import filePathExists, getDirByAnaType
@@ -129,8 +140,13 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim)
         if not filePathExists(dirPath, scandate):
             print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
-            print 'Please cross-check, exiting!'
-            exit(os.EX_DATAERR)
+            if skipBad:
+                print 'Skipping'
+                continue
+            else:
+                print 'Please cross-check, exiting!'
+                exit(os.EX_DATAERR)
+                pass
         filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
 
         # Get TTree
@@ -139,10 +155,15 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
         except Exception as e:
-            print '%s may not exist in %s, please cross check'%(treeName,filename)
+            print '%s may not exist in %s'%(treeName,filename)
             print e
-            #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
-            exit(os.EX_DATAERR)
+            if skipBad:
+                print 'Skipping'
+                continue
+            else:
+                print 'Please cross-check, exiting!'
+                exit(os.EX_DATAERR)
+                pass
             pass
 
         # Check to make sure listNames are present in dataTree
@@ -153,7 +174,6 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
                 for realBranch in knownBranches:
                     print realBranch
                 print "Please try again using one of the existing branches"
-                #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
                 exit(os.EX_DATAERR)
 
         # Get dependent variable value - VFAT Level
@@ -202,6 +222,8 @@ if __name__ == '__main__':
                     help="Prints a comma separated table with the data to the terminal", metavar="printData")
     parser.add_option("--rootOpt", type="string", dest="rootOpt", default="RECREATE",
                     help="Option for the output TFile, e.g. {'RECREATE','UPDATE'}", metavar="rootOpt")
+    parser.add_option("--skipBadFiles", action="store_true", dest="skipBadFiles",
+                    help="Rather than exiting, simply skip an input scandate that fails to open/load properly", metavar="skipBadFiles")
     parser.add_option("--showStat", action="store_true", dest="showStat",
                     help="Draws the statistics box for 2D plots", metavar="showStat")
     parser.add_option("--vfatList", type="string", dest="vfatList", default=None,
@@ -306,7 +328,7 @@ if __name__ == '__main__':
 
         # Make the output canvas, use a temp name and temp title for now
         strCanvName = ""
-        canvPlot = r.TCanvas("canv_VFAT%i"%(vfat),"VFAT%i"%(vfat),600,600)
+        canvPlot = r.TCanvas("canv_VFAT%i"%(vfat),"VFAT%i"%(vfat),2400,800)
 
         # Make the plot, either 2D or 1D
         if options.make2D:
@@ -318,7 +340,8 @@ if __name__ == '__main__':
                     options.branchName, 
                     vfat,
                     not options.channels,
-                    options.ztrim)
+                    options.ztrim,
+                    skipBad=options.skipBadFiles)
 
             # Print to the user
             if options.printData:
@@ -381,7 +404,8 @@ if __name__ == '__main__':
                     vfat, 
                     vfatCH, 
                     strip,
-                    options.ztrim)
+                    options.ztrim,
+                    skipBad=options.skipBadFiles)
 
             # Print to the user
             # Using format compatible with: https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#4eiviii-header-parameters---data
