@@ -35,7 +35,6 @@ then
 elif [ "${COMMAND}" = "start" ]
 then
     if [[ "${DOCKER_IMAGE}" =~ slc6$ ]]
-    # if [ "$OS_VERSION" = "6" ]
     then
         echo "Starting SLC6 GEM DAQ custom docker image"
         # docker run -d --user daqbuild --rm=true -v `pwd`:/home/daqbuild/${REPO_NAME}:rw,z --entrypoint="/bin/bash" \
@@ -43,7 +42,6 @@ then
                -v `pwd`:/home/daqbuild/${REPO_NAME}:rw,z \
                ${DOCKER_IMAGE} /bin/bash
     elif [[ "${DOCKER_IMAGE}" =~ cc7$ ]]
-    # elif [ "$OS_VERSION" = "7" ]
     then
         echo "Starting CC7 GEM DAQ custom docker image"
         docker run --user daqbuild --privileged=true -d -ti -e "container=docker" \
@@ -51,7 +49,6 @@ then
                -v `pwd`:/home/daqbuild/${REPO_NAME}:rw,z \
                ${DOCKER_IMAGE} /usr/sbin/init
     elif [[ "${DOCKER_IMAGE}" =~ cc8$ ]]
-    # elif [ "$OS_VERSION" = "8" ]
     then
         echo "Starting CC8 GEM DAQ custom docker image"
     fi
