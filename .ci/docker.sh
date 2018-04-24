@@ -34,21 +34,24 @@ then
     sudo chown :daqbuild -R .
 elif [ "${COMMAND}" = "start" ]
 then
-    if [ "$OS_VERSION" = "6" ]
+    if [[ "${DOCKER_IMAGE}" =~ slc6$ ]]
+    # if [ "$OS_VERSION" = "6" ]
     then
         echo "Starting SLC6 GEM DAQ custom docker image"
         # docker run -d --user daqbuild --rm=true -v `pwd`:/home/daqbuild/${REPO_NAME}:rw,z --entrypoint="/bin/bash" \
         docker run --user daqbuild --privileged=true -d -ti -e "container=docker" \
                -v `pwd`:/home/daqbuild/${REPO_NAME}:rw,z \
                ${DOCKER_IMAGE} /bin/bash
-    elif [ "$OS_VERSION" = "7" ]
+    elif [[ "${DOCKER_IMAGE}" =~ cc7$ ]]
+    # elif [ "$OS_VERSION" = "7" ]
     then
         echo "Starting CC7 GEM DAQ custom docker image"
         docker run --user daqbuild --privileged=true -d -ti -e "container=docker" \
                -v /sys/fs/cgroup:/sys/fs/cgroup \
                -v `pwd`:/home/daqbuild/${REPO_NAME}:rw,z \
                ${DOCKER_IMAGE} /usr/sbin/init
-    elif [ "$OS_VERSION" = "8" ]
+    elif [[ "${DOCKER_IMAGE}" =~ cc8$ ]]
+    # elif [ "$OS_VERSION" = "8" ]
     then
         echo "Starting CC8 GEM DAQ custom docker image"
     fi
