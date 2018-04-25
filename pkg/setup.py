@@ -46,29 +46,13 @@ setup(name             = '__packagename__',
       # namespace_package = "gempython",
       # packages         = __pythonmodules__, # for PEP420 native namespace util
       packages           = find_packages(), # for pkgutil namespace method
-      # package_dir      = {'' : ''},
       include_package_data = True,
       package_data     = getpkgdata(),
       # dependency_links   = ['http://cmsgemos.web.cern.ch/cmsgemos/repo/tarball/master#egg=package-1.0']
       zip_safe         = False,
       setup_requires   = [
-          # 'importlib; python_version=="2.6"',
-          # 'setuptools>=25.0,<38.2; python_version=="2.6"',
-          # 'setuptools>=25.0; python_version>"2.6"',
-          'setuptools>=25.0<38.2',
-          'setuptools-git',
-          'setuptools_scm'
-      ],
-      build_requires   = [
-          # 'importlib; python_version=="2.6"',
-          # 'setuptools>=25.0,<38.2; python_version=="2.6"',
-          # 'setuptools>=25.0; python_version>"2.6"',
-          'setuptools>=25.0<38.2',
-          'setuptools-git',
-          'setuptools_scm'
+          'setuptools>=25.0'
       ],
       install_requires = getreqs(),
-      # install_requires = ['numpy>=1.7', 'root_numpy>=4.7'],
-      # scripts          = getscripts(),
       license          = 'MIT',
 )
