@@ -46,33 +46,24 @@ default:
 .PHONY: clean preprpm
 _rpmprep: preprpm
 preprpm: default
-	# @cp -rfp anaInfo.py anaoptions.py anautilities.py $(PackageDir)/utils
+	@cp -rfp config/scriptlets/installrpm.sh pkg/
 	$(MakeDir) $(ScriptDir)
 	@cp -rfp anaUltra*.py $(ScriptDir)
 	@cp -rfp ana_scans.py $(ScriptDir)
 	@cp -rfp anaXDAQLatency.py $(ScriptDir)
-	# @touch $(ScriptDir)/__init__.py
 	-cp -rfp README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
 	-cp -rfp README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt pkg
 
 clean:
-	-rm -rf $(PackageDir)/macros
-	-rm -rf $(PackageDir)/fitting
-	-rm -rf $(PackageDir)/mapping
-	-rm -rf $(PackageDir)/utils
 	-rm -rf $(ScriptDir)
-	-rm -f  $(PackageDir)/README.md
-	-rm -f  $(PackageDir)/LICENSE
-	-rm -f  $(PackageDir)/MANIFEST.in
-	-rm -f  $(PackageDir)/CHANGELOG.md
-	-rm -f  $(PackageDir)/requirements.txt
-	-rm -f  $(PackageDir)/__init__.py
+	-rm -rf $(PackageDir)
 	-rm -f  pkg/$(Namespace)/__init__.py
 	-rm -f  pkg/README.md
 	-rm -f  pkg/LICENSE
 	-rm -f  pkg/MANIFEST.in
 	-rm -f  pkg/CHANGELOG.md
 	-rm -f  pkg/requirements.txt
+	-rm -f  pkg/installrpm.sh
 
 print-env:
 	@echo BUILD_HOME     $(BUILD_HOME)
