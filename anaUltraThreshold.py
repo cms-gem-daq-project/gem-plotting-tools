@@ -3,11 +3,14 @@ import os
 import sys
 from optparse import OptionParser
 from array import array
-from mapping.channelMaps import *
-from mapping.PanChannelMaps import *
+
+import gempython.gemplotting as gemplotting
+
+from gemplotting.mapping.channelMaps import *
+from gemplotting.mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
-from anaoptions import parser
+from gemplotting.anaoptions import parser
 
 parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree", default="SCurveFitData.root",
                   help="TFile containing scurveFitTree", metavar="fileScurveFitTree")
@@ -50,13 +53,16 @@ for vfat in range(0,24):
 
 from gempython.utils.wrappers import envCheck
 envCheck('GEM_PLOTTING_PROJECT')
-
 projectHome = os.environ.get('GEM_PLOTTING_PROJECT')
+
+import pkg_resources
+MAPPING_PATH = pkg_resources.resource_filename('gemplotting', 'mapping/')
+
 if GEBtype == 'long':
-    intext = open(projectHome+'/mapping/longChannelMap.txt', 'r')
+    intext = open(MAPPING_PATH+'/longChannelMap.txt', 'r')
     pass
 if GEBtype == 'short':
-    intext = open(projectHome+'/mapping/shortChannelMap.txt', 'r')
+    intext = open(MAPPING_PATH+'/shortChannelMap.txt', 'r')
     pass
 
 for i, line in enumerate(intext):
@@ -123,7 +129,7 @@ for event in inF.thrTree :
 
 #Determine Hot Channels
 print 'Determining hot channels'
-from anautilities import *
+from gemplotting.anautilities import *
 import numpy as np
 import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
 dict_hMaxVT1 = {}

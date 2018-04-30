@@ -1,0 +1,14 @@
+user=cms-gem-daq-project
+project=gem-plotting-tools
+bugs-label="**Fixed known bugs:**"
+enhancement-label="**Implemented enhancements:**"
+issues-label="**Closed issues:**"
+header-label="# Change Log ```gempython_gemplotting```"
+# front-matter [JSON]        Add YAML front matter. Formatted as JSON because it's easier to add on the command line
+include-labels=""
+exclude-labels="duplicate,answer,question,'Type: Question','Type: Duplicate','Type: Answer'"
+bug-labels="bugfix,bug,Bug,'Type: Bug','Type: Bugfix'"
+enhancement-labels="enhancement,Enhancement,'Type: Enhancement'"
+issue-line-labels=""
+release-branch=master
+# future-release=v1.0.0

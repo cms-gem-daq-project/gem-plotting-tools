@@ -36,11 +36,11 @@ fi
 export GEM_PLOTTING_PROJECT=$BUILD_HOME/gem-plotting-tools
 
 # Setup Path
-export PATH=$PATH:$GEM_PLOTTING_PROJECT
-export PATH=$PATH:$GEM_PLOTTING_PROJECT/macros
+export PATH=$GEM_PLOTTING_PROJECT:$PATH
+export PATH=$GEM_PLOTTING_PROJECT/macros:$PATH
 
 # Setup PYTHONPATH
-export PYTHONPATH=$PYTHONPATH:$GEM_PLOTTING_PROJECT
+export PYTHONPATH=$GEM_PLOTTING_PROJECT/pkg:$PYTHONPATH
 
 # Making detector channel maps
 # echo "Checking Detector Channel Maps"

@@ -13,8 +13,8 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     vfatCH - channel of the vfat that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/strip
     strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCH
     """
-  
-    from anautilities import filePathExists, getDirByAnaType
+
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import os
@@ -100,7 +100,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     vfat - vfat number that plots should be made for
     """
   
-    from anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import os
@@ -174,10 +174,10 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     return listData
 
 if __name__ == '__main__':
-    from anaInfo import tree_names
+    from gempython.gemplotting.anaInfo import tree_names
     from gempython.utils.wrappers import envCheck
-    from macros.plotoptions import parser
-    
+    from plotoptions import parser
+
     import array
     import numpy as np
     import os
@@ -492,7 +492,7 @@ if __name__ == '__main__':
 
     # Make Summary Plot
     if options.all_plots:
-        from anautilities import make3x8Canvas
+        from gempython.gemplotting.anautilities import make3x8Canvas
         strSummaryName = "summary_%s_vs_%s_%s"%(options.branchName, strIndepVarNoBraces,strStripOrChan)
         canv_summary = make3x8Canvas( strSummaryName, listPlots, strDrawOpt)
         

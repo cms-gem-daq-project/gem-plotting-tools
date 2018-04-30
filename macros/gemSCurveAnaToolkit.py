@@ -1,11 +1,11 @@
 #!/bin/env python
 
 if __name__ == '__main__':
-    from anaInfo import tree_names
-    from anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.anaInfo import tree_names
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
     from gempython.utils.wrappers import envCheck, runCommand
-    from macros.plotoptions import parser
-    from macros.scurvePlottingUtitilities import overlay_scurve
+    from gempython.gemplotting.macros.plotoptions import parser
+    from gempython.gemplotting.macros.scurvePlottingUtitilities import overlay_scurve
    
     import os
     import ROOT as r

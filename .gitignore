@@ -8,6 +8,10 @@
 # Don't ignore special files
 !*.md
 !*.rst
+!*.in
+
+# Don't ignore makefiles
+!Makefile
 
 # Don't ignore subdirectories
 !*/

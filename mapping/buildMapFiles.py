@@ -1,11 +1,14 @@
 import os
-from mapping.channelMaps import *
-from mapping.PanChannelMaps import *
+
+from gempython.gemplotting.mapping.channelMaps import *
+from gempython.gemplotting.mapping.PanChannelMaps import *
 
 from gempython.utils.wrappers import envCheck
 envCheck('GEM_PLOTTING_PROJECT')
 
-mapPath  = "%s/mapping"%(os.getenv('GEM_PLOTTING_PROJECT'))
+import pkg_resources
+MAPPING_PATH = pkg_resources.resource_filename('gemplotting', 'mapping/')
+mapPath  = "%s/mapping"%(MAPPING_PATH)
 
 chamberType = ['long','short']
 for cT in chamberType:
