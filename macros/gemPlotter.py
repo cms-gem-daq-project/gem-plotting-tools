@@ -181,7 +181,6 @@ if __name__ == '__main__':
     import array
     import numpy as np
     import os
-    import ROOT as r
     
     parser.add_option("-a","--all", action="store_true", dest="all_plots",
                     help="vfatList is automatically set to [0,1,...,22,23]", metavar="all_plots")
@@ -211,6 +210,8 @@ if __name__ == '__main__':
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
   
+    import ROOT as r
+
     # Check Paths
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')

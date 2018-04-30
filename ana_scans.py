@@ -12,10 +12,8 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   import subprocess
   from subprocess import CalledProcessError
 
-  import gempython.gemplotting as gemplotting
-
-  from gemplotting.anaInfo import ana_config
-  from gemplotting.anautilities import getDirByAnaType
+  from gempython.gemplotting.anaInfo import ana_config
+  from gempython.gemplotting.anautilities import getDirByAnaType
   from gempython.utils.wrappers import runCommand
 
   #dataPath  = os.getenv('DATA_PATH')
@@ -162,10 +160,8 @@ if __name__ == '__main__':
   import itertools
   from multiprocessing import Pool, freeze_support
 
-  import gempython.gemplotting as gemplotting
-
-  from gemplotting.mapping.chamberInfo import chamber_config, GEBtype
-  from gemplotting.anaInfo import ana_config
+  from gempython.gemplotting.mapping.chamberInfo import chamber_config, GEBtype
+  from gempython.gemplotting.anaInfo import ana_config
   from gempython.utils.wrappers import envCheck
 
   from gemplotting.anaoptions import parser

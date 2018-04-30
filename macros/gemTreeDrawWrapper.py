@@ -30,9 +30,7 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
     selection - string, the "selection" argument passed to TTree::Draw()
     """
   
-    import gempython.gemplotting as gemplotting
-    
-    from gemplotting.anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
 
     import os
     import ROOT as r
@@ -109,7 +107,6 @@ if __name__ == '__main__':
     
     import array
     import os
-    import ROOT as r
     
     parser.add_option("--anaType", type="string", dest="anaType",
                     help="Analysis type to be executed, from list {'latency','scurve','scurveAna','threshold','trim','trimAna'}", metavar="anaType")
@@ -149,6 +146,8 @@ if __name__ == '__main__':
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
   
+    import ROOT as r
+
     # Check Paths
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')

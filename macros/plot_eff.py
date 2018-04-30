@@ -23,9 +23,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     bkgSub - Perform background subtraction
     """
     
-    import gempython.gemplotting as gemplotting
-    
-    from gemplotting.anautilities import getDirByAnaType
+    from gempython.gemplotting.anautilities import getDirByAnaType
 
     import os
 

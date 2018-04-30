@@ -8,7 +8,6 @@ if __name__ == '__main__':
     from gempython.gemplotting.macros.scurvePlottingUtitilities import overlay_scurve
    
     import os
-    import ROOT as r
 
     parser.add_option("--anaType", type="string", dest="anaType",
                     help="Analysis type to be executed, from list {'scurveAna','trimAna'}", metavar="anaType")
@@ -24,6 +23,8 @@ if __name__ == '__main__':
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
   
+    import ROOT as r
+
     # Check Paths
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')

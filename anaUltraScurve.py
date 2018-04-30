@@ -4,13 +4,11 @@ import numpy as np
 from optparse import OptionParser
 from array import array
 
-import gempython.gemplotting as gemplotting
-
-from gemplotting.anautilities import *
-from gemplotting.anaInfo import *
-from gemplotting.fitting.fitScanData import *
-from gemplotting.mapping.channelMaps import *
-from gemplotting.mapping.PanChannelMaps import *
+from gempython.gemplotting.anautilities import *
+from gempython.gemplotting.anaInfo import *
+from gempython.gemplotting.fitting.fitScanData import *
+from gempython.gemplotting.mapping.channelMaps import *
+from gempython.gemplotting.mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
 from gemplotting.anaoptions import parser

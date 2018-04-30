@@ -4,10 +4,8 @@ import sys
 from optparse import OptionParser
 from array import array
 
-import gempython.gemplotting as gemplotting
-
-from gemplotting.mapping.channelMaps import *
-from gemplotting.mapping.PanChannelMaps import *
+from gempython.gemplotting.mapping.channelMaps import *
+from gempython.gemplotting.mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
 from gemplotting.anaoptions import parser
