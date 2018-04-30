@@ -42,7 +42,7 @@ env:
     - secure: "KJbkEj0oKPEdHIAemqb9724uG0G3DDahzpl0ExEkQy/u5Gfkt5QgfFx8Ft5gzZtBkecLoC9weuUMzlFE4UEOi41alxZsJ8kKJCpPV8d0zzzQ7aDR8tpVE7CbCf0r7sScsq5sLXiXHgY5QMDRKjx40a+48cd3WrnGtoGDw7AKWiFS5hg/9fhZzwxnSlYALyMNYNnnaITsiBRlllRKIiEzBHqQOtCxHXKMLGgetwNnw58oRD64F6+l/aqIWAnrjZAdKtH4EUIIPJOEr2zWvlFQzIFzPLAo7O4ygVhOEituF/149s4/uPRWv06BcEQ0NIqP3qppT//voI832xaiQPrY2oiBD8lDoDiVfFKcM9lWzhtaxoJKRQ19DJGO9E0yXstwwjE/UOMJoYU4x6wdMbx7Tu6wlFgvxjBb56Pufvanq5QwsfioOU/aIvR75bPn6CfsYED8UXIHuOmRtKo41ApXru2OfqjAP2d67rBjW60aTwLv8J36zH1497DunbFkckqSOIHhi7MqUNn4+ghZGWVYMKXBmqLecW8hmdbHq2Jw95ZHDaHX8Ve4Z5LQ+0VF2Ydas9ULBQjH5viMDpRPURfpxlDGfgBe1E4rdZXrUpPpyJejumD8qJCHLwuHRjLKhBFUOuuyEGnQ1NVZN80LK+Xzw4Faujvkb9QY2npeGNVSTIY="
 
   matrix:  ## this is *only* for the built-in 'test' stage, doesn't currently transfer to other stages, beta feature
-    - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/cms-gem-daq-project/gemdaq_ci_worker/extrapy/withroot:slc6 ROOT_VER=v5.34.36-gcc4.4
+    - OS_TYPE=centos PY_VER=python OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/cms-gem-daq-project/gemdaq_ci_worker/extrapy/devtoolsroot:slc6 ROOT_VER=v5.34.36-gcc4.4
     # - OS_TYPE=centos PY_VER=python2.6 OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/cms-gem-daq-project/gemdaq_ci_worker/extrapy/devtoolsroot:slc6
     # - OS_TYPE=centos PY_VER=pypy OS_VERSION=6 DOCKER_IMAGE=gitlab-registry.cern.ch/cms-gem-daq-project/gemdaq_ci_worker/extrapy/devtoolsroot:slc6 ROOT_VER=v5.34.36-gcc4.4
 
