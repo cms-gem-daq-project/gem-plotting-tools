@@ -3,6 +3,7 @@
 
 # Don't ignore git settings
 !*.gitignore
+!*.gitmodules
 !*.gitattributes
 
 # Don't ignore special files
@@ -27,3 +28,6 @@
 !setup/createVirtualEnvPy26.sh
 !setup/createVirtualEnvPy27.sh
 !setup/paths.sh
+
+# Don't build config directory
+!config
