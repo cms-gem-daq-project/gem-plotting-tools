@@ -33,6 +33,7 @@ print filename
 outputfilename = options.outfilename
 
 import ROOT as r
+r.TH1.SetDefaultSumw2(False)
 r.gROOT.SetBatch(True)
 r.gStyle.SetOptStat(1111111)
 inF = r.TFile(filename+'.root',"READ")
@@ -41,7 +42,8 @@ inF = r.TFile(filename+'.root',"READ")
 print 'Initializing Histograms'
 dict_hVFATHitsVsLat = ndict()
 for vfat in range(0,24):
-    dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,256,-0.5,255.5)
+    #dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,256,-0.5,255.5)
+    dict_hVFATHitsVsLat[vfat]   = r.TH1F("vfat%iHitsVsLat"%vfat,"vfat%i"%vfat,1024,-0.5,1023.5)
     pass
 
 #Filling Histograms
@@ -52,12 +54,12 @@ nTrig = -1
 dict_vfatID = dict((vfat, 0) for vfat in range(0,24))
 listOfBranches = inF.latTree.GetListOfBranches()
 for event in inF.latTree:
-    dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.lat,event.Nhits)
-    if event.lat < latMin and event.Nhits > 0:
-        latMin = event.lat
+    dict_hVFATHitsVsLat[int(event.vfatN)].Fill(event.latency,event.Nhits)
+    if event.latency < latMin and event.Nhits > 0:
+        latMin = event.latency
         pass
-    elif event.lat > latMax:
-        latMax = event.lat
+    elif event.latency > latMax:
+        latMax = event.latency
         pass
 
     if not (dict_vfatID[event.vfatN] > 0):
@@ -70,6 +72,16 @@ for event in inF.latTree:
         nTrig = event.Nev
         pass
     pass
+
+from math import sqrt
+for vfat in range(0,24):
+    for binX in range(1, dict_hVFATHitsVsLat[vfat].GetNbinsX()+1):
+        dict_hVFATHitsVsLat[vfat].SetBinError(binX, sqrt(dict_hVFATHitsVsLat[vfat].GetBinContent(binX)))
+
+hHitsVsLat_AllVFATs = dict_hVFATHitsVsLat[0].Clone("hHitsVsLat_AllVFATs")
+hHitsVsLat_AllVFATs.SetTitle("Sum over all VFATs")
+for vfat in range(1,24):
+    hHitsVsLat_AllVFATs.Add(dict_hVFATHitsVsLat[vfat])
 
 # Set Latency Fitting Bounds - Signal
 latFitMin_Sig = latMin
@@ -265,6 +277,15 @@ if options.performFit:
     grVFATNSignalNoBkg.Draw("APE1")
     canv_Signal.SaveAs(filename+'/SignalNoBkg.png')
 
+# Store - Sum over all VFATs
+canv_LatSum = r.TCanvas("canv_LatSumOverAllVFATs","canv_LatSumOverAllVFATs",600,600)
+canv_LatSum.cd()
+hHitsVsLat_AllVFATs.SetXTitle("Latency")
+hHitsVsLat_AllVFATs.SetYTitle("N")
+hHitsVsLat_AllVFATs.GetXaxis().SetRangeUser(latMin,latMax)
+hHitsVsLat_AllVFATs.Draw("hist")
+canv_LatSum.SaveAs(filename + '/LatSumOverAllVFATs.png')
+
 # Store - Max Hits By Lat Per VFAT
 canv_MaxHitsPerLatByVFAT = r.TCanvas("canv_MaxHitsPerLatByVFAT","canv_MaxHitsPerLatByVFAT",1200,600)
 canv_MaxHitsPerLatByVFAT.Divide(2,1)
@@ -293,6 +314,7 @@ canv_MaxHitsPerLatByVFAT.SaveAs(filename+'/MaxHitsPerLatByVFAT.png')
 
 # Store - TObjects
 outF.cd()
+hHitsVsLat_AllVFATs.Write()
 grNMaxLatBinByVFAT.SetName("grNMaxLatBinByVFAT")
 grNMaxLatBinByVFAT.Write()
 grMaxLatBinByVFAT.SetName("grMaxLatBinByVFAT")

@@ -2,7 +2,8 @@
 
 import os
 
-from gempython.utils.nesteddict import nesteddict as ndict    
+from gempython.gemplotting.anautilities import saveSummary
+from gempython.utils.nesteddict import nesteddict as ndict
 from gempython.gemplotting.macros.plotoptions import parser
 
 parser.add_option("-a","--all", action="store_true", dest="all_plots",
@@ -54,70 +55,13 @@ for event in inF.scurveFitTree:
 
 if options.fit_plots or options.all_plots:
     r.gStyle.SetOptStat(111100)
-    canv_comp = r.TCanvas('canv_comp','canv_comp',500*8,500*3)
-    canv_comp.Divide(8,3)
-    for vfat in range(0,24):
-        canv_comp.cd(vfat+1)
-        r.gStyle.SetOptStat(111100)
-        vComparison[vfat].Draw('colz')
-        canv_comp.Update()
-        pass
-    canv_comp.SaveAs(filename+'_FitSummary.png')
-
-    r.gStyle.SetOptStat(111100)
-    canv_trim = r.TCanvas('canv_trim','canv_trim',500*8,500*3)
-    canv_trim.Divide(8,3)
-    for vfat in range(0,24):
-        canv_trim.cd(vfat+1)
-        r.gStyle.SetOptStat(111100)
-        vNoiseTrim[vfat].Draw('colz')
-        canv_trim.Update()
-        pass
-    canv_trim.SaveAs(filename+'_TrimNoiseSummary.png')
-
-    canv_thresh = r.TCanvas('canv_thresh','canv_thresh',500*8,500*3)
-    canv_thresh.Divide(8,3)
-    for vfat in range(0,24):
-        canv_thresh.cd(vfat+1)
-        r.gStyle.SetOptStat(111100)
-        vThreshold[vfat].Draw()
-        r.gPad.SetLogy()
-        canv_thresh.Update()
-        pass
-    canv_thresh.SaveAs(filename+'_FitThreshSummary.png')
-
-    canv_Pedestal = r.TCanvas('canv_Pedestal','canv_Pedestal',500*8,500*3)
-    canv_Pedestal.Divide(8,3)
-    for vfat in range(0,24):
-        canv_Pedestal.cd(vfat+1)
-        r.gStyle.SetOptStat(111100)
-        vPedestal[vfat].Draw()
-        r.gPad.SetLogy()
-        canv_Pedestal.Update()
-        pass
-    canv_Pedestal.SaveAs(filename+'_FitPedestalSummary.png')
-
-    canv_noise = r.TCanvas('canv_noise','canv_noise',500*8,500*3)
-    canv_noise.Divide(8,3)
-    for vfat in range(0,24):
-        canv_noise.cd(vfat+1)
-        vNoise[vfat].Draw()
-        r.gPad.SetLogy()
-        canv_noise.Update()
-        pass
-    canv_noise.SetLogy()
-    canv_noise.SaveAs(filename+'_FitNoiseSummary.png')
+    saveSummary(dictSummary=vComparison, name=("%s_FitSummary.png"%filename),drawOpt="colz")
+    saveSummary(dictSummary=vNoiseTrim, name=("%s_TrimNoiseSummary.png"%filename),drawOpt="colz")
+    saveSummary(dictSummary=vThreshold, name=("%s_FitThreshSummary.png"%filename),drawOpt="")
+    saveSummary(dictSummary=vPedestal, name=("%s_FitPedestalSummary.png"%filename),drawOpt="")
+    saveSummary(dictSummary=vNoise, name=("%s_FitNoiseSummary.png"%filename),drawOpt="")
     pass
+
 if options.chi2_plots or options.all_plots:
-    canv_Chi2 = r.TCanvas('canv_Chi2','canv_Chi2',500*8,500*3)
-    canv_Chi2.Divide(8,3)
-    canv_Chi2.SetLogy()
-    for vfat in range(0,24):
-        canv_Chi2.cd(vfat+1)
-        vChi2[vfat].Draw()
-        r.gPad.SetLogy()
-        canv_Chi2.Update()
-        pass
-    canv_Chi2.SetLogy()
-    canv_Chi2.SaveAs(filename+'_FitChi2Summary.png')
+    saveSummary(dictSummary=vChi2, name=("%s_FitChi2Summary.png"%filename),drawOpt="")
     pass

@@ -27,6 +27,25 @@ tree_names = {
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
         }
 
+mappingNames = [
+        "Strip",
+        "PanPin",
+        "vfatCH"
+        ]
+
+# Names of queues on lxplus
+queueNames = [
+        "8nm", # 8 natural minutes (natural -> time on wall clock)
+        "1nh", # 1 natural hour
+        "8nh", # 8 natural hours
+        "1nd"  # 1 natural day
+        ]
+
+# Cal scale factor (e.g. CFG_CAL_FS)
+# Required for determining charge when using 
+# Current pulse cal mode of VFAT3
+dict_calSF = dict((calSF, 0.25*calSF+0.25) for calSF in range(0,4))
+
 class MaskReason:
     """Enum-like class to represent the reasons for which a channel was masked.
     Reasons are bitmasks. Example usage:

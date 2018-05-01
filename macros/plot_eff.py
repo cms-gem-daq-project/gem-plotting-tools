@@ -94,6 +94,7 @@ if __name__ == '__main__':
     Then this will make a plot of Eff vs. EffGain from the data supplied
     """
 
+    from anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.macros.plotoptions import parser
     from gempython.gemplotting.mapping.chamberInfo import chamber_config, GEBtype
@@ -132,37 +133,20 @@ if __name__ == '__main__':
         print "You must specify the latency bin of the signal peak (--latSig) or ask for background subtracted analysis (--bkgSub)"
         exit(os.EX_USAGE)
     
-    # Load inpt file
-    try:
-        fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
-    except Exception as e:
-        print '%s does not seem to exist'%options.filename
-        print e
-        exit(os.EX_NOINPUT)
+    # Get info from input file
+    parsedTuple = parseListOfScanDatesFile(options.filename)
+    parsedAnalysisList = parsedTuple[0]
+    strIndepVar = parsedTuple[1]
 
     # Loop Over inputs
     list_EffData = []
-    strIndepVar = ""
     strChamberName = ""
-    for i,line in enumerate(fileScanDates):
-        if line[0] == "#":
-            continue
+    for analysisTuple in parsedAnalysisList:
+        if len(strChamberName) == 0:
+            strChamberName = analysisTuple[0]
         
-        # Split the line
-        line = line.strip('\n')
-        analysisList = line.rsplit('\t') #chamber name, scandate, independent var
-
-        # On 1st iteration get independent variable name
-        if i == 0:
-            #strChamberName = analysisList[0]
-            strIndepVar = analysisList[2]
-            continue
-
-        if len(strChamberName) == 0 and i > 0:
-            strChamberName = analysisList[0]
-        
-        tuple_eff = calcEff(analysisList[0], analysisList[1], list_VFATs, options.latSig, options.bkgSub)
-        list_EffData.append((float(analysisList[2]), tuple_eff[0], tuple_eff[1]))
+        tuple_eff = calcEff(analysisTuple[0], analysisTuple[1], list_VFATs, options.latSig, options.bkgSub)
+        list_EffData.append((float(analysisTuple[2]), tuple_eff[0], tuple_eff[1]))
 
     # Print to the user
     # Using format compatible with: https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#4eiviii-header-parameters---data
@@ -187,7 +171,7 @@ if __name__ == '__main__':
         grEffPlot.SetPointError(idx, 0., list_EffData[idx][2])
 
     # Draw this plot on a canvas
-    from gempython.gemplotting.macros.gemTreeDrawWrapper import getStringNoSpecials
+    from gempython.gemplotting.anautilities import getStringNoSpecials
     strIndepVarNoBraces = getStringNoSpecials(strIndepVar).replace('_','')
     canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVarNoBraces),"%s: Eff vs. %s"%(strChamberName,strIndepVarNoBraces),600,600)
     canvEff.cd()

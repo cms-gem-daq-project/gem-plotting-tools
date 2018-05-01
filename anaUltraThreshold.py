@@ -27,6 +27,7 @@ print filename
 outfilename = options.outfilename
 
 import ROOT as r
+r.TH1.SetDefaultSumw2(False)
 r.gROOT.SetBatch(True)
 GEBtype = options.GEBtype
 inF = r.TFile(filename+'.root')
@@ -135,6 +136,7 @@ dict_hMaxVT1_NoOutlier = {}
 for vfat in range(0,24):
     dict_hMaxVT1[vfat]          = r.TH1F('vfat%iChanMaxVT1'%vfat,"vfat%i"%vfat,256,-0.5,255.5)
     dict_hMaxVT1_NoOutlier[vfat]= r.TH1F('vfat%iChanMaxVT1_NoOutlier'%vfat,"vfat%i - No Outliers"%vfat,256,-0.5,255.5)
+    dict_hMaxVT1_NoOutlier[vfat].SetLineColor(r.kRed)
 
     #For each channel determine the maximum thresholds
     chanMaxVT1 = np.zeros((2,vSum[vfat].GetNbinsX()))
@@ -177,7 +179,8 @@ if options.chConfigKnown:
         list_bNames.append("ROBstr")
         pass
     elif options.channels:
-        list_bNames.append("vfatCh")
+        #list_bNames.append("vfatCh")
+        list_bNames.append("vfatCH")
         pass
     elif options.PanPin:
         list_bNames.append("panPin")
@@ -201,43 +204,21 @@ if options.chConfigKnown:
 
 #Save Output
 outF.cd()
-canv = r.TCanvas('canv','canv',500*8,500*3)
-canv.Divide(8,3)
-r.gStyle.SetOptStat(0)
-print 'Saving Thresh Summary File'
-for vfat in range(0,24):
-    r.gStyle.SetOptStat(0)
-    canv.cd(vfat+1)
-    vSum[vfat].Draw('colz')
-    vSum[vfat].Write()
-    pass
-canv.SaveAs(filename+'/ThreshSummary.png')
+saveSummary(dictSummary=vSum, name='%s/ThreshSummary.png'%filename, drawOpt="colz")
 
-canv_proj = r.TCanvas('canv_proj', 'canv_proj', 500*8, 500*3)
-canv_proj.Divide(8,3)
-r.gStyle.SetOptStat(0)
-print 'Saving VFAT Summary File'
+vSumProj = {}
 for vfat in range(0,24):
-    r.gStyle.SetOptStat(0)
-    canv_proj.cd(vfat+1)
-    r.gPad.SetLogy()
-    proj = vSum[vfat].ProjectionY()
-    proj.Draw()
+    vSumProj[vfat] = vSum[vfat].ProjectionY()
     pass
-canv_proj.SaveAs(filename+'/VFATSummary.png')
+saveSummary(dictSummary=vSumProj, name='%s/VFATSummary.png'%filename, drawOpt="")
 
 #Save VT1Max Distributions Before/After Outlier Rejection
-canv_vt1Max = r.TCanvas('canv_vt1Max','canv_vt1Max', 500*8, 500*3)
-canv_vt1Max.Divide(8,3)
-r.gStyle.SetOptStat(0)
-print 'Saving vt1Max distributions'
-for vfat in range(0,24):
-    r.gStyle.SetOptStat(0)
-    canv_vt1Max.cd(vfat+1)
-    dict_hMaxVT1[vfat].Draw("hist")
-    dict_hMaxVT1_NoOutlier[vfat].SetLineColor(r.kRed)
-    dict_hMaxVT1_NoOutlier[vfat].Draw("samehist")
-    pass
+canv_vt1Max = make3x8Canvas(
+        name="canv_vt1Max", 
+        initialContent=dict_hMaxVT1, 
+        initialDrawOpt="hist",
+        secondaryContent=dict_hMaxVT1_NoOutlier,
+        secondaryDrawOpt="hist")
 canv_vt1Max.SaveAs(filename+'/VT1MaxSummary.png')
 
 #Subtracting off the hot channels, so the projection shows only usable ones.
@@ -263,31 +244,14 @@ if not options.pervfat:
     pass
 
 #Save output with new hot channels subtracted off
-canv_pruned = r.TCanvas('canv_pruned','canv_pruned',500*8,500*3)
-canv_pruned.Divide(8,3)
-r.gStyle.SetOptStat(0)
-print 'Saving Pruned File'
-for vfat in range(0,24):
-    r.gStyle.SetOptStat(0)
-    canv_pruned.cd(vfat+1)
-    vSum[vfat].Draw('colz')
-    vSum[vfat].Clone("%s_Pruned"%(vSum[vfat].GetName())).Write()
-    pass
-canv_pruned.SaveAs(filename+'/ThreshPrunedSummary.png')
+saveSummary(dictSummary=vSum, name='%s/ThreshPrunedSummary.png'%filename, drawOpt="colz")
 
-canv_proj = r.TCanvas('canv_proj_pruned', 'canv_proj_pruned', 500*8, 500*3)
-canv_proj.Divide(8,3)
-r.gStyle.SetOptStat(0)
-print 'Saving Pruned Projection File'
+vSumProjPruned = {}
 for vfat in range(0,24):
-    r.gStyle.SetOptStat(0)
-    canv_proj.cd(vfat+1)
-    r.gPad.SetLogy()
-    proj = vSum[vfat].ProjectionY("h_VT1_VFAT%i"%vfat)
-    proj.Draw()
-    proj.Write()
+    vSumProjPruned[vfat] = vSum[vfat].ProjectionY("h_VT1_VFAT%i"%vfat)
+    vSumProjPruned[vfat].Write()
     pass
-canv_proj.SaveAs(filename+'/VFATPrunedSummary.png')
+saveSummary(dictSummary=vSumProjPruned, name='%s/VFATPrunedSummary.png'%filename, drawOpt="")
 
 #Now determine what VT1 to use for configuration.  The first threshold bin with no entries for now.
 #Make a text file readable by TTree::ReadFile

@@ -2,7 +2,7 @@
 
 if __name__ == '__main__':
     from gempython.gemplotting.anaInfo import tree_names
-    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck, runCommand
     from gempython.gemplotting.macros.plotoptions import parser
     from gempython.gemplotting.macros.scurvePlottingUtitilities import overlay_scurve
@@ -38,14 +38,9 @@ if __name__ == '__main__':
         exit(os.EX_USAGE)
         pass
 
-    # Check input file
-    try:
-        fileScanDates = open(options.filename, 'r') #tab '\t' delimited file, first line column headings, subsequent lines data: cName\tscandate\tindepvar
-    except Exception as e:
-        print '%s does not seem to exist'%(options.filename)
-        print e
-        exit(os.EX_NOINPUT)
-        pass
+    # Get info from input file
+    parsedTuple = parseListOfScanDatesFile(options.filename)
+    listChamberAndScanDate = parsedTuple[0]
     
     # Make output TFile
     strRootName = elogPath + "/gemSCurveAnaToolkit.root"
@@ -54,24 +49,7 @@ if __name__ == '__main__':
     
     # Loop Over inputs
     dictPlots = {}
-    for i,line in enumerate(fileScanDates):
-        if line[0] == "#":
-            continue
-
-        # On 1st iteration get independent variable name
-        if i == 0:
-            continue
-        
-        # Split the line
-        line = line.strip('\n')
-        chamberAndScanDatePair = line.rsplit('\t') #chamber name, scandate
-        if len(chamberAndScanDatePair) != 2:
-            print "Input format incorrect"
-            print "I was expecting a tab-delimited file with each line having 2 entries"
-            print "But I received:"
-            print "\t%s"%(line)
-            print "Exiting"
-            exit(os.EX_USAGE)
+    for chamberAndScanDatePair in listChamberAndScanDate:
         tupleChamberAndScanDate = (chamberAndScanDatePair[0],chamberAndScanDatePair[1])
 
         # Setup the path
@@ -90,7 +68,7 @@ if __name__ == '__main__':
                 fit_filename=filename,
                 vfatChNotROBstr=options.channels
                 )
-        
+
         # Rename the image of the canvas
         strChanOrStrip = "Chan"
         if not options.channels:
@@ -132,8 +110,6 @@ if __name__ == '__main__':
    
     # Make Summary Plot
     if options.summary:
-        #r.gStyle.SetOptStat(0000000)
-        
         # Make the canvas
         canvSummary = r.TCanvas("summary_gemSCurveAnaToolkit", "Summary: gemSCurveAnaToolkit", 700, 700)
         canvSummary.cd().SetGridy()
