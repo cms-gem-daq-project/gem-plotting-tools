@@ -10,6 +10,7 @@
 !*.md
 !*.rst
 !*.in
+!LICENSE
 
 # Don't ignore makefiles
 !Makefile
@@ -20,10 +21,10 @@
 # Don't ignore python
 !*.py
 
-#Don't ignore requirements.txt
+# Don't ignore requirements.txt
 !requirements.txt
 
-#Don't ignore select scripts
+# Don't ignore select scripts
 !macros/gemPlotterAllChannels.sh
 !setup/createVirtualEnvPy26.sh
 !setup/createVirtualEnvPy27.sh
@@ -31,3 +32,6 @@
 
 # Don't build config directory
 !config
+
+# Don't CI directory
+!.ci
