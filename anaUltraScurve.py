@@ -474,11 +474,17 @@ if __name__ == '__main__':
         threshSummaryPlots = {}
         threshSummaryPlotsByiEta = {}
         allENC = np.zeros(3072)
-        allENCByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+
+        allENCByiEta    = dict( (ieta,np.zeros(3*128)) for ieta in range(1,9) )
+        allEffPedByiEta = dict( (ieta,(-1.*np.ones(3*128))) for ieta in range(1,9) )
+        allThreshByiEta = dict( (ieta,np.zeros(3*128)) for ieta in range(1,9) )
+        ## Only in python 2.7 and up
+        # allENCByiEta    = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+        # allEffPedByiEta = { ieta:(-1.*np.ones(3*128)) for ieta in range(1,9) }
+        # allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+
         allEffPed = -1.*np.ones(3072)
-        allEffPedByiEta = { ieta:(-1.*np.ones(3*128)) for ieta in range(1,9) }
         allThresh = np.zeros(3072)
-        allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
         
         for vfat in range(0,24):
             stripPinOrChanArray = np.zeros(128)
