@@ -2,9 +2,6 @@
 
 import sys, re
 import time, datetime, os
-import ROOT as r
-
-sys.path.append('${GEM_PYTHON_PATH}')
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -24,6 +21,8 @@ if __name__ == "__main__":
     
     (options, args) = parser.parse_args()
     
+    import ROOT as r
+
     if (options.slot == None):
         print "Please specify a valid AMC [1,12]"
         exit(0)

@@ -132,12 +132,12 @@ if __name__ == '__main__':
     import ROOT as r
     
     from array import array
-    from anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
-    from anaInfo import mappingNames, MaskReason
-    from fitting.fitScanData import ScanDataFitter
+    from gempython.gemplotting.anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
+    from gempython.gemplotting.anaInfo import mappingNames, MaskReason
+    from gempython.gemplotting.fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck
-    from mapping.chamberInfo import chamber_iEta2VFATPos, chamber_vfatPos2iEta
+    from gempython.gemplotting.mapping.chamberInfo import chamber_iEta2VFATPos, chamber_vfatPos2iEta
 
     from anaoptions import parser
     parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
@@ -265,15 +265,16 @@ if __name__ == '__main__':
         stripChanOrPinType = mappingNames[1]
 
     # Build the channel to strip mapping from the text file
-    envCheck('GEM_PLOTTING_PROJECT')
-    projectHome = os.getenv('GEM_PLOTTING_PROJECT')
+    import pkg_resources
+    MAPPING_PATH = pkg_resources.resource_filename('gemplotting', 'mapping/')
+
     dict_vfatChanLUT = ndict()
     if options.extChanMapping is not None:
         dict_vfatChanLUT = getMapping(options.extChanMapping)
     elif GEBtype == 'long':
-        dict_vfatChanLUT = getMapping(projectHome+'/mapping/longChannelMap.txt')
+        dict_vfatChanLUT = getMapping(MAPPING_PATH+'/longChannelMap.txt')
     if GEBtype == 'short':
-        dict_vfatChanLUT = getMapping(projectHome+'/mapping/shortChannelMap.txt')
+        dict_vfatChanLUT = getMapping(MAPPING_PATH+'/shortChannelMap.txt')
    
     # Open the input ROOT File
     inF = r.TFile(filename+'.root')
@@ -473,11 +474,17 @@ if __name__ == '__main__':
         threshSummaryPlots = {}
         threshSummaryPlotsByiEta = {}
         allENC = np.zeros(3072)
-        allENCByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+
+        allENCByiEta    = dict( (ieta,np.zeros(3*128)) for ieta in range(1,9) )
+        allEffPedByiEta = dict( (ieta,(-1.*np.ones(3*128))) for ieta in range(1,9) )
+        allThreshByiEta = dict( (ieta,np.zeros(3*128)) for ieta in range(1,9) )
+        ## Only in python 2.7 and up
+        # allENCByiEta    = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+        # allEffPedByiEta = { ieta:(-1.*np.ones(3*128)) for ieta in range(1,9) }
+        # allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
+
         allEffPed = -1.*np.ones(3072)
-        allEffPedByiEta = { ieta:(-1.*np.ones(3*128)) for ieta in range(1,9) }
         allThresh = np.zeros(3072)
-        allThreshByiEta = { ieta:np.zeros(3*128) for ieta in range(1,9) }
         
         for vfat in range(0,24):
             stripPinOrChanArray = np.zeros(128)

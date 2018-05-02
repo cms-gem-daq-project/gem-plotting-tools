@@ -11,8 +11,9 @@ def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0,
   import os
   import subprocess
   from subprocess import CalledProcessError
-  from anaInfo import ana_config
-  from anautilities import getDirByAnaType
+
+  from gempython.gemplotting.anaInfo import ana_config
+  from gempython.gemplotting.anautilities import getDirByAnaType
   from gempython.utils.wrappers import runCommand
 
   #dataPath  = os.getenv('DATA_PATH')
@@ -158,11 +159,12 @@ if __name__ == '__main__':
   import subprocess
   import itertools
   from multiprocessing import Pool, freeze_support
-  from mapping.chamberInfo import chamber_config, GEBtype
-  from anaInfo import ana_config
+
+  from gempython.gemplotting.mapping.chamberInfo import chamber_config, GEBtype
+  from gempython.gemplotting.anaInfo import ana_config
   from gempython.utils.wrappers import envCheck
 
-  from anaoptions import parser
+  from gemplotting.anaoptions import parser
 
   parser.add_option("--anaType", type="string", dest="anaType",
                     help="Analysis type to be executed, from list: "+str(ana_config.keys()), metavar="anaType")

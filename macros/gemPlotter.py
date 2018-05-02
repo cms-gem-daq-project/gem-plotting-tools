@@ -14,8 +14,8 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCH
     skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
     """
-  
-    from anautilities import filePathExists, getDirByAnaType
+
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import os
@@ -111,7 +111,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
     """
   
-    from anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import os
@@ -194,15 +194,14 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     return listData
 
 if __name__ == '__main__':
-    from anaInfo import tree_names
-    from anautilities import parseListOfScanDatesFile
+    from gempython.gemplotting.anaInfo import tree_names
+    from gempython.gemplotting.anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
-    from macros.plotoptions import parser
-    
+    from plotoptions import parser
+
     import array
     import numpy as np
     import os
-    import ROOT as r
     
     parser.add_option("-a","--all", action="store_true", dest="all_plots",
                     help="vfatList is automatically set to [0,1,...,22,23]", metavar="all_plots")
@@ -234,6 +233,8 @@ if __name__ == '__main__':
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
   
+    import ROOT as r
+
     # Check Paths
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')
@@ -478,7 +479,7 @@ if __name__ == '__main__':
 
     # Make Summary Plot
     if options.all_plots:
-        from anautilities import make3x8Canvas
+        from gempython.gemplotting.anautilities import make3x8Canvas
         strSummaryName = "summary_%s_vs_%s_%s"%(options.branchName, strIndepVarNoBraces,strStripOrChan)
         canv_summary = make3x8Canvas( strSummaryName, listPlots, strDrawOpt)
         

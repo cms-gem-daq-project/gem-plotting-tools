@@ -1,0 +1,99 @@
+## GitLab Continuous Integration YAML file
+
+before_script:
+
+after_script:
+
+.common_variables: &common_variables
+  BUILD_HOME: /builds/$CI_PROJECT_NAMESPACE
+  XDAQ_OS: linux
+  XDAQ_ROOT: /opt/xdaq
+  LD_LIBRARY_PATH: /opt/xdaq/lib
+
+.slc6setup: &slc6setup
+  image: gitlab-registry.cern.ch/cms-gem-daq-project/custom_ci_worker/extrapy/devtoolsroot:slc6
+  variables: *common_variables
+
+.cc7setup: &cc7setup
+  image: gitlab-registry.cern.ch/cms-gem-daq-project/custom_ci_worker/extrapy/devtoolsroot:cc7
+  variables: *common_variables
+
+stages:
+  - build
+  - test
+  - docs
+  - release
+  - deploy
+  - cleanup
+
+build:slc6:
+  <<: *slc6setup
+  only:
+    - /^issue-.*$/
+    - /^.*.hotfix.*$/
+    - /^release.*$/
+    - master
+    - tags
+  tags:
+  stage: build
+  before_script:
+    - . ${BUILD_HOME}/gem-plotting-tools/setup/paths.sh
+  script:
+    - make all -j8
+    - make rpm -j8
+  environment:
+  variables:
+  cache:
+  artifacts:
+    paths:
+      - ./rpm/*.tar.gz
+      - ./rpm/*.tbz2
+      - ./rpm/*.rpm
+  coverage: '/Code coverage: \d+\.\d+/'
+
+# run tests using the binary built before
+test:slc6:
+  <<: *slc6setup
+  stage: test
+  dependencies:
+    - build:slc6
+  script:
+    - ${BUILD_HOME}/gem-plotting-tools/.ci/runmytests.sh
+  coverage: '/Testing coverage: \d+\.\d+/'
+
+# generate RPMs
+buildrpm:slc6:
+  <<: *slc6setup
+  stage: deploy
+  only:
+    - tags
+    - triggers
+  dependencies:
+    - build:slc6
+  script:
+    - make rpm
+    - glob gem*/rpm/**/*.rpm
+    # publish RPMs somewhere?
+
+# package and release RPMs
+docs:slc6:
+  <<: *slc6setup
+  stage: deploy
+  only:
+    - tags
+    - triggers
+    - master
+  dependencies:
+  script:
+    - doxygen -s ${BUILD_HOME}/doc/cmsgemos.cfg >& /dev/null
+  coverage: '/Documentation coverage: \d+\.\d+/'
+
+# deploy:
+#   dependencies:
+#     - buildrpm:slc6
+#     - docs:slc6
+# script:
+#     - push RPMs to packagecloud.io
+#     - push RPMs to cern hosted repo
+#     - push docs to readthedocs.io
+#     - push docs to cern hosted repo

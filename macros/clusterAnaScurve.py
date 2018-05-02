@@ -112,7 +112,10 @@ if __name__ == '__main__':
 
     # invert chamber_config
     from mapping.chamberInfo import chamber_config, GEBtype
-    linkByChamber = { value:key for key,value in chamber_config.iteritems() }
+
+    linkByChamber = dict( (value,key) for key,value in chamber_config.iteritems() )
+    ## Only in python 2.7 and up
+    # linkByChamber = { value:key for key,value in chamber_config.iteritems() }
     
     # Make and launch a job for each file
     import time
