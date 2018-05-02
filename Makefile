@@ -23,9 +23,9 @@ PythonModules = ["$(Namespace).$(ShortPackage)", \
 ]
 $(info PythonModules=${PythonModules})
 
-GEMPLOTTING_VER_MAJOR=1
-GEMPLOTTING_VER_MINOR=0
-GEMPLOTTING_VER_PATCH=1
+GEMPLOTTING_VER_MAJOR=0
+GEMPLOTTING_VER_MINOR=99
+GEMPLOTTING_VER_PATCH=0
 
 include $(BUILD_HOME)/$(Project)/config/mfCommonDefs.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
