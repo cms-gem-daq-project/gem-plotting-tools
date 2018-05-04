@@ -3,16 +3,12 @@ import os
 from gempython.gemplotting.mapping.channelMaps import *
 from gempython.gemplotting.mapping.PanChannelMaps import *
 
-from gempython.utils.wrappers import envCheck
-envCheck('GEM_PLOTTING_PROJECT')
-
 import pkg_resources
-MAPPING_PATH = pkg_resources.resource_filename('gemplotting', 'mapping/')
-mapPath  = "%s/mapping"%(MAPPING_PATH)
+MAPPING_PATH = pkg_resources.resource_filename('gempython.gemplotting', 'mapping/')
 
 chamberType = ['long','short']
 for cT in chamberType:
-    outF = open('%s/%sChannelMap.txt'%(mapPath,cT),'w')
+    outF = open('%s/%sChannelMap.txt'%(MAPPING_PATH,cT),'w')
     outF.write('vfat/I:strip/I:channel/I:PanPin/I\n')
     for vfat in range(0,24):
         for strip in range(0,128):

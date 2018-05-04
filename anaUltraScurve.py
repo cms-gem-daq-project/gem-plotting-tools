@@ -266,7 +266,7 @@ if __name__ == '__main__':
 
     # Build the channel to strip mapping from the text file
     import pkg_resources
-    MAPPING_PATH = pkg_resources.resource_filename('gemplotting', 'mapping/')
+    MAPPING_PATH = pkg_resources.resource_filename('gempython.gemplotting', 'mapping/')
 
     dict_vfatChanLUT = ndict()
     if options.extChanMapping is not None:

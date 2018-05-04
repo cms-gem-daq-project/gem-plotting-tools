@@ -50,12 +50,8 @@ for vfat in range(0,24):
         pass
     pass
 
-from gempython.utils.wrappers import envCheck
-envCheck('GEM_PLOTTING_PROJECT')
-projectHome = os.environ.get('GEM_PLOTTING_PROJECT')
-
 import pkg_resources
-MAPPING_PATH = pkg_resources.resource_filename('gemplotting', 'mapping/')
+MAPPING_PATH = pkg_resources.resource_filename('gempython.gemplotting', 'mapping/')
 
 if GEBtype == 'long':
     intext = open(MAPPING_PATH+'/longChannelMap.txt', 'r')
