@@ -15,7 +15,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
     skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
     """
 
-    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import os
@@ -111,7 +111,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
     """
   
-    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType
+    from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType
 
     import numpy as np
     import os
@@ -194,8 +194,8 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
     return listData
 
 if __name__ == '__main__':
-    from gempython.gemplotting.anaInfo import tree_names
-    from gempython.gemplotting.anautilities import parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anaInfo import tree_names
+    from gempython.gemplotting.utils.anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from plotoptions import parser
 
@@ -479,7 +479,7 @@ if __name__ == '__main__':
 
     # Make Summary Plot
     if options.all_plots:
-        from gempython.gemplotting.anautilities import make3x8Canvas
+        from gempython.gemplotting.utils.anautilities import make3x8Canvas
         strSummaryName = "summary_%s_vs_%s_%s"%(options.branchName, strIndepVarNoBraces,strStripOrChan)
         canv_summary = make3x8Canvas( strSummaryName, listPlots, strDrawOpt)
         

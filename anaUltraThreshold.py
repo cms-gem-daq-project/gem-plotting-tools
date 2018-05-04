@@ -8,7 +8,7 @@ from gempython.gemplotting.mapping.channelMaps import *
 from gempython.gemplotting.mapping.PanChannelMaps import *
 from gempython.utils.nesteddict import nesteddict as ndict
 
-from gemplotting.anaoptions import parser
+from gempython.gemplotting.utils.anaoptions import parser
 
 parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree", default="SCurveFitData.root",
                   help="TFile containing scurveFitTree", metavar="fileScurveFitTree")
@@ -128,7 +128,7 @@ for event in inF.thrTree :
 
 #Determine Hot Channels
 print 'Determining hot channels'
-from gemplotting.anautilities import *
+from gempython.gemplotting.utils.anautilities import *
 import numpy as np
 import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
 dict_hMaxVT1 = {}

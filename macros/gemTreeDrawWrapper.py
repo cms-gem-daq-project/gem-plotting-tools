@@ -13,7 +13,7 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
     selection - string, the "selection" argument passed to TTree::Draw()
     """
   
-    from gempython.gemplotting.anautilities import filePathExists, getStringNoSpecials, getDirByAnaType
+    from gempython.gemplotting.utils.anautilities import filePathExists, getStringNoSpecials, getDirByAnaType
 
     import os
     import ROOT as r
@@ -83,8 +83,8 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
         return thisPlot
 
 if __name__ == '__main__':
-    from gempython.gemplotting.anaInfo import tree_names
-    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anaInfo import tree_names
+    from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.macros.plotoptions import parser
     

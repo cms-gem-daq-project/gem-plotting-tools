@@ -49,6 +49,8 @@ preprpm: default
 	@cp -rfp config/scriptlets/installrpm.sh pkg/
 	$(MakeDir) $(ScriptDir)
 	@cp -rfp anaUltra*.py $(ScriptDir)
+	@cp -rfp anaSBit*.py $(ScriptDir)
+	@cp -rfp anaXDAQ*.py $(ScriptDir)
 	@cp -rfp ana_scans.py $(ScriptDir)
 	@cp -rfp anaXDAQLatency.py $(ScriptDir)
 	-cp -rfp README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)

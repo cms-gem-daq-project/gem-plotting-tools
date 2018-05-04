@@ -4,7 +4,7 @@ import sys
 from optparse import OptionParser
 from gempython.utils.nesteddict import nesteddict as ndict
 
-from anaoptions import parser
+from gempython.gemplotting.utils.anaoptions import parser
 
 parser.add_option("--maxNoiseRate", type="float", dest="maxNoiseRate", default=0,
                   help="Max Noise Rate allowed in Hz", metavar="maxNoiseRate")
@@ -46,8 +46,8 @@ for event in inF.rateTree :
 
 #Save Output
 outF.cd()
-from anautilities import make3x8Canvas
-from mapping.chamberInfo import chamber_vfatPos2PadIdx
+from gempython.gemplotting.utils.anautilities import make3x8Canvas
+from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2PadIdx
 canv_RateSummary = make3x8Canvas('canv_RateSummary', vRate, 'hist')
 dirVFATPlots = outF.mkdir("VFAT_Plots")
 dirRatePlots1D = dirVFATPlots.mkdir("Rate_Plots_1D")

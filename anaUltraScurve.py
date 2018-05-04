@@ -18,8 +18,8 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
                         if argument is None a value of 1.0 is used for all VFATs
     calDAC2Q_b        - as calDAC2Q_m but for intercept b, but a value of 0 is used if argument is None
     """
-    from anaInfo import dict_calSF, mappingNames
-    from anautilities import first_index_gt
+    from gempython.gemplotting.utils.anaInfo import dict_calSF, mappingNames
+    from gempython.gemplotting.utils.anautilities import first_index_gt
     from math import sqrt
 
     # Check if lutType is expected
@@ -132,14 +132,14 @@ if __name__ == '__main__':
     import ROOT as r
     
     from array import array
-    from gempython.gemplotting.anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
-    from gempython.gemplotting.anaInfo import mappingNames, MaskReason
+    from gempython.gemplotting.utils.anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
+    from gempython.gemplotting.utils.anaInfo import mappingNames, MaskReason
     from gempython.gemplotting.fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.mapping.chamberInfo import chamber_iEta2VFATPos, chamber_vfatPos2iEta
 
-    from anaoptions import parser
+    from gempython.gemplotting.utils.anaoptions import parser
     parser.add_option("-b", "--drawbad", action="store_true", dest="drawbad",
                       help="Draw fit overlays for Chi2 > 10000", metavar="drawbad")
     parser.add_option("--calFile", type="string", dest="calFile", default=None,

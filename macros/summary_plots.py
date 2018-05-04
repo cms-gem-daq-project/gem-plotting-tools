@@ -2,7 +2,7 @@
 
 import os
 
-from gempython.gemplotting.anautilities import saveSummary
+from gempython.gemplotting.utils.anautilities import saveSummary
 from gempython.utils.nesteddict import nesteddict as ndict
 from gempython.gemplotting.macros.plotoptions import parser
 

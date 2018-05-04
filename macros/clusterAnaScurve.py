@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # Check if the queue is supported
     # See: https://cern.service-now.com/service-portal/article.do?n=KB0000470
     import os
-    from anaInfo import queueNames, tree_names
+    from gempython.gemplotting.utils.anaInfo import queueNames, tree_names
     if options.queue not in queueNames:
         print("queue '%s' not understood"%options.queue)
         print("list of supported queues is:", queueNames)
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     elogPath = os.getenv('ELOG_PATH')
 
     # Get info from input file
-    from anautilities import getDirByAnaType, filePathExists, makeListOfScanDatesFile, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import getDirByAnaType, filePathExists, makeListOfScanDatesFile, parseListOfScanDatesFile
     if (listOfScanDatesFile is None and options.chamberName is not None):
         makeListOfScanDatesFile(options.chamberName, options.anaType, options.startDate, options.endDate, ztrim=options.ztrim)
         listOfScanDatesFile = '%s/listOfScanDates.txt'%(getDirByAnaType(options.anaType, options.chamberName, options.ztrim))

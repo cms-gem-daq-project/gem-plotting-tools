@@ -1,12 +1,12 @@
 #!/bin/env python
 
 if __name__ == '__main__':
-    from anaInfo import tree_names
-    from anautilities import getCyclicColor, getDirByAnaType, filePathExists, make2x4Canvas, make3x8Canvas, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anaInfo import tree_names
+    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make2x4Canvas, make3x8Canvas, parseListOfScanDatesFile
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck, runCommand
-    from macros.plotoptions import parser
-    from macros.scurvePlottingUtitilities import overlay_scurve
+    from gempython.gemplotting.macros.plotoptions import parser
+    from gempython.gemplotting.macros.scurvePlottingUtitilities import overlay_scurve
    
     import os
     import ROOT as r
