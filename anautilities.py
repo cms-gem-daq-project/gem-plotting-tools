@@ -54,7 +54,7 @@ def getCyclicColor(idx):
     return colors[idx % 10]
 
 def getDirByAnaType(anaType, cName, ztrim=4):
-    from gempython.gemplotting.anaInfo import ana_config
+    from anaInfo import ana_config
     
     import os
 

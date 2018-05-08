@@ -10,8 +10,8 @@ def getListOfCmdTuples(filename, anaType):
     anaType - string matching a key in ana_config of anaInfo.py
     """
 
-    from anaInfo import ana_config
-    from anautilities import parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anaInfo import ana_config
+    from gempython.gemplotting.utils.anautilities import parseListOfScanDatesFile
 
     import os
 
@@ -33,8 +33,8 @@ if __name__ == '__main__':
     """
     Creates a tar ball to be used with the docker for unit tests with travis
     """
-    from anaInfo import tree_names
-    from anautilities import getDirByAnaType
+    from gempython.gemplotting.utils.anaInfo import tree_names
+    from gempython.gemplotting.utils.anautilities import getDirByAnaType
     from gempython.utils.wrappers import runCommand
 
     from optparse import OptionParser

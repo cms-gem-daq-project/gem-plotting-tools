@@ -23,7 +23,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     bkgSub - Perform background subtraction
     """
     
-    from gempython.gemplotting.anautilities import getDirByAnaType
+    from gempython.gemplotting.utils.anautilities import getDirByAnaType
 
     import os
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     Then this will make a plot of Eff vs. EffGain from the data supplied
     """
 
-    from anautilities import parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.macros.plotoptions import parser
     from gempython.gemplotting.mapping.chamberInfo import chamber_config, GEBtype
@@ -171,7 +171,7 @@ if __name__ == '__main__':
         grEffPlot.SetPointError(idx, 0., list_EffData[idx][2])
 
     # Draw this plot on a canvas
-    from gempython.gemplotting.anautilities import getStringNoSpecials
+    from gempython.gemplotting.utils.anautilities import getStringNoSpecials
     strIndepVarNoBraces = getStringNoSpecials(strIndepVar).replace('_','')
     canvEff = r.TCanvas("%s_Eff_vs_%s"%(strChamberName,strIndepVarNoBraces),"%s: Eff vs. %s"%(strChamberName,strIndepVarNoBraces),600,600)
     canvEff.cd()

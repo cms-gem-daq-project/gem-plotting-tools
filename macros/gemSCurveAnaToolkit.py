@@ -1,8 +1,8 @@
 #!/bin/env python
 
 if __name__ == '__main__':
-    from gempython.gemplotting.anaInfo import tree_names
-    from gempython.gemplotting.anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anaInfo import tree_names
+    from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck, runCommand
     from gempython.gemplotting.macros.plotoptions import parser
     from gempython.gemplotting.macros.scurvePlottingUtitilities import overlay_scurve

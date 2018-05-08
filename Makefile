@@ -23,8 +23,8 @@ PythonModules = ["$(Namespace).$(ShortPackage)", \
 ]
 $(info PythonModules=${PythonModules})
 
-GEMPLOTTING_VER_MAJOR=0
-GEMPLOTTING_VER_MINOR=99
+GEMPLOTTING_VER_MAJOR=1
+GEMPLOTTING_VER_MINOR=0
 GEMPLOTTING_VER_PATCH=0
 
 include $(BUILD_HOME)/$(Project)/config/mfCommonDefs.mk
@@ -49,6 +49,8 @@ preprpm: default
 	@cp -rfp config/scriptlets/installrpm.sh pkg/
 	$(MakeDir) $(ScriptDir)
 	@cp -rfp anaUltra*.py $(ScriptDir)
+	@cp -rfp anaSBit*.py $(ScriptDir)
+	@cp -rfp anaXDAQ*.py $(ScriptDir)
 	@cp -rfp ana_scans.py $(ScriptDir)
 	@cp -rfp anaXDAQLatency.py $(ScriptDir)
 	-cp -rfp README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)

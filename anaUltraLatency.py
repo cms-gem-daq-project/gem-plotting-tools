@@ -11,8 +11,8 @@ import numpy as np
 import os
 from array import array
 
-from gempython.gemplotting.anaoptions import parser
-from gempython.gemplotting.anautilities import make3x8Canvas
+from gempython.gemplotting.utils.anaoptions import parser
+from gempython.gemplotting.utils.anautilities import make3x8Canvas
 from gempython.utils.nesteddict import nesteddict as ndict
 
 parser.add_option("-f", "--fit", action="store_true", dest="performFit",

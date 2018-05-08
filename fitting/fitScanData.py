@@ -1,6 +1,6 @@
 import numpy as np
 import ROOT as r
-from anaInfo import dict_calSF
+from gempython.gemplotting.utils.anaInfo import dict_calSF
 
 class DeadChannelFinder(object):
     def __init__(self):
@@ -220,7 +220,7 @@ class ScanDataFitter(DeadChannelFinder):
         return
 
 def fitScanData(treeFileName, isVFAT3=False, calFileName=None):
-    from anautilities import parseCalFile
+    from gempython.gemplotting.utils.anautilities import parseCalFile
     
     # Get the fitter
     if calFileName is not None:

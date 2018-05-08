@@ -24,7 +24,7 @@ if __name__== '__main__':
     import os
     from optparse import OptionParser, OptionGroup
     from gempython.utils.wrappers import envCheck
-    from anautilities import getDirByAnaType, makeListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import getDirByAnaType, makeListOfScanDatesFile
 
     parser = OptionParser()
     parser.add_option("--vt1bump", type="int", dest="vt1bump", default=0,
@@ -49,7 +49,7 @@ if __name__== '__main__':
     parser.add_option_group(dateOptions)
     (options, args) = parser.parse_args()
     
-    from mapping.chamberInfo import chamber_config
+    from gempython.gemplotting.mapping.chamberInfo import chamber_config
     
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')
