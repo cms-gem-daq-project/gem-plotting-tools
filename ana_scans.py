@@ -7,7 +7,10 @@
 def launchAna(args):
   return launchAnaArgs(*args)
 
-def launchAnaArgs(anaType, cName, cType, scandate, scandatetrim=None, ztrim=4.0, chConfigKnown=False, channels=False, panasonic=False, latFit=False, latSigRange=None, latSigMaskRange=None):
+def launchAnaArgs(anaType, cName, cType, scandate,
+                  scandatetrim=None, ztrim=4.0, chConfigKnown=False,
+                  channels=False, panasonic=False,
+                  latFit=False, latSigRange=None, latSigMaskRange=None):
   import os
   import subprocess
   from subprocess import CalledProcessError
@@ -180,7 +183,6 @@ if __name__ == '__main__':
 
   (options, args) = parser.parse_args()
 
-  envCheck('BUILD_HOME')
   envCheck('DATA_PATH')
   envCheck('ELOG_PATH')
 
