@@ -295,7 +295,11 @@ if __name__ == '__main__':
     listOfBranches = inF.scurveTree.GetListOfBranches()
     nPulses = -1
     for event in inF.scurveTree:
-        vthr_list[event.vfatN][event.vfatCH] = event.vthr
+        if "vthr" in listOfBranches: #v3 electronics behavior
+            vthr_list[event.vfatN][event.vfatCH] = event.vthr
+        else: #v2b electronics behavior
+            vthr_list[event.vfatN][event.vfatCH] = abs(event.vth2 - event.vth1)
+            pass
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
         trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
         
