@@ -1,7 +1,7 @@
 import os
 
-from gempython.gemplotting.mapping.channelMaps import *
-from gempython.gemplotting.mapping.PanChannelMaps import *
+from channelMaps import *
+from PanChannelMaps import *
 
 import pkg_resources
 MAPPING_PATH = pkg_resources.resource_filename('gempython.gemplotting', 'mapping/')
