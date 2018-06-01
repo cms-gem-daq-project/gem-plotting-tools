@@ -111,7 +111,7 @@ if __name__ == '__main__':
     outputScanDatesFile.write('ChamberName\tscandate\n')
 
     # invert chamber_config
-    from mapping.chamberInfo import chamber_config, GEBtype
+    from gempython.gemplotting.mapping.chamberInfo import chamber_config, GEBtype
 
     linkByChamber = dict( (value,key) for key,value in chamber_config.iteritems() )
     ## Only in python 2.7 and up

@@ -301,7 +301,7 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     """
 
     import ROOT as r
-    from mapping.chamberInfo import chamber_vfatPos2PadIdx
+    from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2PadIdx
     
     if canv is None:
         canv = r.TCanvas(name,name,500*8,500*3)
@@ -559,7 +559,7 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     """
 
     import ROOT as r
-    from mapping.chamberInfo import chamber_vfatPos2PadIdx
+    from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2PadIdx
 
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
