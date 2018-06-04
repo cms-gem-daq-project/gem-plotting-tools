@@ -14,6 +14,7 @@ find %{buildroot} -wholename "*gempython/__init__.pyc" -delete
 find %{buildroot} -wholename '*site-packages/gempython/__init__.py' -delete
 find %{buildroot} -wholename '*site-packages/gempython/__init__.pyc' -delete
 find %{buildroot} -wholename '*site-packages/gempython/__init__.pyo' -delete
+find %{buildroot} -wholename '*site-packages/gempython/gemplotting/macros/*.py' -print0 -exec chmod a+x {} \;
 find %{buildroot} -type f -exec chmod a+r {} \;
 find %{buildroot} -type f -iname '*.cfg' -exec chmod a-x {} \;
 
@@ -23,6 +24,7 @@ cat INSTALLED_FILES.backup|egrep -v 'gempython/__init__.py*' > INSTALLED_FILES
 cat <<EOF >>INSTALLED_FILES
 %attr(0755,root,root) /opt/cmsgemos/bin/*.py
 %attr(0755,root,root) /usr/lib/python*/site-packages/gempython/scripts/*.py
+%attr(0755,root,root) /usr/lib/python*/site-packages/gempython/gemplotting/macros/*.py
 EOF
 echo "Modified INSTALLED_FILES"
 cat INSTALLED_FILES

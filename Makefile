@@ -46,7 +46,9 @@ default:
 .PHONY: clean preprpm
 _rpmprep: preprpm
 preprpm: default
-	@cp -rf config/scriptlets/installrpm.sh pkg/
+	@if ! [ -e pkg/installrpm.sh ]; then \
+		cp -rf config/scriptlets/installrpm.sh pkg/; \
+	fi
 	$(MakeDir) $(ScriptDir)
 	@cp -rf anaUltra*.py $(ScriptDir)
 	@cp -rf anaSBit*.py $(ScriptDir)
@@ -66,7 +68,6 @@ clean:
 	-rm -f  pkg/MANIFEST.in
 	-rm -f  pkg/CHANGELOG.md
 	-rm -f  pkg/requirements.txt
-	-rm -f  pkg/installrpm.sh
 
 print-env:
 	@echo BUILD_HOME     $(BUILD_HOME)
