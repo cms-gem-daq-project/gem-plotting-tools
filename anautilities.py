@@ -66,7 +66,7 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         pass
 
     # Check Paths
-    from gempython.utils.wrappers import envCheck
+    from ..utils.wrappers import envCheck
     envCheck('DATA_PATH')
     dataPath  = os.getenv('DATA_PATH')
 
@@ -125,7 +125,7 @@ def getMapping(mappingFileName):
                         channel - the channel on the ASIC
                         PanPin - the pin number on the panasonic connector
     """
-    from gempython.utils.nesteddict import nesteddict
+    from ..utils.nesteddict import nesteddict
 
     from anaInfo import mappingNames
     import ROOT as r
@@ -301,7 +301,7 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     """
 
     import ROOT as r
-    from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2PadIdx
+    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
     
     if canv is None:
         canv = r.TCanvas(name,name,500*8,500*3)
@@ -332,7 +332,7 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
     delim       - delimiter to use in output file name
     """
 
-    from gempython.utils.wrappers import envCheck, runCommand
+    from ..utils.wrappers import envCheck, runCommand
     envCheck('DATA_PATH')
 
     import datetime
@@ -559,7 +559,7 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     """
 
     import ROOT as r
-    from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2PadIdx
+    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
 
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
