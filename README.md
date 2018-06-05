@@ -71,7 +71,7 @@ export ELOG_PATH=/your/favorite/elog/path
 Download the setup script:
 
 ```
-wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/ef2c410fa5b13f598b2bab30638c8b9e7a3cb6d5/setup.sh
+wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/3d617758c551cf0989646b8149acb387ba060b58/setup.sh
 ```
 
 Then execute:
@@ -106,29 +106,7 @@ Note that you should always source the setup script from the same directory.
 
 ### Setup at Point 5
 
-Due to the limited Internet access, the setup at Point 5 is more involved.
-
-#### To be done once
-
-Download a package to enable the use of SOCKS proxies in Python:
-
-```
-ssh cmsusr wget https://files.pythonhosted.org/packages/53/12/6bf1d764f128636cef7408e8156b7235b150ea31650d0260969215bb8e7d/PySocks-1.6.8.tar.gz
-```
-
-Install it:
-
-```
-pip install --user PySocks-1.6.8.tar.gz
-```
-
-#### To be done every time you create a new environment
-
-Download the `cmsgemos` package manually:
-
-```
-scp lxplus.cern.ch:/afs/cern.ch/user/s/sturdy/public/cmsgemos_gempython-0.3.1.tar.gz .
-```
+Due to the limited Internet access, the setup at Point 5 is slightly more involved.
 
 Create a SOCKS proxy that will allow `pip` to reach the outer world:
 
@@ -151,7 +129,7 @@ export ELOG_PATH=/your/favorite/elog/path
 Download the setup script:
 
 ```
-ssh cmsusr wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/ef2c410fa5b13f598b2bab30638c8b9e7a3cb6d5/setup.sh
+ssh cmsusr wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/3d617758c551cf0989646b8149acb387ba060b58/setup.sh
 ```
 
 Then execute:
@@ -160,7 +138,7 @@ Then execute:
 source setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
 ```
 
-Congratulations, you are done! You can use the usual commands to `deactivate` your `virtualenv` and activate it again.
+You can use the usual commands to `deactivate` your `virtualenv` and activate it again.
 
 ## Masking Channels Algorithmically
 
