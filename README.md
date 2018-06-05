@@ -68,10 +68,16 @@ The `$SHELL` variable `$ELOG_PATH` should be defined:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
+Download the setup script:
+
+```
+wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/ef2c410fa5b13f598b2bab30638c8b9e7a3cb6d5/setup.sh
+```
+
 Then execute:
 
 ```
-source gem-plotting-tools/setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
+source setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
 ```
 
 If this is the first time you are executing the above command, it will create a Python `virtualenv` for you. It will also install the following packages:
@@ -93,7 +99,7 @@ deactivate
 To re-enable the python env, source the script again:
 
 ```
-source gem-plotting-tools/setup.sh
+source setup.sh
 ```
 
 Note that you should always source the setup script from the same directory.
@@ -142,10 +148,16 @@ Define `$ELOG_PATH`:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
+Download the setup script:
+
+```
+ssh cmsusr wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/ef2c410fa5b13f598b2bab30638c8b9e7a3cb6d5/setup.sh
+```
+
 Then execute:
 
 ```
-source gem-plotting-tools/setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
+source setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
 ```
 
 Congratulations, you are done! You can use the usual commands to `deactivate` your `virtualenv` and activate it again.
