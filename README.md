@@ -68,9 +68,10 @@ The `$SHELL` variable `$ELOG_PATH` should be defined:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
-Download the setup script:
+Remove and download the setup script:
 
 ```
+rm -f setup.sh
 wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/3d617758c551cf0989646b8149acb387ba060b58/setup.sh
 ```
 
@@ -126,9 +127,10 @@ Define `$ELOG_PATH`:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
-Download the setup script:
+Remove and download the setup script:
 
 ```
+rm -f setup.sh
 ssh cmsusr wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/3d617758c551cf0989646b8149acb387ba060b58/setup.sh
 ```
 
