@@ -11,6 +11,7 @@ Table of Contents
 
    * [gem-plotting-tools](#gem-plotting-tools)
       * [Setup](#setup)
+        * [Setup at Point 5](#setup-at-point-5)
       * [Masking Channels Algorithmically](#masking-channels-algorithmically)
          * [Definitions](#definitions)
          * [Deriving Channel Configuration](#deriving-channel-configuration)
@@ -96,6 +97,58 @@ source gem-plotting-tools/setup.sh
 ```
 
 Note that you should always source the setup script from the same directory.
+
+### Setup at Point 5
+
+Due to the limited Internet access, the setup at Point 5 is more involved.
+
+#### To be done once
+
+Download a package to enable the use of SOCKS proxies in Python:
+
+```
+ssh cmsusr wget https://files.pythonhosted.org/packages/53/12/6bf1d764f128636cef7408e8156b7235b150ea31650d0260969215bb8e7d/PySocks-1.6.8.tar.gz
+```
+
+Install it:
+
+```
+pip install --user PySocks-1.6.8.tar.gz
+```
+
+#### To be done every time you create a new environment
+
+Download the `cmsgemos` package manually:
+
+```
+scp lxplus.cern.ch:/afs/cern.ch/user/s/sturdy/public/cmsgemos_gempython-0.3.1.tar.gz .
+```
+
+Create a SOCKS proxy that will allow `pip` to reach the outer world:
+
+```
+PORT=5000
+ssh -D *:$PORT lxplus.cern.ch -N -f
+```
+
+If you get an error saying `bind: Address already in use`, try with `PORT=5001`, `5002`, ...
+
+> **Note**
+> The proxy expires after some time. Just create it again if `pip` complains about the network being unreachable.
+
+Define `$ELOG_PATH`:
+
+```
+export ELOG_PATH=/your/favorite/elog/path
+```
+
+Then execute:
+
+```
+source gem-plotting-tools/setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
+```
+
+Congratulations, you are done! You can use the usual commands to `deactivate` your `virtualenv` and activate it again.
 
 ## Masking Channels Algorithmically
 
@@ -553,7 +606,6 @@ To plot the scurves, and their fits, for VFAT0 channel 29 from a set of scandate
 
 ```
 gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg
-
 ```
 
 This will produce a `*.png` file for each of the scandates defined in `listOfScanDates_Scurve.txt` and one `*.png` file showing all the scurves with their fits drawn on it as a summary.  Additionally an output `TFile` will be produced containing each of the scurves and their fits.
