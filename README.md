@@ -10,7 +10,7 @@ Table of Contents
 =================
 
    * [gem-plotting-tools](#gem-plotting-tools)
-      * [Setup:](#setup)
+      * [Setup](#setup)
       * [Masking Channels Algorithmically](#masking-channels-algorithmically)
          * [Definitions](#definitions)
          * [Deriving Channel Configuration](#deriving-channel-configuration)
@@ -59,33 +59,43 @@ Table of Contents
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
-## Setup:
-The following `$SHELL` variables should be defined:
+## Setup
 
-- `$BUILD_HOME`
-- `$DATA_PATH`
-- `$ELOG_PATH`
+The `$SHELL` variable `$ELOG_PATH` should be defined:
+
+```
+export ELOG_PATH=/your/favorite/elog/path
+```
 
 Then execute:
 
 ```
-source $BUILD_HOME/cmsgemos/setup/paths.sh
-source $BUILD_HOME/gem-plotting-tools/setup/paths.sh
+source gem-plotting-tools/setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
 ```
 
-If this is the first time you are executing the above commands on `lxplus` it will create a `python v2.7` `virtualenv` for you.  It may take some time to download the necessary packages so be patient and do not interrupt the installation.  To disable this python env execute:
+If this is the first time you are executing the above command, it will create a Python `virtualenv` for you. It will also install the following packages:
+
+* `cmsgemos` version 0.3.1 (`-c 0.3.1`)
+* `gemplotting` version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+* `vfatqc` version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
+
+It may take some time to download them, so be patient and do not interrupt the installation.
+
+In addition to installing the dependencies, the script will try to guess `$DATA_PATH` based on the machine you are using.
+
+To disable the python env execute:
 
 ```
 deactivate
 ```
 
-To re-enable the python env execute:
+To re-enable the python env, source the script again:
 
 ```
-source $BUILD_HOME/venv/slc6/py27/bin/activate
+source gem-plotting-tools/setup.sh
 ```
 
-If you are working on a 904 machine, regardless if it is the first time you are executing the above commands or not, the default python `virtualenv` available on the 904 NAS for your operating system (e.g. `cc7` or `slc6`) will be enabled.
+Note that you should always source the setup script from the same directory.
 
 ## Masking Channels Algorithmically
 
@@ -542,7 +552,8 @@ The format of this input file should follow the [Two Column Format](two-column-f
 To plot the scurves, and their fits, for VFAT0 channel 29 from a set of scandates defined in `listOfScanDates_Scurve.txt` taken by `ultraScurve.py` and analyzed with `anaUltraScurve.py` you would call:
 
 ```
-gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg 
+gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg
+
 ```
 
 This will produce a `*.png` file for each of the scandates defined in `listOfScanDates_Scurve.txt` and one `*.png` file showing all the scurves with their fits drawn on it as a summary.  Additionally an output `TFile` will be produced containing each of the scurves and their fits.
