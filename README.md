@@ -140,7 +140,9 @@ Then execute:
 source setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
 ```
 
-You can use the usual commands to `deactivate` your `virtualenv` and activate it again.
+You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
+
+After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again.
 
 ## Masking Channels Algorithmically
 
