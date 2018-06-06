@@ -191,7 +191,7 @@ class ScanDataFitter(DeadChannelFinder):
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
                                         self.calDAC2Q_m[vfat]*rand,
                                         self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
-                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
+                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
                                         self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
                                         self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat]
                                     )
