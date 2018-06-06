@@ -71,8 +71,8 @@ export ELOG_PATH=/your/favorite/elog/path
 Remove and download the setup script:
 
 ```
-rm -f setup.sh
-wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/3d617758c551cf0989646b8149acb387ba060b58/setup.sh
+rm -f setup_gemdaq.sh
+wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
 ```
 
 Then execute:
@@ -130,8 +130,8 @@ export ELOG_PATH=/your/favorite/elog/path
 Remove and download the setup script:
 
 ```
-rm -f setup.sh
-ssh cmsusr wget https://gist.githubusercontent.com/lmoureaux/97c663d2ff63b977c5823a8e010c4e1d/raw/3d617758c551cf0989646b8149acb387ba060b58/setup.sh
+rm -f setup_gemdaq.sh
+ssh cmsusr wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
 ```
 
 Then execute:
