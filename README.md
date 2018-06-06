@@ -78,7 +78,7 @@ wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scrip
 Then execute:
 
 ```
-source setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
+source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
 ```
 
 If this is the first time you are executing the above command, it will create a Python `virtualenv` for you. It will also install the following packages:
@@ -100,7 +100,7 @@ deactivate
 To re-enable the python env, source the script again:
 
 ```
-source setup.sh
+source setup_gemdaq.sh
 ```
 
 Note that you should always source the setup script from the same directory.
@@ -137,7 +137,7 @@ ssh cmsusr wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/m
 Then execute:
 
 ```
-source setup.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
+source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
 ```
 
 You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
