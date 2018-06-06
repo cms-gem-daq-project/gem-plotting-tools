@@ -91,9 +91,9 @@ If a development version is not to be used (normal case), you can drop the optio
 >
 > This command will install the following packages:
 >
-> * `cmsgemos` version 0.3.1 (`-c 0.3.1`)
-> * `gemplotting` version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
-> * `vfatqc` version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
+> * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
+> * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+> * [vfatqc](https://github.com/cms-gem-daq-project/vfatqc-python-scripts/tags) version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
 
 In addition to installing the dependencies, the script will try to guess `$DATA_PATH` based on the machine you are using.
 
@@ -155,9 +155,9 @@ If a development version is not to be used (normal case), you can drop the optio
 >
 > This command will install the following packages:
 >
-> * `cmsgemos` version 0.3.1 (`-c 0.3.1`)
-> * `gemplotting` version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
-> * `vfatqc` version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
+> * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
+> * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+> * [vfatqc](https://github.com/cms-gem-daq-project/vfatqc-python-scripts/tags) version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
 
 After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again (see above).
 
