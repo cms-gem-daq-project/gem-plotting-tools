@@ -48,10 +48,16 @@ class ScanDataFitter(DeadChannelFinder):
             self.scanFitResults[6][vfat] = np.zeros(128, dtype=bool)
             for ch in range(0,128):
                 self.scanCount[vfat][ch] = 0
-                self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
-                        self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
-                self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),
-                        254,self.calDAC2Q_m[vfat]*0.5+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*254.5+self.calDAC2Q_b[vfat])
+                if self.isVFAT3:
+                    self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                            self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat])
+                    self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),
+                            254,self.calDAC2Q_m[vfat]*254.5+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*0.5+self.calDAC2Q_b[vfat])
+                else:
+                    self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                            self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
+                    self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),
+                            254,self.calDAC2Q_m[vfat]*0.5+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*254.5+self.calDAC2Q_b[vfat])
 
         self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
 
@@ -68,7 +74,7 @@ class ScanDataFitter(DeadChannelFinder):
                 if(event.vcal > 254):
                     self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
             else:
-                charge = self.calDAC2Q_m[event.vfatN]*(256-event.vcal)+self.calDAC2Q_b[event.vfatN]
+                charge = self.calDAC2Q_m[event.vfatN]*(event.vcal)+self.calDAC2Q_b[event.vfatN]
                 if((256-event.vcal) > 254):
                     self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
         else:
@@ -119,8 +125,12 @@ class ScanDataFitter(DeadChannelFinder):
         random = r.TRandom3()
         random.SetSeed(0)
         for vfat in range(0,24):
-            fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
-                        self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
+            if self.isVFAT3:
+                fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                            self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat])
+            else:
+                fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                            self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
             fitTF1.SetLineColor(r.kBlack)
             
             if not debug:
@@ -161,23 +171,42 @@ class ScanDataFitter(DeadChannelFinder):
                     fitTF1.SetParameter(3, self.Nev[vfat][ch]/2.)
 
                     # Set Parameter Limits
-                    fitTF1.SetParLimits(0, 0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParLimits(1, 0.0,  self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParLimits(2, 0.0,  self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
+                    if self.isVFAT3:
+                        fitTF1.SetParLimits(0, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(1, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(2, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
+                    else:
+                        fitTF1.SetParLimits(0, 0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(1, 0.0,  self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(2, 0.0,  self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
+
                     fitTF1.SetParLimits(3, 0.0,  self.Nev[vfat][ch] * 2.)
                     
                     if debug:
-                        print "| %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
-                                    0.01,
-                                    self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
-                                    self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
-                                    0.0,
-                                    self.calDAC2Q_m[vfat]*rand,
-                                    self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
-                                    0.0,
-                                    self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
-                                    self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
-                                )
+                        if self.isVFAT3:
+                            print "| %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*rand,
+                                        self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
+                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat]
+                                    )
+                        else:
+                            print "| %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                        0.01,
+                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
+                                        0.0,
+                                        self.calDAC2Q_m[vfat]*rand,
+                                        self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
+                                        0.0,
+                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
+                                    )
 
                     # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
