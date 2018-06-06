@@ -66,7 +66,7 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         pass
 
     # Check Paths
-    from ..utils.wrappers import envCheck
+    from ...utils.wrappers import envCheck
     envCheck('DATA_PATH')
     dataPath  = os.getenv('DATA_PATH')
 
@@ -125,7 +125,7 @@ def getMapping(mappingFileName):
                         channel - the channel on the ASIC
                         PanPin - the pin number on the panasonic connector
     """
-    from ..utils.nesteddict import nesteddict
+    from ...utils.nesteddict import nesteddict
 
     from anaInfo import mappingNames
     import ROOT as r
@@ -332,7 +332,7 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
     delim       - delimiter to use in output file name
     """
 
-    from ..utils.wrappers import envCheck, runCommand
+    from ...utils.wrappers import envCheck, runCommand
     envCheck('DATA_PATH')
 
     import datetime
