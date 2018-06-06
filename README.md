@@ -68,7 +68,7 @@ The `$SHELL` variable `$ELOG_PATH` should be defined:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
-Remove and download the setup script:
+Remove and download the setup script to ensure you have the most up-to-date version:
 
 ```
 rm -f setup_gemdaq.sh
@@ -78,16 +78,22 @@ wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scrip
 Then execute:
 
 ```
-source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
+source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -v <vfatqc tag> -V <vfatqc dev version optional>
 ```
 
-If this is the first time you are executing the above command, it will create a Python `virtualenv` for you. It will also install the following packages:
+If a development version is not to be used (normal case), you can drop the options with capital letters (`-G`, `-V`). If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos`, `gemplotting` and `vfatqc` packages. It may take some time to download them, so be patient and do not interrupt the installation.
 
-* `cmsgemos` version 0.3.1 (`-c 0.3.1`)
-* `gemplotting` version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
-* `vfatqc` version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
-
-It may take some time to download them, so be patient and do not interrupt the installation.
+> **Example**
+>
+> ```
+> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
+> ```
+>
+> This command will install the following packages:
+>
+> * `cmsgemos` version 0.3.1 (`-c 0.3.1`)
+> * `gemplotting` version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+> * `vfatqc` version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
 
 In addition to installing the dependencies, the script will try to guess `$DATA_PATH` based on the machine you are using.
 
@@ -127,22 +133,33 @@ Define `$ELOG_PATH`:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
-Remove and download the setup script:
+Remove and download the setup script to ensure you have the most up-to-date version:
 
 ```
 rm -f setup_gemdaq.sh
 ssh cmsusr wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
 ```
-
 Then execute:
 
 ```
-source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
+source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -v <vfatqc tag> -V <vfatqc dev version optional> -P $PORT
 ```
 
-You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
+If a development version is not to be used (normal case), you can drop the options with capital letters (`-G`, `-V`). If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos`, `gemplotting` and `vfatqc` packages. You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
 
-After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again.
+> **Example**
+>
+> ```
+> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
+> ```
+>
+> This command will install the following packages:
+>
+> * `cmsgemos` version 0.3.1 (`-c 0.3.1`)
+> * `gemplotting` version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+> * `vfatqc` version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
+
+After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again (see above).
 
 ## Masking Channels Algorithmically
 
