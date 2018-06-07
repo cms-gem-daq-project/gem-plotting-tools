@@ -78,22 +78,21 @@ wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scrip
 Then execute:
 
 ```
-source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -v <vfatqc tag> -V <vfatqc dev version optional>
+source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional>
 ```
 
-If a development version is not to be used (normal case), you can drop the options with capital letters (`-G`, `-V`). If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos`, `gemplotting` and `vfatqc` packages. It may take some time to download them, so be patient and do not interrupt the installation.
+If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. It may take some time to download them, so be patient and do not interrupt the installation.
 
 > **Example**
 >
 > ```
-> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3
+> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5
 > ```
 >
 > This command will install the following packages:
 >
 > * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
 > * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
-> * [vfatqc](https://github.com/cms-gem-daq-project/vfatqc-python-scripts/tags) version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
 
 In addition to installing the dependencies, the script will try to guess `$DATA_PATH` based on the machine you are using.
 
@@ -142,22 +141,21 @@ ssh cmsusr wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/m
 Then execute:
 
 ```
-source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -v <vfatqc tag> -V <vfatqc dev version optional> -P $PORT
+source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -P $PORT
 ```
 
-If a development version is not to be used (normal case), you can drop the options with capital letters (`-G`, `-V`). If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos`, `gemplotting` and `vfatqc` packages. You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
+If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
 
 > **Example**
 >
 > ```
-> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -v 2.0.0 -V 3 -P $PORT
+> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -P $PORT
 > ```
 >
 > This command will install the following packages:
 >
 > * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
 > * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
-> * [vfatqc](https://github.com/cms-gem-daq-project/vfatqc-python-scripts/tags) version 2.0.0-dev3 (`-v 2.0.0 -V 3`)
 
 After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again (see above).
 
