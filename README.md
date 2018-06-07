@@ -81,7 +81,12 @@ Then execute:
 source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional>
 ```
 
-If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. It may take some time to download them, so be patient and do not interrupt the installation.
+Tags for each of the repo's can be found:
+
+* [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version X.Y.Z (`-c X.Y.Z`)
+* [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version X.Y.Z-dev**A** (`-g X.Y.Z -G A`)
+
+Where `X`, `Y`, `Z`, and `A` are integers, and most likely will be different for each of the repositories. If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. It may take some time to download them, so be patient and do not interrupt the installation.
 
 > **Example**
 >
