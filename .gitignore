@@ -39,3 +39,12 @@
 
 # Don't ignore github directory
 !.github
+
+# Ignore packaging files
+pkg/LICENSE
+pkg/MANIFEST.in
+pkg/README.md
+pkg/gempython
+pkg/requirements.txt
+rpm
+
