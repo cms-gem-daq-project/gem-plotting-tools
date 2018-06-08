@@ -42,9 +42,16 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
     for vfat in vfatHistos:
         listOfBinEdgesY[vfat] = [ vfatHistos[vfat].GetYaxis().GetBinLowEdge(binY) 
                 for binY in range(1,vfatHistos[vfat].GetNbinsY()+2) ] #Include overflow
-        
+        pass
+
+    # check current pulse?
+    checkCurrentPulse = False
+    listOfBranchNames = [branch.GetName() for branch in inF.scurveTree.GetListOfBranches() ]
+    if "isCurrentPulse" in listOfBranchNames:
+        checkCurrentPulse = True
+        pass
+
     # Fill Histograms
-    checkCurrentPulse = ("isCurrentPulse" in scurveTree.GetListOfBranches())
     for event in scurveTree:
         if chanMasks is not None:
             if chanMasks[event.vfatN][event.vfatCH]:
@@ -55,7 +62,7 @@ def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanP
         
         # Determine charge
         charge = calDAC2Q_m[event.vfatN]*event.vcal+calDAC2Q_b[event.vfatN]
-        if checkCurrentPulse: #v3 electronics
+        if checkCurrentPulse: #Potentially v3 electronics
             if event.isCurrentPulse:
                 #Q = CAL_DUR * CAL_DAC * 10nA * CAL_FS
                 charge = (1./ 40079000) * event.vcal * (10 * 1e-9) * dict_calSF[event.calSF] * 1e15
@@ -147,6 +154,8 @@ if __name__ == '__main__':
                       help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
+    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3",
+                      help="Provide this argument if input data was acquired from vfat3", metavar="isVFAT3")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
@@ -209,14 +218,14 @@ if __name__ == '__main__':
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                 'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
-                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
         vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
                 'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
-                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
+                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
         vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
         if not (options.channels or options.PanPin):
             vSummaryPlots[vfat].SetXTitle('Strip')
@@ -226,26 +235,26 @@ if __name__ == '__main__':
             vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                     'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
+                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
             vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
                     'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
+                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
+                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoMaskedChanPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat])
+                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
+                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
             vSummaryPlotsNoMaskedChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             pass
         for chan in range (0,128):
@@ -278,12 +287,11 @@ if __name__ == '__main__':
     inF = r.TFile(filename+'.root')
 
     # Create the fitter
-    checkCurrentPulse = ("isCurrentPulse" in inF.scurveTree.GetListOfBranches())
     if options.performFit:
         fitter = ScanDataFitter(
                 calDAC2Q_m=calDAC2Q_Slope, 
                 calDAC2Q_b=calDAC2Q_Intercept,
-                isVFAT3=checkCurrentPulse,
+                isVFAT3=options.isVFAT3
                 )
         pass
 
@@ -333,7 +341,7 @@ if __name__ == '__main__':
         print("Fitting Histograms")
         fitSummary = open(filename+'/fitSummary.txt','w')
         fitSummary.write('vfatN/I:vfatID/I:vfatCH/I:fitP0/F:fitP1/F:fitP2/F:fitP3/F\n')
-        scanFitResults = fitter.fit()
+        scanFitResults = fitter.fit(debug=options.debug)
         for vfat in range(0,24):
             for chan in range(0,128):
                 fitSummary.write(
