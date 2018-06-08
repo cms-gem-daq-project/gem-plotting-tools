@@ -87,13 +87,9 @@ if __name__ == '__main__':
 
     # Prepare the commands for making the
     from gempython.utils.wrappers import envCheck, runCommand
-    envCheck('BUILD_HOME')
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')
-
-    buildHome= os.getenv('BUILD_HOME')
-    dataPath = os.getenv('DATA_PATH')
-    elogPath = os.getenv('ELOG_PATH')
+    envCheck('VIRTUAL_ENV')
 
     # Get info from input file
     from gempython.gemplotting.utils.anautilities import getDirByAnaType, filePathExists, makeListOfScanDatesFile, parseListOfScanDatesFile
@@ -150,17 +146,14 @@ if __name__ == '__main__':
         # script to be run by the cluster
         jobScriptName = "%s/clusterJob.sh"%dirPath
         jobScript = open(jobScriptName, 'w+')
-        jobScript.write('#!/bin/zsh\n')
-        jobScript.write('source /opt/rh/python27/enable\n')
-        jobScript.write('source /afs/cern.ch/sw/lcg/contrib/gcc/4.8.4/x86_64-slc6/setup.sh\n')
-        jobScript.write('export BUILD_HOME=%s\n'%buildHome)
-        jobScript.write('export DATA_PATH=%s\n'%dataPath)
-        jobScript.write('export ELOG_PATH=%s\n'%elogPath)
-        jobScript.write('source %s/cmsgemos/setup/paths.sh\n'%buildHome)
-        jobScript.write('source %s/gem-plotting-tools/setup/paths.sh\n'%buildHome)
-        jobScript.write('source $BUILD_HOME/venv/slc6/py27/bin/activate\n')
-        jobScript.write('echo `python --version`\n')
-        jobScript.write('echo `gcc --version | grep "gcc"`\n')
+        jobScript.write("""#! /usr/bin/env bash
+
+# LSF screws up the environment by prepending things to the PATH. Restore it.
+source $VIRTUAL_ENV/bin/activate
+
+python --version
+gcc --version | grep gcc
+""")
 
         thisGEB = options.GEBtype
         if chamberAndScanDatePair[0] in linkByChamber.keys():
@@ -200,6 +193,8 @@ if __name__ == '__main__':
 
         jobCmd = [
                 'bsub',
+                '-env',
+                'all',
                 '-q',
                 options.queue,
                 '-o',
