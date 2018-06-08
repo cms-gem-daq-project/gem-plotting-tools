@@ -152,11 +152,12 @@ class ScanDataFitter(DeadChannelFinder):
                 stepN = 0
                 
                 if debug:
-                    print "| p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
-                    print "| ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
+                    print "| vfatN | vfatCH | isVFAT3 | p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
+                    print "| ----- | ------ | ------- | ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
                 while(stepN < 15):
-                    rand = max(0.0, random.Gaus(10, 5)) # do not accept negative numbers
-                    
+                    #rand = max(0.0, random.Gaus(10, 5)) # do not accept negative numbers
+                    rand = abs(random.Gaus(10, 5)) # take positive definite numbers
+
                     # Make sure the input parameters are positive
                     if rand > 100: continue
                     if (self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat]) < 0:
@@ -165,10 +166,15 @@ class ScanDataFitter(DeadChannelFinder):
                     #if (self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat]) < 0: continue
 
                     # Provide an initial guess
-                    fitTF1.SetParameter(0, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParameter(1, self.calDAC2Q_m[vfat]*rand)
-                    fitTF1.SetParameter(2, self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat])
-                    fitTF1.SetParameter(3, self.Nev[vfat][ch]/2.)
+                    init_guess_p0 = self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat]
+                    init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand)  #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
+                    init_guess_p2 = init_guess_p0
+                    init_guess_p3 = self.Nev[vfat][ch]/2.
+
+                    fitTF1.SetParameter(0, init_guess_p0)
+                    fitTF1.SetParameter(1, init_guess_p1)
+                    fitTF1.SetParameter(2, init_guess_p2)
+                    fitTF1.SetParameter(3, init_guess_p3)
 
                     # Set Parameter Limits
                     if self.isVFAT3:
@@ -184,27 +190,33 @@ class ScanDataFitter(DeadChannelFinder):
                     
                     if debug:
                         if self.isVFAT3:
-                            print "| %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                            print "| %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                        vfat,
+                                        ch,
+                                        self.isVFAT3,
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
-                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        init_guess_p0,
                                         self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat],
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
-                                        self.calDAC2Q_m[vfat]*rand,
+                                        init_guess_p1,
                                         self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
-                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        init_guess_p2,
                                         self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat]
                                     )
                         else:
-                            print "| %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                            print "| %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                        vfat,
+                                        ch,
+                                        self.isVFAT3,
                                         0.01,
-                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        init_guess_p0,
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
                                         0.0,
-                                        self.calDAC2Q_m[vfat]*rand,
+                                        init_guess_p1,
                                         self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
                                         0.0,
-                                        self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat],
+                                        init_guess_p2,
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
                                     )
 
