@@ -33,7 +33,7 @@ class TimeSeriesData(object):
         import numpy as np
         numMaskedChannels = np.count_nonzero(self.mask, (1, 2))
         badScans = np.logical_or(numMaskedChannels == 0,
-                                 numMaskedChannels / 24 / 128 > 0.07)
+                                 numMaskedChannels / 24. / 128 > 0.07)
         self.mask = self.mask[np.logical_not(badScans)]
         self.maskReason = self.maskReason[np.logical_not(badScans)]
 
