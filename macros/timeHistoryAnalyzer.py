@@ -39,6 +39,11 @@ class TimeSeriesData(object):
             self.mask.append(hist2array(hist_mask))
             self.maskReason.append(hist2array(hist_maskReason))
 
+            self.dates = [] # [time]
+            for bin in range(hist_mask.GetNbinsX()):
+                self.dates.append(hist_mask.GetXaxis().GetBinLabel(bin + 1))
+
+        self.dates = np.array(self.dates)
         self.mask = np.array(self.mask)
         self.maskReason = np.array(self.maskReason)
 
@@ -50,6 +55,7 @@ class TimeSeriesData(object):
         numMaskedChannels = np.count_nonzero(self.mask, (1, 2))
         badScans = np.logical_or(numMaskedChannels == 0,
                                  numMaskedChannels / 24. / 128 > 0.07)
+        self.dates = self.dates[np.logical_not(badScans)]
         self.mask = self.mask[np.logical_not(badScans)]
         self.maskReason = self.maskReason[np.logical_not(badScans)]
 
@@ -77,8 +83,12 @@ class TimeSeriesData(object):
                             alsoReason |= int(chanMaskReason[time])
                         alsoReason ^= initialReason
                         if ratio * length >= 4:
-                            print '%3d %3d [%3d %3d): %f :: %-35s :: %s' % (
-                                chan, length, mrange.start, mrange.end, ratio,
+                            print '| %3d | %3d | %-16s | %-16s | %f | %-35s | %-30s |' % (
+                                chan,
+                                length,
+                                'first' if mrange.start == 0 else self.dates[mrange.start],
+                                'latest' if mrange.end == timePoints else self.dates[mrange.end - 1],
+                                ratio,
                                 MaskReason.humanReadable(initialReason),
                                 MaskReason.humanReadable(alsoReason) if alsoReason != 0 else '')
                     else:
