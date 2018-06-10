@@ -55,6 +55,7 @@ class TimeSeriesData(object):
 
     def analyze(self):
         import numpy as np
+        from gempython.gemplotting.utils.anaInfo import MaskReason
         for vfat in range(24):
             print '======== VFAT %d =========' % vfat
             for chan in range(128):
@@ -70,9 +71,16 @@ class TimeSeriesData(object):
 
                         length = mrange.end - mrange.start
                         ratio = np.count_nonzero(chanMask[mrange.start:mrange.end]) / float(length)
+                        initialReason = int(chanMaskReason[mrange.start])
+                        alsoReason = 0
+                        for time in range(mrange.start, mrange.end):
+                            alsoReason |= int(chanMaskReason[time])
+                        alsoReason ^= initialReason
                         if ratio * length >= 4:
-                            print '%3d %3d [%3d %3d): %f' % (
-                                chan, length, mrange.start, mrange.end, ratio)
+                            print '%3d %3d [%3d %3d): %f :: %-35s :: %s' % (
+                                chan, length, mrange.start, mrange.end, ratio,
+                                MaskReason.humanReadable(initialReason),
+                                MaskReason.humanReadable(alsoReason) if alsoReason != 0 else '')
                     else:
                         start += 1
 
