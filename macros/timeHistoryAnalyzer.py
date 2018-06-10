@@ -1,5 +1,21 @@
 #! /usr/bin/env python
 
+class MaskedRange(object):
+    def __init__(self, mask, start, maxSkip = 5):
+        # Assumption: start is masked
+        self.start = start
+        self.end = start + 1
+
+        skipped = 0
+        for time in range(self.start, len(mask)):
+            if mask[time]:
+                self.end = time + 1
+                skipped = 0
+            else:
+                skipped += 1
+            if skipped > maxSkip:
+                break
+
 class TimeSeriesData(object):
     def __init__(self, inputDir):
         import ROOT as r
@@ -37,6 +53,29 @@ class TimeSeriesData(object):
         self.mask = self.mask[np.logical_not(badScans)]
         self.maskReason = self.maskReason[np.logical_not(badScans)]
 
+    def analyze(self):
+        import numpy as np
+        for vfat in range(24):
+            print '======== VFAT %d =========' % vfat
+            for chan in range(128):
+                chanMask = self.mask[:,vfat,chan]
+                chanMaskReason = self.maskReason[:,vfat,chan]
+
+                start = 0
+                timePoints = len(chanMask)
+                while start < timePoints - 1:
+                    if chanMask[start]:
+                        mrange = MaskedRange(chanMask, start)
+                        start = mrange.end + 1
+
+                        length = mrange.end - mrange.start
+                        ratio = np.count_nonzero(chanMask[mrange.start:mrange.end]) / float(length)
+                        if ratio * length >= 4:
+                            print '%3d %3d [%3d %3d): %f' % (
+                                chan, length, mrange.start, mrange.end, ratio)
+                    else:
+                        start += 1
+
 if __name__ == '__main__':
     import os
     import os.path
@@ -58,3 +97,4 @@ if __name__ == '__main__':
 
     data = TimeSeriesData(options.inputDir)
     data.removeBadScans()
+    data.analyze()
