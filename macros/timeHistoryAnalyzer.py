@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+import numpy as np
+
 class MaskedRange(object):
     def __init__(self, mask, start, maxSkip = 5):
         # Assumption: start is masked
@@ -16,10 +18,54 @@ class MaskedRange(object):
             if skipped > maxSkip:
                 break
 
+    def beforeStartString(self, dates):
+        if self.start == 0:
+            return 'never'
+        else:
+            return dates[self.start - 1]
+
+    def startString(self, dates):
+        if self.start == 0:
+            return 'first'
+        else:
+            return dates[self.start]
+
+    def endString(self, dates):
+        if self.end == len(dates):
+            return 'never'
+        else:
+            return dates[self.end]
+
+    def afterEndString(self, dates):
+        if self.end + 1 >= len(dates):
+            return 'never'
+        else:
+            return dates[self.end + 1]
+
+    def scanCount(self):
+        return self.end - self.start
+
+    def maskedScanCount(self, mask):
+        return np.count_nonzero(mask[self.start:self.end])
+
+    def maskedScanRatio(self, mask):
+        return float(self.maskedScanCount(mask)) / self.scanCount()
+
+    def initialMaskReason(self, maskReason):
+        return int(maskReason[self.start])
+
+    def allMaskReasons(self, maskReason):
+        res = 0
+        for time in range(self.start, self.end):
+            res |= int(maskReason[time])
+        return res
+
+    def additionnalMaskReasons(self, maskReason):
+        return self.allMaskReasons(maskReason) ^ self.initialMaskReason(maskReason)
+
 class TimeSeriesData(object):
     def __init__(self, inputDir):
         import ROOT as r
-        import numpy as np
         from root_numpy import hist2array
 
         file_mask = r.TFile('%s/gemPlotterOutput_mask_vs_scandate.root' % inputDir, 'READ')
@@ -51,7 +97,6 @@ class TimeSeriesData(object):
         self.maskReason = np.swapaxes(self.maskReason, 0, 1) # Reorder to [time][vfat][strip]
 
     def removeBadScans(self):
-        import numpy as np
         numMaskedChannels = np.count_nonzero(self.mask, (1, 2))
         badScans = np.logical_or(numMaskedChannels == 0,
                                  numMaskedChannels / 24. / 128 > 0.07)
@@ -60,7 +105,6 @@ class TimeSeriesData(object):
         self.maskReason = self.maskReason[np.logical_not(badScans)]
 
     def analyze(self):
-        import numpy as np
         from gempython.gemplotting.utils.anaInfo import MaskReason
         for vfat in range(24):
             timePoints = self.mask.shape[0]
@@ -85,23 +129,17 @@ latest scan is %s
                         mrange = MaskedRange(chanMaskReason, start)
                         start = mrange.end + 1
 
-                        length = mrange.end - mrange.start
-                        ratio = np.count_nonzero(chanMask[mrange.start:mrange.end]) / float(length)
-                        initialReason = int(chanMaskReason[mrange.start])
-                        alsoReason = 0
-                        for time in range(mrange.start, mrange.end):
-                            alsoReason |= int(chanMaskReason[time])
-                        alsoReason ^= initialReason
-                        if ratio * length >= 4:
+                        if mrange.maskedScanCount(chanMaskReason) >= 4:
+                            additionnalReasons = mrange.additionnalMaskReasons(chanMaskReason)
                             print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
                                 chan,
-                                'never' if mrange.start == 0 else self.dates[mrange.start - 1],
-                                'first' if mrange.start == 0 else self.dates[mrange.start],
-                                'never' if mrange.end == timePoints else self.dates[mrange.end - 1],
-                                length,
-                                100 * ratio,
-                                MaskReason.humanReadable(initialReason),
-                                MaskReason.humanReadable(alsoReason) if alsoReason != 0 else '')
+                                mrange.beforeStartString(self.dates),
+                                mrange.startString(self.dates),
+                                mrange.endString(self.dates),
+                                mrange.scanCount(),
+                                100 * mrange.maskedScanRatio(chanMask),
+                                MaskReason.humanReadable(mrange.initialMaskReason(chanMaskReason)),
+                                MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
                     else:
                         start += 1
 
