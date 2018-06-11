@@ -63,17 +63,23 @@ class TimeSeriesData(object):
         import numpy as np
         from gempython.gemplotting.utils.anaInfo import MaskReason
         for vfat in range(24):
+            timePoints = self.mask.shape[0]
             print '''
 ## VFAT %d
 
+first scan is %s
+latest scan is %s
+
 | Channel | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
-| ------: | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % vfat
+| ------: | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % (
+                vfat,
+                self.dates[0],
+                self.dates[timePoints - 1])
             for chan in range(128):
                 chanMask = self.mask[:,vfat,chan]
                 chanMaskReason = self.maskReason[:,vfat,chan]
 
                 start = 0
-                timePoints = len(chanMask)
                 while start < timePoints - 1:
                     if chanMask[start]:
                         mrange = MaskedRange(chanMask, start)
