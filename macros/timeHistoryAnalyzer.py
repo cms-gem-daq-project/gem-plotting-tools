@@ -72,6 +72,22 @@ class MaskedRange(object):
     def additionnalMaskReasons(self):
         return self.allMaskReasons() ^ self.initialMaskReason()
 
+def findRangesMaskReason(data, vfat, channel):
+    ranges = []
+
+    start = 0
+    while start < data.maskReason.shape[2] - 1:
+        if data.maskReason[vfat,channel,start]:
+            r = MaskedRange(data, vfat, channel, start)
+            start = r.end + 1
+
+            if r.badMaskReasonScanCount() >= 4:
+                ranges.append(r)
+        else:
+            start += 1
+
+    return ranges
+
 class TimeSeriesData(object):
     def __init__(self, inputDir):
         import ROOT as r
@@ -129,27 +145,18 @@ latest scan is %s
                 self.dates[0],
                 self.dates[timePoints - 1])
             for chan in range(128):
-                chanMaskReason = self.maskReason[vfat,chan]
-
-                start = 0
-                while start < timePoints - 1:
-                    if chanMaskReason[start]:
-                        mrange = MaskedRange(self, vfat, chan, start)
-                        start = mrange.end + 1
-
-                        if mrange.badMaskReasonScanCount() >= 4:
-                            additionnalReasons = mrange.additionnalMaskReasons()
-                            print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
-                                chan,
-                                mrange.beforeStartString(),
-                                mrange.startString(),
-                                mrange.endString(),
-                                mrange.scanCount(),
-                                100 * mrange.maskedScanRatio(),
-                                MaskReason.humanReadable(mrange.initialMaskReason()),
-                                MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
-                    else:
-                        start += 1
+                ranges = findRangesMaskReason(self, vfat, chan)
+                for r in ranges:
+                    additionnalReasons = r.additionnalMaskReasons()
+                    print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
+                        chan,
+                        r.beforeStartString(),
+                        r.startString(),
+                        r.endString(),
+                        r.scanCount(),
+                        100 * r.maskedScanRatio(),
+                        MaskReason.humanReadable(r.initialMaskReason()),
+                        MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
 
 if __name__ == '__main__':
     import os
