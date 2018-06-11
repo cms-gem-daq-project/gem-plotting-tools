@@ -3,14 +3,20 @@
 import numpy as np
 
 class MaskedRange(object):
-    def __init__(self, mask, start, maxSkip = 5):
+    def __init__(self, data, vfat, channel, start, maxSkip = 5):
+        self.dates = data.dates
+        self.mask = data.mask[vfat,channel]
+        self.maskReason = data.maskReason[vfat,channel]
+        self.vfat = vfat
+        self.channel = channel
+
         # Assumption: start is masked
         self.start = start
         self.end = start + 1
 
         skipped = 0
-        for time in range(self.start, len(mask)):
-            if mask[time]:
+        for time in range(self.start, len(self.maskReason)):
+            if self.maskReason[time] !=0:
                 self.end = time + 1
                 skipped = 0
             else:
@@ -18,50 +24,53 @@ class MaskedRange(object):
             if skipped > maxSkip:
                 break
 
-    def beforeStartString(self, dates):
+    def beforeStartString(self):
         if self.start == 0:
             return 'never'
         else:
-            return dates[self.start - 1]
+            return self.dates[self.start - 1]
 
-    def startString(self, dates):
+    def startString(self):
         if self.start == 0:
             return 'first'
         else:
-            return dates[self.start]
+            return self.dates[self.start]
 
-    def endString(self, dates):
-        if self.end == len(dates):
+    def endString(self):
+        if self.end == len(self.dates):
             return 'never'
         else:
-            return dates[self.end]
+            return self.dates[self.end]
 
-    def afterEndString(self, dates):
-        if self.end + 1 >= len(dates):
+    def afterEndString(self):
+        if self.end + 1 >= len(self.dates):
             return 'never'
         else:
-            return dates[self.end + 1]
+            return self.dates[self.end + 1]
 
     def scanCount(self):
         return self.end - self.start
 
-    def maskedScanCount(self, mask):
-        return np.count_nonzero(mask[self.start:self.end])
+    def badMaskReasonScanCount(self):
+        return np.count_nonzero(self.maskReason[self.start:self.end])
 
-    def maskedScanRatio(self, mask):
-        return float(self.maskedScanCount(mask)) / self.scanCount()
+    def maskedScanCount(self):
+        return np.count_nonzero(self.mask[self.start:self.end])
 
-    def initialMaskReason(self, maskReason):
-        return int(maskReason[self.start])
+    def maskedScanRatio(self):
+        return float(self.maskedScanCount()) / self.scanCount()
 
-    def allMaskReasons(self, maskReason):
+    def initialMaskReason(self):
+        return int(self.maskReason[self.start])
+
+    def allMaskReasons(self):
         res = 0
         for time in range(self.start, self.end):
-            res |= int(maskReason[time])
+            res |= int(self.maskReason[time])
         return res
 
-    def additionnalMaskReasons(self, maskReason):
-        return self.allMaskReasons(maskReason) ^ self.initialMaskReason(maskReason)
+    def additionnalMaskReasons(self):
+        return self.allMaskReasons() ^ self.initialMaskReason()
 
 class TimeSeriesData(object):
     def __init__(self, inputDir):
@@ -120,25 +129,24 @@ latest scan is %s
                 self.dates[0],
                 self.dates[timePoints - 1])
             for chan in range(128):
-                chanMask = self.mask[vfat][chan]
                 chanMaskReason = self.maskReason[vfat,chan]
 
                 start = 0
                 while start < timePoints - 1:
                     if chanMaskReason[start]:
-                        mrange = MaskedRange(chanMaskReason, start)
+                        mrange = MaskedRange(self, vfat, chan, start)
                         start = mrange.end + 1
 
-                        if mrange.maskedScanCount(chanMaskReason) >= 4:
-                            additionnalReasons = mrange.additionnalMaskReasons(chanMaskReason)
+                        if mrange.badMaskReasonScanCount() >= 4:
+                            additionnalReasons = mrange.additionnalMaskReasons()
                             print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
                                 chan,
-                                mrange.beforeStartString(self.dates),
-                                mrange.startString(self.dates),
-                                mrange.endString(self.dates),
+                                mrange.beforeStartString(),
+                                mrange.startString(),
+                                mrange.endString(),
                                 mrange.scanCount(),
-                                100 * mrange.maskedScanRatio(chanMask),
-                                MaskReason.humanReadable(mrange.initialMaskReason(chanMaskReason)),
+                                100 * mrange.maskedScanRatio(),
+                                MaskReason.humanReadable(mrange.initialMaskReason()),
                                 MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
                     else:
                         start += 1
