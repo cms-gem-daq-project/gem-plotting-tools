@@ -66,8 +66,8 @@ class TimeSeriesData(object):
             print '''
 ## VFAT %d
 
-| Channel | #scans | Range begins     | Range ends       | Masked fraction | Initial `maskReason`                | Other subsequent `maskReason`s |
-| ------: | -----: | :--------------- | :--------------- | :-------------: | :---------------------------------- | :----------------------------- |''' % vfat
+| Channel | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
+| ------: | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % vfat
             for chan in range(128):
                 chanMask = self.mask[:,vfat,chan]
                 chanMaskReason = self.maskReason[:,vfat,chan]
@@ -87,12 +87,12 @@ class TimeSeriesData(object):
                             alsoReason |= int(chanMaskReason[time])
                         alsoReason ^= initialReason
                         if ratio * length >= 4:
-                            print '| {:>7} | {:>6} | {:<16} | {:<16} | {:^15f} | {:<35} | {:<30} |'.format(
+                            print '| {:>7} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
                                 chan,
-                                length,
                                 'first' if mrange.start == 0 else self.dates[mrange.start],
                                 'latest' if mrange.end == timePoints else self.dates[mrange.end - 1],
-                                ratio,
+                                length,
+                                100 * ratio,
                                 MaskReason.humanReadable(initialReason),
                                 MaskReason.humanReadable(alsoReason) if alsoReason != 0 else '')
                     else:
