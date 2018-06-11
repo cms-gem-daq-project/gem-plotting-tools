@@ -254,35 +254,6 @@ class TimeSeriesData(object):
         self.mask = self.mask[:,:,np.logical_not(badScans)]
         self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
 
-    def analyze(self):
-        from gempython.gemplotting.utils.anaInfo import MaskReason
-        for vfat in range(24):
-            timePoints = self.mask.shape[2]
-            print '''
-## VFAT %d
-
-first scan is %s
-latest scan is %s
-
-| Channel | Known good       | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
-| ------: | :--------------- | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % (
-                vfat,
-                self.dates[0],
-                self.dates[timePoints - 1])
-            for chan in range(128):
-                ranges = findRangesMaskReason(self, vfat, chan)
-                for r in ranges:
-                    additionnalReasons = r.additionnalMaskReasons()
-                    print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
-                        chan,
-                        r.beforeStartString(),
-                        r.startString(),
-                        r.endString(),
-                        r.scanCount(),
-                        100 * r.maskedScanRatio(),
-                        MaskReason.humanReadable(r.initialMaskReason()),
-                        MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
-
 if __name__ == '__main__':
     import os
     import os.path
@@ -304,4 +275,31 @@ if __name__ == '__main__':
 
     data = TimeSeriesData(options.inputDir)
     data.removeBadScans()
-    data.analyze()
+
+    from gempython.gemplotting.utils.anaInfo import MaskReason
+
+    for vfat in range(24):
+        timePoints = data.mask.shape[2]
+        print '''
+## VFAT %d
+
+first scan is %s
+latest scan is %s
+
+| Channel | Known good       | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
+| ------: | :--------------- | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % (
+            vfat,
+            data.dates[0],
+            data.dates[timePoints - 1])
+        for chan in range(128):
+            for r in findRangesMaskReason(data, vfat, chan):
+                additionnalReasons = r.additionnalMaskReasons()
+                print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
+                    chan,
+                    r.beforeStartString(),
+                    r.startString(),
+                    r.endString(),
+                    r.scanCount(),
+                    100 * r.maskedScanRatio(),
+                    MaskReason.humanReadable(r.initialMaskReason()),
+                    MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
