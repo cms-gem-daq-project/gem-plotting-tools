@@ -162,6 +162,50 @@ def findRangesMaskReason(data, vfat, channel, maxSkip = 5, minBadScans = 4):
 
     return ranges
 
+def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
+    """Finds ranges of scans based on the mask attribute.
+
+    Searches the data for the given vfat and channel for ranges of scans with
+    non-zero maskReason. During the search, at most maxSkip scans with mask not
+    set can be skipped. Only ranges with more than minBadScans are kept.
+
+    Args:
+        data: The TimeSeriesData object to pull data from
+        vfat: The VFAT to return ranges for
+        channel: The channel to return ranges for
+        maxSkip: The maximum number of "good" scans between two "bad" scans
+        minBadScans: The minimum number of bad scans
+
+    Returns:
+        A list of MaskedRange objects
+    """
+    ranges = []
+
+    start = 0
+    while start < data.mask.shape[2] - 1:
+        if data.mask[vfat,channel,start]:
+            end = start
+            skipped = 0
+            for time in range(start, len(data.mask[vfat,channel])):
+                if data.maskReason[vfat,channel,time] != 0:
+                    end = time + 1
+                    skipped = 0
+                else:
+                    skipped += 1
+                if skipped > maxSkip:
+                    break
+
+            if end > start:
+                r = MaskedRange(data, vfat, channel, start, end)
+                if r.maskedScanCount() >= minBadScans:
+                    ranges.append(r)
+
+            start = end + 1
+        else:
+            start += 1
+
+    return ranges
+
 class TimeSeriesData(object):
     def __init__(self, inputDir):
         import ROOT as r
