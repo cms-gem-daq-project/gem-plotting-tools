@@ -93,21 +93,21 @@ class TimeSeriesData(object):
         self.mask = np.array(self.mask)
         self.maskReason = np.array(self.maskReason)
 
-        self.mask = np.swapaxes(self.mask, 0, 1) # Reorder to [time][vfat][strip]
-        self.maskReason = np.swapaxes(self.maskReason, 0, 1) # Reorder to [time][vfat][strip]
+        self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][strip][time]
+        self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][strip][time]
 
     def removeBadScans(self):
-        numMaskedChannels = np.count_nonzero(self.mask, (1, 2))
+        numMaskedChannels = np.count_nonzero(self.mask, (0, 1))
         badScans = np.logical_or(numMaskedChannels == 0,
                                  numMaskedChannels / 24. / 128 > 0.07)
         self.dates = self.dates[np.logical_not(badScans)]
-        self.mask = self.mask[np.logical_not(badScans)]
-        self.maskReason = self.maskReason[np.logical_not(badScans)]
+        self.mask = self.mask[:,:,np.logical_not(badScans)]
+        self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
 
     def analyze(self):
         from gempython.gemplotting.utils.anaInfo import MaskReason
         for vfat in range(24):
-            timePoints = self.mask.shape[0]
+            timePoints = self.mask.shape[2]
             print '''
 ## VFAT %d
 
@@ -120,8 +120,8 @@ latest scan is %s
                 self.dates[0],
                 self.dates[timePoints - 1])
             for chan in range(128):
-                chanMask = self.mask[:,vfat,chan]
-                chanMaskReason = self.maskReason[:,vfat,chan]
+                chanMask = self.mask[vfat][chan]
+                chanMaskReason = self.maskReason[vfat,chan]
 
                 start = 0
                 while start < timePoints - 1:
