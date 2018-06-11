@@ -81,8 +81,8 @@ latest scan is %s
 
                 start = 0
                 while start < timePoints - 1:
-                    if chanMask[start]:
-                        mrange = MaskedRange(chanMask, start)
+                    if chanMaskReason[start]:
+                        mrange = MaskedRange(chanMaskReason, start)
                         start = mrange.end + 1
 
                         length = mrange.end - mrange.start
