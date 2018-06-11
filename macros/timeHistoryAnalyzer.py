@@ -70,8 +70,8 @@ class TimeSeriesData(object):
 first scan is %s
 latest scan is %s
 
-| Channel | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
-| ------: | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % (
+| Channel | Known good       | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
+| ------: | :--------------- | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % (
                 vfat,
                 self.dates[0],
                 self.dates[timePoints - 1])
@@ -93,10 +93,11 @@ latest scan is %s
                             alsoReason |= int(chanMaskReason[time])
                         alsoReason ^= initialReason
                         if ratio * length >= 4:
-                            print '| {:>7} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
+                            print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
                                 chan,
+                                'never' if mrange.start == 0 else self.dates[mrange.start - 1],
                                 'first' if mrange.start == 0 else self.dates[mrange.start],
-                                'latest' if mrange.end == timePoints else self.dates[mrange.end - 1],
+                                'never' if mrange.end == timePoints else self.dates[mrange.end - 1],
                                 length,
                                 100 * ratio,
                                 MaskReason.humanReadable(initialReason),
