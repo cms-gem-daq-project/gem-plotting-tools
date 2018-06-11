@@ -61,7 +61,7 @@ class MaskedRange(object):
     def additionnalMaskReasons(self):
         return self.allMaskReasons() ^ self.initialMaskReason()
 
-def findRangesMaskReason(data, vfat, channel, maxSkip = 5):
+def findRangesMaskReason(data, vfat, channel, maxSkip = 5, minBadScans = 4):
     ranges = []
 
     start = 0
@@ -70,7 +70,7 @@ def findRangesMaskReason(data, vfat, channel, maxSkip = 5):
             end = start
             skipped = 0
             for time in range(start, len(data.maskReason[vfat,channel])):
-                if data.maskReason[vfat,channel,time] !=0:
+                if data.maskReason[vfat,channel,time] != 0:
                     end = time + 1
                     skipped = 0
                 else:
@@ -80,7 +80,7 @@ def findRangesMaskReason(data, vfat, channel, maxSkip = 5):
 
             if end > start:
                 r = MaskedRange(data, vfat, channel, start, end)
-                if r.badMaskReasonScanCount() >= 4:
+                if r.badMaskReasonScanCount() >= minBadScans:
                     ranges.append(r)
 
             start = end + 1
