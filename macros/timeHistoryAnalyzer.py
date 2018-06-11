@@ -3,26 +3,15 @@
 import numpy as np
 
 class MaskedRange(object):
-    def __init__(self, data, vfat, channel, start, maxSkip = 5):
+    def __init__(self, data, vfat, channel, start, end):
         self.dates = data.dates
         self.mask = data.mask[vfat,channel]
         self.maskReason = data.maskReason[vfat,channel]
         self.vfat = vfat
         self.channel = channel
 
-        # Assumption: start is masked
         self.start = start
-        self.end = start + 1
-
-        skipped = 0
-        for time in range(self.start, len(self.maskReason)):
-            if self.maskReason[time] !=0:
-                self.end = time + 1
-                skipped = 0
-            else:
-                skipped += 1
-            if skipped > maxSkip:
-                break
+        self.end = end
 
     def beforeStartString(self):
         if self.start == 0:
@@ -72,17 +61,29 @@ class MaskedRange(object):
     def additionnalMaskReasons(self):
         return self.allMaskReasons() ^ self.initialMaskReason()
 
-def findRangesMaskReason(data, vfat, channel):
+def findRangesMaskReason(data, vfat, channel, maxSkip = 5):
     ranges = []
 
     start = 0
     while start < data.maskReason.shape[2] - 1:
         if data.maskReason[vfat,channel,start]:
-            r = MaskedRange(data, vfat, channel, start)
-            start = r.end + 1
+            end = start
+            skipped = 0
+            for time in range(start, len(data.maskReason[vfat,channel])):
+                if data.maskReason[vfat,channel,time] !=0:
+                    end = time + 1
+                    skipped = 0
+                else:
+                    skipped += 1
+                if skipped > maxSkip:
+                    break
 
-            if r.badMaskReasonScanCount() >= 4:
-                ranges.append(r)
+            if end > start:
+                r = MaskedRange(data, vfat, channel, start, end)
+                if r.badMaskReasonScanCount() >= 4:
+                    ranges.append(r)
+
+            start = end + 1
         else:
             start += 1
 
