@@ -3,62 +3,118 @@
 import numpy as np
 
 class MaskedRange(object):
+    """Represents a range of scans in TimeSeriesData, for a given VFAT and
+    channel
+
+    Attributes:
+        begin: Index of the first scan in the range
+        end: Index of the first scan not in the range
+        vfat: VFAT number
+        channel: Channel number
+    """
+
     def __init__(self, data, vfat, channel, start, end):
-        self.dates = data.dates
-        self.mask = data.mask[vfat,channel]
-        self.maskReason = data.maskReason[vfat,channel]
+        """Constructor
+
+        Args:
+            data: A TimeSeriesData object to load scan results from
+            vfat: The VFAT number
+            channel: The channel number in the VFAT
+            start: The index of the first scan in the range
+            end: The index of the first scan not in the range
+        """
+        self._dates = data.dates
+        self._mask = data.mask[vfat,channel]
+        self._maskReason = data.maskReason[vfat,channel]
+
         self.vfat = vfat
         self.channel = channel
-
         self.start = start
         self.end = end
 
     def beforeStartString(self):
+        """Returns the date of the last scan before the range
+
+        Returns:
+            If the range includes the first available scan, returns 'never'.
+            Else returns a string containing the date of the scan, formatted as
+            %Y.%m.%d.%H.%M.
+        """
         if self.start == 0:
             return 'never'
         else:
-            return self.dates[self.start - 1]
+            return self._dates[self.start - 1]
 
     def startString(self):
+        """Returns the date of the first scan in the range
+
+        Returns:
+            If the range includes the first available scan, returns 'first'.
+            Else returns a string containing the date of the scan, formatted as
+            %Y.%m.%d.%H.%M.
+        """
         if self.start == 0:
             return 'first'
         else:
-            return self.dates[self.start]
+            return self._dates[self.start]
 
     def endString(self):
-        if self.end == len(self.dates):
+        """Returns the date of the last scan in the range
+
+        Returns:
+            If the range includes the last available scan, returns 'never'. Else
+            returns a string containing the date of the scan, formatted as
+            %Y.%m.%d.%H.%M.
+        """
+        if self.end == len(self._dates):
             return 'never'
         else:
-            return self.dates[self.end]
+            return self._dates[self.end - 1]
 
     def afterEndString(self):
-        if self.end + 1 >= len(self.dates):
-            return 'never'
+        """Returns the date of the first scan after the range
+
+        Returns:
+            If the range includes the last available scan, returns 'none'. Else
+            returns a string containing the date of the scan, formatted as
+            %Y.%m.%d.%H.%M.
+        """
+        if self.end >= len(self._dates) - 1:
+            return 'none'
         else:
-            return self.dates[self.end + 1]
+            return self._dates[self.end]
 
     def scanCount(self):
+        """Returns the number of scans in the range"""
         return self.end - self.start
 
     def badMaskReasonScanCount(self):
-        return np.count_nonzero(self.maskReason[self.start:self.end])
+        """Returns the number of scans with non-zero maskReason in the range"""
+        return np.count_nonzero(self._maskReason[self.start:self.end])
 
     def maskedScanCount(self):
-        return np.count_nonzero(self.mask[self.start:self.end])
+        """Returns the number of scans with mask set in the range"""
+        return np.count_nonzero(self._mask[self.start:self.end])
 
     def maskedScanRatio(self):
+        """Returns the fraction of scans with mask set in the range"""
         return float(self.maskedScanCount()) / self.scanCount()
 
     def initialMaskReason(self):
-        return int(self.maskReason[self.start])
+        """Returns the maskReason for the first scan in the range"""
+        return int(self._maskReason[self.start])
 
     def allMaskReasons(self):
+        """Returns a maskReason bitmask that contains all the maskReasons in the
+        range"""
         res = 0
         for time in range(self.start, self.end):
-            res |= int(self.maskReason[time])
+            res |= int(self._maskReason[time])
         return res
 
     def additionnalMaskReasons(self):
+        """Returns a maskReason bitmask that contains all the maskReaons in the
+        range but not in the first scan"""
         return self.allMaskReasons() ^ self.initialMaskReason()
 
 def findRangesMaskReason(data, vfat, channel, maxSkip = 5, minBadScans = 4):
