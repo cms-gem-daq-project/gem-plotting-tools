@@ -373,39 +373,71 @@ if __name__ == '__main__':
 
     from gempython.gemplotting.utils.anaInfo import MaskReason
 
+    # Find ranges
+    ranges = [] # [vfat][channel][ranges]
+    for vfat in range(24):
+        ranges.append([])
+        for channel in range(128):
+            ranges[vfat].append(findRangesFct(data, vfat, channel))
+            pass
+        pass
+
+    # Initialize tables
+    rangesTables = [ [] for vfat in range(24) ]
+
     maskReasonList = MaskReason.list()
     summaryTable = np.zeros((24, len(maskReasonList)))
 
+    # Fill tables
     for vfat in range(24):
-        timePoints = data.mask.shape[2]
+        for channel in range(128):
+            for rng in ranges[vfat][channel]:
+                # Per-vfat table
+                additionnalReasons = rng.additionnalMaskReasons()
+                rangesTables[vfat].append([
+                    rng.channel,
+                    rng.beforeStartString(),
+                    rng.startString(),
+                    rng.endString(),
+                    rng.scanCount(),
+                    int(100 * rng.maskedScanRatio()),
+                    MaskReason.humanReadable(rng.initialMaskReason()),
+                    MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else ''])
+
+                # Summary
+                for i in range(len(maskReasonList)):
+                    if rng.initialMaskReason() & maskReasonList[i][1]:
+                        summaryTable[vfat][i] += 1
+                    pass
+                pass
+            pass
+        pass
+
+    # Print per-VFAT tables
+    from tabulate import tabulate
+
+    headers = [
+        'Channel',
+        'Known good',
+        'Range begins',
+        'Range ends',
+        '#scans',
+        'Masked%',
+        'Initial `maskReason`',
+        'Other subsequent `maskReason`s' ]
+
+    for vfat in range(24):
         print '''
 ## VFAT %d
+''' % vfat
 
-first scan is %s
-latest scan is %s
+        print(tabulate(rangesTables[vfat],
+                       headers = headers,
+                       tablefmt = 'pipe',
+                       numalign = 'center'))
+        pass
 
-| Channel | Known good       | Range begins     | Range ends       | #scans | Masked%% | Initial `maskReason`                | Other subsequent `maskReason`s |
-| ------: | :--------------- | :--------------- | :--------------- | -----: | ------: | :---------------------------------- | :----------------------------- |''' % (
-            vfat,
-            data.dates[0],
-            data.dates[timePoints - 1])
-        for chan in range(128):
-            for r in findRangesFct(data, vfat, chan):
-                additionnalReasons = r.additionnalMaskReasons()
-                print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
-                    chan,
-                    r.beforeStartString(),
-                    r.startString(),
-                    r.endString(),
-                    r.scanCount(),
-                    100 * r.maskedScanRatio(),
-                    MaskReason.humanReadable(r.initialMaskReason()),
-                    MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
-                # Fill summary table
-                for i in range(len(maskReasonList)):
-                    if r.initialMaskReason() & maskReasonList[i][1]:
-                        summaryTable[vfat][i] += 1
-
+    # Print summary table
     print('''
 ## Initial maskReason summary
 
@@ -413,7 +445,6 @@ The table below shows the distribution of the initial maskReason for ranges foun
 Note that a single range is counted as many times as it has maskReasons.
 ''')
 
-    from tabulate import tabulate
     headers = [ name for name, _ in maskReasonList ]
     print(tabulate(summaryTable,
                    headers = headers,
