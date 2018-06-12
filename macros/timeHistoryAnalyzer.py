@@ -26,6 +26,7 @@ class MaskedRange(object):
         self._dates = data.dates
         self._mask = data.mask[vfat,channel]
         self._maskReason = data.maskReason[vfat,channel]
+        self._noise = data.noise[vfat,channel]
 
         self.vfat = vfat
         self.channel = channel
@@ -116,6 +117,11 @@ class MaskedRange(object):
         """Returns a maskReason bitmask that contains all the maskReaons in the
         range but not in the first scan"""
         return self.allMaskReasons() ^ self.initialMaskReason()
+
+    def noise(self):
+        """Returns a Numpy array containing the noise information for scans in
+        the range"""
+        return self._noise[self.start:self.end]
 
 def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
     """Finds ranges of scans based on the contents of channelData.
@@ -213,6 +219,38 @@ def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
     return list(filter(lambda r: r.maskedScanCount() >= minBadScans,
                        ranges))
 
+def findRangesNoise(data,
+                    vfat,
+                    channel,
+                    threshold = 0.02,
+                    maxSkip = 5,
+                    minBadScans = 4):
+    """Finds ranges of scans based on noise.
+
+    Searches the data for the given vfat and channel for ranges of scans with
+    noise < threshold. During the search, at most maxSkip scans with mask not
+    set can be skipped. Only ranges with more than minBadScans are kept.
+
+    Args:
+        data: The TimeSeriesData object to pull data from
+        vfat: The VFAT to return ranges for
+        channel: The channel to return ranges for
+        threshold: The minimum value of noise for a scan to be "good"
+        maxSkip: The maximum number of "good" scans between two "bad" scans
+        minBadScans: The minimum number of bad scans
+
+    Returns:
+        A list of MaskedRange objects
+    """
+    ranges = _findRangesMeta(data,
+                             vfat,
+                             channel,
+                             data.noise[vfat,channel] < threshold,
+                             maxSkip)
+
+    return list(filter(lambda r: np.count_nonzero(r.noise() < threshold) >= minBadScans,
+                       ranges))
+
 class TimeSeriesData(object):
     """Holds information about time variation of scan results.
 
@@ -308,7 +346,7 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputDir", type=str, dest="inputDir",
                       help="Input directory (=output directory of plotTimeSeries.py)")
     parser.add_option("--ranges", type=str, dest="ranges", default="maskReason",
-                      help="Range selection. Possible values: mask, maskReason")
+                      help="Range selection. Possible values: mask, maskReason, noise")
     (options, args) = parser.parse_args()
 
     if options.inputDir is None:
@@ -324,6 +362,8 @@ if __name__ == '__main__':
         findRangesFct = findRangesMask
     elif options.ranges == "maskReason":
         findRangesFct = findRangesMaskReason
+    elif options.ranges == "noise":
+        findRangesFct = findRangesNoise
     else:
         print("Error: Invalid argument for --ranges: %s " % options.ranges)
         sys.exit(os.EX_USAGE)
