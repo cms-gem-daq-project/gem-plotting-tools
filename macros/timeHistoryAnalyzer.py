@@ -299,6 +299,8 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-i", "--inputDir", type=str, dest="inputDir",
                       help="Input directory (=output directory of plotTimeSeries.py)")
+    parser.add_option("--ranges", type=str, dest="ranges", default="maskReason",
+                      help="Range selection. Possible values: mask, maskReason")
     (options, args) = parser.parse_args()
 
     if options.inputDir is None:
@@ -307,6 +309,15 @@ if __name__ == '__main__':
 
     if not os.path.isdir(options.inputDir):
         print("Error: Not a directory: %s" % options.inputDir)
+        sys.exit(os.EX_USAGE)
+
+    findRangesFct = None
+    if options.ranges == "mask":
+        findRangesFct = findRangesMask
+    elif options.ranges == "maskReason":
+        findRangesFct = findRangesMaskReason
+    else:
+        print("Error: Invalid argument for --ranges: %s " % options.ranges)
         sys.exit(os.EX_USAGE)
 
     data = TimeSeriesData(options.inputDir)
@@ -328,7 +339,7 @@ latest scan is %s
             data.dates[0],
             data.dates[timePoints - 1])
         for chan in range(128):
-            for r in findRangesMaskReason(data, vfat, chan):
+            for r in findRangesFct(data, vfat, chan):
                 additionnalReasons = r.additionnalMaskReasons()
                 print '| {:>7} | {:<16} | {:<16} | {:<16} | {:>6} | {:>7.0f} | {:<35} | {:<30} |'.format(
                     chan,
