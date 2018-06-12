@@ -245,20 +245,25 @@ class TimeSeriesData(object):
 
         file_mask = r.TFile('%s/gemPlotterOutput_mask_vs_scandate.root' % inputDir, 'READ')
         file_maskReason = r.TFile('%s/gemPlotterOutput_maskReason_vs_scandate.root' % inputDir, 'READ')
+        file_noise = r.TFile('%s/gemPlotterOutput_noise_vs_scandate.root' % inputDir, 'READ')
 
         self.mask = [] # [vfat][time][strip]; warning: reordered after loading
         self.maskReason = [] # [vfat][time][strip]; warning: reordered after loading
+        self.noise = [] # [vfat][time][strip]; warning: reordered after loading
 
         for vfat in range(0,24):
             dirname = 'VFAT%d' % vfat
             dir_mask = file_mask.Get(dirname)
             dir_maskReason = file_maskReason.Get(dirname)
+            dir_noise = file_noise.Get(dirname)
 
             hist_mask = dir_mask.Get("h_ROBstr_vs_scandate_Obsmask_VFAT%d" % vfat)
             hist_maskReason = dir_maskReason.Get("h_ROBstr_vs_scandate_ObsmaskReason_VFAT%d" % vfat)
+            hist_noise = dir_noise.Get("h_ROBstr_vs_scandate_Obsnoise_VFAT%d" % vfat)
 
             self.mask.append(hist2array(hist_mask))
             self.maskReason.append(hist2array(hist_maskReason))
+            self.noise.append(hist2array(hist_noise))
 
             self.dates = [] # [time]
             for bin in range(hist_mask.GetNbinsX()):
@@ -267,9 +272,11 @@ class TimeSeriesData(object):
         self.dates = np.array(self.dates)
         self.mask = np.array(self.mask)
         self.maskReason = np.array(self.maskReason)
+        self.noise = np.array(self.noise)
 
         self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][strip][time]
         self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][strip][time]
+        self.noise = np.swapaxes(self.noise, 1, 2) # Reorder to [vfat][strip][time]
 
     def removeBadScans(self, maxMaskedChannelFraction = 0.07):
         """Finds bad scans and removes them from the data.
@@ -289,6 +296,7 @@ class TimeSeriesData(object):
         self.dates = self.dates[np.logical_not(badScans)]
         self.mask = self.mask[:,:,np.logical_not(badScans)]
         self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
+        self.noise = self.noise[:,:,np.logical_not(badScans)]
 
 if __name__ == '__main__':
     import os
