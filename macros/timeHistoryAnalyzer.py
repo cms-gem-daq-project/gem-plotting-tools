@@ -373,6 +373,9 @@ if __name__ == '__main__':
 
     from gempython.gemplotting.utils.anaInfo import MaskReason
 
+    maskReasonList = MaskReason.list()
+    summaryTable = np.zeros((24, len(maskReasonList)))
+
     for vfat in range(24):
         timePoints = data.mask.shape[2]
         print '''
@@ -398,3 +401,22 @@ latest scan is %s
                     100 * r.maskedScanRatio(),
                     MaskReason.humanReadable(r.initialMaskReason()),
                     MaskReason.humanReadable(additionnalReasons) if additionnalReasons != 0 else '')
+                # Fill summary table
+                for i in range(len(maskReasonList)):
+                    if r.initialMaskReason() & maskReasonList[i][1]:
+                        summaryTable[vfat][i] += 1
+
+    print('''
+## Initial maskReason summary
+
+The table below shows the distribution of the initial maskReason for ranges found in each VFAT.
+Note that a single range is counted as many times as it has maskReasons.
+''')
+
+    from tabulate import tabulate
+    headers = [ name for name, _ in maskReasonList ]
+    print(tabulate(summaryTable,
+                   headers = headers,
+                   tablefmt = 'pipe',
+                   showindex = True,
+                   numalign = 'center'))
