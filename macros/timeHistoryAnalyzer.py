@@ -155,6 +155,7 @@ def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
                     skipped += 1
                 if skipped > maxSkip:
                     break
+                pass
 
             if end > start:
                 ranges.append(MaskedRange(data, vfat, channel, start, end))
@@ -162,6 +163,7 @@ def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
             start = end + 1
         else:
             start += 1
+        pass
 
     return ranges
 
@@ -306,6 +308,8 @@ class TimeSeriesData(object):
             self.dates = [] # [time]
             for bin in range(hist_mask.GetNbinsX()):
                 self.dates.append(hist_mask.GetXaxis().GetBinLabel(bin + 1))
+                pass
+            pass
 
         self.dates = np.array(self.dates)
         self.mask = np.array(self.mask)
