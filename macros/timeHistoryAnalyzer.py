@@ -214,7 +214,32 @@ def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
                        ranges))
 
 class TimeSeriesData(object):
+    """Holds information about time variation of scan results.
+
+    Each property is stored as a 3D Numpy array with indexes
+    [vfat][strip][time]. The time index -> scan date mapping is exposed in the
+    date attribute.
+
+    Attributes:
+        dates: Array of strings containing the scan dates.
+        mask: Data for the "mask" property,
+        maskReason: Data for the "maskReason" property,
+    """
+
     def __init__(self, inputDir):
+        """Creates a TimeSeriesData object by reading the files located in the
+        inputDir directory.
+
+        The input directory must contain the following files:
+
+        * gemPlotterOutput_mask_vs_scandate.root
+        * gemPlotterOutput_maskReason_vs_scandate.root
+
+        They are created by plotTimeSeries.py.
+
+        Args:
+            inputDir: The path to the input directory
+        """
         import ROOT as r
         from root_numpy import hist2array
 
@@ -246,10 +271,21 @@ class TimeSeriesData(object):
         self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][strip][time]
         self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][strip][time]
 
-    def removeBadScans(self):
+    def removeBadScans(self, maxMaskedChannelFraction = 0.07):
+        """Finds bad scans and removes them from the data.
+
+        Any scan matching one of the following criteria is considered bad:
+
+        * No channel was masked
+        * The fraction of masked channels is higher than maxMaskedChannelFraction
+
+        Args:
+            maxMaskedChannelFraction: The maximum fraction of masked channels
+                for a scan to be kept.
+        """
         numMaskedChannels = np.count_nonzero(self.mask, (0, 1))
         badScans = np.logical_or(numMaskedChannels == 0,
-                                 numMaskedChannels / 24. / 128 > 0.07)
+                                 numMaskedChannels / 24. / 128 > maxMaskedChannelFraction)
         self.dates = self.dates[np.logical_not(badScans)]
         self.mask = self.mask[:,:,np.logical_not(badScans)]
         self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
