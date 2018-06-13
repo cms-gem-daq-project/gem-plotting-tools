@@ -12,8 +12,8 @@ Table of contents:
 .. toctree::
    :maxdepth: 3
 
+   macros
    gempython.gemplotting.fitting
-   gempython.gemplotting.macros
    gempython.gemplotting.mapping
    gempython.gemplotting.utils
 
