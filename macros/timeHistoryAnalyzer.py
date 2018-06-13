@@ -257,7 +257,7 @@ class TimeSeriesData(object):
     """Holds information about time variation of scan results.
 
     Each property is stored as a 3D Numpy array with indexes
-    [vfat][strip][time]. The time index -> scan date mapping is exposed in the
+    [vfat][channel][time]. The time index -> scan date mapping is exposed in the
     date attribute.
 
     Attributes:
@@ -296,9 +296,9 @@ class TimeSeriesData(object):
         if file_noise.IsZombie():
             raise IOError('Could not open %s' % file_noise.GetPath())
 
-        self.mask = [] # [vfat][time][strip]; warning: reordered after loading
-        self.maskReason = [] # [vfat][time][strip]; warning: reordered after loading
-        self.noise = [] # [vfat][time][strip]; warning: reordered after loading
+        self.mask = [] # [vfat][time][channel]; warning: reordered after loading
+        self.maskReason = [] # [vfat][time][channel]; warning: reordered after loading
+        self.noise = [] # [vfat][time][channel]; warning: reordered after loading
 
         for vfat in range(0,24):
             dirname = 'VFAT%d' % vfat
@@ -325,9 +325,9 @@ class TimeSeriesData(object):
         self.maskReason = np.array(self.maskReason)
         self.noise = np.array(self.noise)
 
-        self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][strip][time]
-        self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][strip][time]
-        self.noise = np.swapaxes(self.noise, 1, 2) # Reorder to [vfat][strip][time]
+        self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][channel][time]
+        self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][channel][time]
+        self.noise = np.swapaxes(self.noise, 1, 2) # Reorder to [vfat][channel][time]
 
     def removeBadScans(self, minAverageNoise = 0.1, maxMaskedChannelFraction = 0.07):
         """Finds bad scans and removes them from the data.
