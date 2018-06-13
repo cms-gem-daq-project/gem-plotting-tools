@@ -224,22 +224,24 @@ def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
 def findRangesNoise(data,
                     vfat,
                     channel,
-                    threshold = 0.02,
+                    maxNoise = 0.02,
                     maxSkip = 5,
                     minBadScans = 4):
     """Finds ranges of scans based on noise.
 
-    Searches the data for the given vfat and channel for ranges of scans with
-    noise < threshold. During the search, at most maxSkip scans with mask not
-    set can be skipped. Only ranges with more than minBadScans are kept.
+    Searches the data for the given vfat and channel for ranges of low-noise
+    scans. A scan has low noise if noise < maxNoise. During the search, at most
+    maxSkip scans with mask not set can be skipped. Only ranges with more than
+    minBadScans are kept.
 
     Args:
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
         channel: The channel to return ranges for
-        threshold: The minimum value of noise for a scan to be "good"
-        maxSkip: The maximum number of "good" scans between two "bad" scans
-        minBadScans: The minimum number of bad scans
+        maxNoise: Scans with a noise below this value are considered low-noise
+        maxSkip: The maximum number of consecutive scans that don't fulfill the
+            low-noise condition between two scans that do
+        minBadScans: The minimum number of low-noise scans in any returned range
 
     Returns:
         A list of MaskedRange objects
@@ -247,10 +249,10 @@ def findRangesNoise(data,
     ranges = _findRangesMeta(data,
                              vfat,
                              channel,
-                             data.noise[vfat,channel] < threshold,
+                             data.noise[vfat,channel] < maxNoise,
                              maxSkip)
 
-    return list(filter(lambda r: np.count_nonzero(r.noise() < threshold) >= minBadScans,
+    return list(filter(lambda r: np.count_nonzero(r.noise() < maxNoise) >= minBadScans,
                        ranges))
 
 class TimeSeriesData(object):
