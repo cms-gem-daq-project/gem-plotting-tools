@@ -13,9 +13,9 @@ Table of contents:
    :maxdepth: 3
 
    macros
-   gempython.gemplotting.fitting
-   gempython.gemplotting.mapping
-   gempython.gemplotting.utils
+   fitting
+   mapping
+   utils
 
 Indices and tables
 ==================
