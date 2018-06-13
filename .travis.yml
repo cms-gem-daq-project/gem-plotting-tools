@@ -112,6 +112,7 @@ after_script: skip
     - . building/bin/activate
     - pip install rpm/*.zip
     - echo "Generate documentation"
+    - pip install -r requirements-dev.txt
     - make html
     - echo "Install the dependencies"
     - echo "Run the predefined test"

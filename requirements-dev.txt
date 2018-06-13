@@ -1,3 +1,4 @@
 importlib
 setuptools>25,<=38
 pip>8,<10.1
+sphinxcontrib-napoleon
