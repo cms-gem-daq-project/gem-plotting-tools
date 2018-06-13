@@ -261,7 +261,7 @@ class TimeSeriesData(object):
     date attribute.
 
     Attributes:
-        dates: Array of strings containing the scan dates.
+        dates: Numpy array of strings containing the scan dates.
         mask: Data for the "mask" property,
         maskReason: Data for the "maskReason" property,
     """
