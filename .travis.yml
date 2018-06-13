@@ -112,7 +112,7 @@ after_script: skip
     - . building/bin/activate
     - pip install --no-deps rpm/gempython_gemplotting-[0-9].[0-9].[0-9].tar.gz
     - echo "Generate documentation"
-    - pip install -r requirements-dev.txt
+    - pip install -U -r requirements-dev.txt
     - make html
     - echo "Install the dependencies"
     - echo "Run the predefined test"
