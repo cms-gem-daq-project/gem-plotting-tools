@@ -32,6 +32,7 @@ include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
 
 # include $(BUILD_HOME)/$(Project)/config/mfDefs.mk
 
+include $(BUILD_HOME)/$(Project)/config/mfSphinx.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
 
 default:

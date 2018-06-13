@@ -22,7 +22,7 @@ then
     sudo usermod -aG daqbuild $USER
     groups
     sudo chmod g+s -R $HOME
-    sudo apt-get install acl acl2
+    sudo apt-get install acl acl2 python-sphinx
     sudo setfacl -Rdm u::rwX,g::rwX,o::rX $HOME
     sudo setfacl -Rm  u::rwX,g::rwX,o::rX $HOME
 

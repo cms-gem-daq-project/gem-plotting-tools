@@ -111,6 +111,8 @@ after_script: skip
     - virtualenv building -p python --system-site-packages
     - . building/bin/activate
     - pip install rpm/*.zip
+    - echo "Generate documentation"
+    - make html
     - echo "Install the dependencies"
     - echo "Run the predefined test"
     - ./.ci/docker.sh stop ${DOCKER_IMAGE}
