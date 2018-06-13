@@ -110,7 +110,7 @@ after_script: skip
     - echo "Testing the installation of the package"
     - virtualenv building -p python --system-site-packages
     - . building/bin/activate
-    - pip install rpm/*.zip
+    - pip install --no-deps rpm/gempython_gemplotting-[0-9].[0-9].[0-9].tar.gz
     - echo "Generate documentation"
     - pip install -r requirements-dev.txt
     - make html
