@@ -301,14 +301,12 @@ class TimeSeriesData(object):
         self.noise = [] # [vfat][time][channel]; warning: reordered after loading
 
         for vfat in range(0,24):
-            dirname = 'VFAT%d' % vfat
-            dir_mask = file_mask.Get(dirname)
-            dir_maskReason = file_maskReason.Get(dirname)
-            dir_noise = file_noise.Get(dirname)
-
-            hist_mask = dir_mask.Get("h_ROBstr_vs_scandate_Obsmask_VFAT%d" % vfat)
-            hist_maskReason = dir_maskReason.Get("h_ROBstr_vs_scandate_ObsmaskReason_VFAT%d" % vfat)
-            hist_noise = dir_noise.Get("h_ROBstr_vs_scandate_Obsnoise_VFAT%d" % vfat)
+            hist_mask = file_mask.Get(
+                "VFAT{0:d}/h_ROBstr_vs_scandate_Obsmask_VFAT{0:d}".format(vfat))
+            hist_maskReason = file_maskReason.Get(
+                "VFAT{0:d}/h_ROBstr_vs_scandate_ObsmaskReason_VFAT{0:d}".format(vfat))
+            hist_noise = file_noise.Get(
+                "VFAT{0:d}/h_ROBstr_vs_scandate_Obsnoise_VFAT{0:d}".format(vfat))
 
             self.mask.append(hist2array(hist_mask))
             self.maskReason.append(hist2array(hist_maskReason))
