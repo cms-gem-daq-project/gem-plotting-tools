@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# gem-plotting-tools documentation build configuration file, created by
+# gemplotting documentation build configuration file, created by
 # sphinx-quickstart on Wed May 23 14:52:11 2018.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -164,7 +164,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'gem-plotting-tools-doc'
+htmlhelp_basename = 'gemplotting-doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -183,7 +183,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'gem-plotting-tools.tex', u'reg\\_utils Documentation',
+  ('index', 'gemplotting.tex', u'gemplotting Documentation',
    u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy', 'manual'),
 ]
 
@@ -213,7 +213,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'gem-plotting-tools', u'gem-plotting-tools Documentation',
+    ('index', 'gemplotting', u'gemplotting Documentation',
      [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1)
 ]
 
@@ -227,8 +227,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'gem-plotting-tools', u'gem-plotting-tools Documentation',
-   u'Mykhailo Dalchenko, Evaldas Juska, RobertKing, Andrew Peck, Jared Sturdy', 'gem-plotting-tools', 'One line description of project.',
+  ('index', 'gemplotting', u'gemplotting Documentation',
+   u'Mykhailo Dalchenko, Evaldas Juska, RobertKing, Andrew Peck, Jared Sturdy', 'gemplotting', 'One line description of project.',
    'Miscellaneous'),
 ]
 
