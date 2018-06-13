@@ -329,21 +329,22 @@ class TimeSeriesData(object):
         self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][strip][time]
         self.noise = np.swapaxes(self.noise, 1, 2) # Reorder to [vfat][strip][time]
 
-    def removeBadScans(self, maxMaskedChannelFraction = 0.07):
+    def removeBadScans(self, minAverageNoise = 0.1, maxMaskedChannelFraction = 0.07):
         """Finds bad scans and removes them from the data.
 
         Any scan matching one of the following criteria is considered bad:
 
-        * No channel was masked
+        * The average noise is below maxAverageNoise
         * The fraction of masked channels is higher than maxMaskedChannelFraction
 
         Args:
+            minAverageNoise: The minimum noise, averaged over all channels, for
+                a scan to be kept. Value in fC.
             maxMaskedChannelFraction: The maximum fraction of masked channels
                 for a scan to be kept.
         """
-        numMaskedChannels = np.count_nonzero(self.mask, (0, 1))
-        badScans = np.logical_or(numMaskedChannels == 0,
-                                 numMaskedChannels / 24. / 128 > maxMaskedChannelFraction)
+        badScans = np.logical_or(np.mean(self.noise, (0, 1)) < minAverageNoise,
+                                 np.count_nonzero(self.mask, (0, 1)) / 24. / 128 > maxMaskedChannelFraction)
         self.dates = self.dates[np.logical_not(badScans)]
         self.mask = self.mask[:,:,np.logical_not(badScans)]
         self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
