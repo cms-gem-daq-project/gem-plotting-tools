@@ -90,16 +90,16 @@ If you are working on a 904 machine, regardless if it is the first time you are 
 ## Masking Channels Algorithmically
 
 ### Definitions
-When the analysis software decides a channel should be masked it is because it falls under one of the categories defined in the `maskReason` class of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anaInfo.py). Multiple reasons can be assigned to a channel for why it is masked, and the total `maskReason` is a 6-bit binary number. Presently these reasons are:
+When the analysis software decides a channel should be masked it is because it falls under one of the categories defined in the `MaskReason` class of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anaInfo.py). Multiple reasons can be assigned to a channel for why it is masked, and the total `maskReason` is a 5-bit binary number. Presently these reasons are:
 
 | Name | Bit | Reason |
 | :--: | :---: | :----- |
-| `NotMasked` | 0 | the channel is not masked. |
-| `HotChannel` | 1 | the channel was identified as an outlier using the MAD algorithm, see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf). |
-| `FitFailed` | 2 | the s-curve fit of the channel failed. |
-| `DeadChannel` | 3 | the channel has a burned or disconnected input. |
-| `HighNoise` | 4 | the channel has an scurve sigma above the cut value. | 
-| `HighEffPed` | 5 | the channel has an effective pedestal above the cut value. |
+| `NotMasked` | (none set) | the channel is not masked. |
+| `HotChannel` | 0 | the channel was identified as an outlier using the MAD algorithm, see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf). |
+| `FitFailed` | 1 | the s-curve fit of the channel failed. |
+| `DeadChannel` | 2 | the channel has a burned or disconnected input. |
+| `HighNoise` | 3 | the channel has an scurve sigma above the cut value. |
+| `HighEffPed` | 4 | the channel has an effective pedestal above the cut value. |
 
 The scurve sigma is the sigma of the modified error function used to fit the s-curve measurements.  It comes from the `TF1` object used to fit scurves in `ScanDataFitter::fit()` of [fitScanData.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/fitting/fitScanData.py).
 
@@ -111,7 +111,7 @@ effPed = scurve_fit_func.Eval(0) / n_pulses
 
 Where `n_pulses` are the number of charge injections for a given DAC value performed by the calibration module.
 
-The analysis software will record the `maskReason` in decimal reprementation.  So for example a channel having `maskReason = 48` corresponds to `0b110000` which means the channel was assigned the `HighEffPed` and `HighNoise` maskReasons.
+The analysis software will record the `maskReason` in decimal reprementation.  So for example a channel having `maskReason = 24` corresponds to `0b11000` which means the channel was assigned the `HighEffPed` and `HighNoise` maskReasons.
 
 ### Deriving Channel Configuration
 The following procedure is used, note these steps must be executed one after another, without LV power cycle or action to cause a reset of the VFAT settings (e.g. SCA reset):
