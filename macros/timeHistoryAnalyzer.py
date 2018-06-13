@@ -274,6 +274,7 @@ class TimeSeriesData(object):
 
         * gemPlotterOutput_mask_vs_scandate.root
         * gemPlotterOutput_maskReason_vs_scandate.root
+        * gemPlotterOutput_noise_vs_scandate.root
 
         They are created by plotTimeSeries.py.
 
@@ -284,8 +285,16 @@ class TimeSeriesData(object):
         from root_numpy import hist2array
 
         file_mask = r.TFile('%s/gemPlotterOutput_mask_vs_scandate.root' % inputDir, 'READ')
+        if file_mask.IsZombie():
+            raise IOError('Could not open %s' % file_mask.GetPath())
+
         file_maskReason = r.TFile('%s/gemPlotterOutput_maskReason_vs_scandate.root' % inputDir, 'READ')
+        if file_maskReason.IsZombie():
+            raise IOError('Could not open %s' % file_maskReason.GetPath())
+
         file_noise = r.TFile('%s/gemPlotterOutput_noise_vs_scandate.root' % inputDir, 'READ')
+        if file_noise.IsZombie():
+            raise IOError('Could not open %s' % file_noise.GetPath())
 
         self.mask = [] # [vfat][time][strip]; warning: reordered after loading
         self.maskReason = [] # [vfat][time][strip]; warning: reordered after loading
