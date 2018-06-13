@@ -1,6 +1,54 @@
 Macros
 ======
 
+ana\_scans
+----------
+
+.. automodule:: ana_scans
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+anaSBitThresh
+-------------
+
+.. automodule:: clusterAnaScurve
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+anaUltraLatency
+---------------
+
+.. automodule:: anaUltraLatency
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+anaUltraScurve
+--------------
+
+.. automodule:: anaUltraScurve
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+anaUltraThreshold
+-----------------
+
+.. automodule:: anaUltraThreshold
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+anaXDAQLatency
+--------------
+
+.. automodule:: anaXDAQLatency
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 clusterAnaScurve
 ----------------
 
@@ -29,6 +77,14 @@ gemTreeDrawWrapper
 ------------------
 
 .. automodule:: gemTreeDrawWrapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+packageFiles4Docker
+-------------------
+
+.. automodule:: packageFiles4Docker
     :members:
     :undoc-members:
     :show-inheritance:
