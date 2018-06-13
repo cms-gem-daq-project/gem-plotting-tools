@@ -62,7 +62,7 @@ class MaskReason:
     HighEffPed  = 0x10
 
     @staticmethod
-    def list():
+    def listReasons():
         """Returns a table of (name, mask) tuples for all MaskReasons"""
         list = []
         for name, value in MaskReason.__dict__.iteritems():

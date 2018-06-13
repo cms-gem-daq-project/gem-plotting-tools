@@ -399,7 +399,7 @@ if __name__ == '__main__':
     # Initialize tables
     rangesTables = [ [] for vfat in range(24) ]
 
-    maskReasonList = MaskReason.list()
+    maskReasonList = MaskReason.listReasons()
     summaryTable = np.zeros((24, len(maskReasonList)))
 
     # Fill tables
