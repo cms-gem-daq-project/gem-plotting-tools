@@ -1,10 +1,10 @@
-.. gem-plotting-tools documentation master file, created by
+.. gemplotting documentation master file, created by
    sphinx-quickstart on Wed May 23 14:52:11 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-gem-plotting-tools package
-==========================
+gemplotting package
+===================
 
 Table of contents:
 ------------------
