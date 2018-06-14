@@ -233,6 +233,17 @@ Additional VFATs could be plotted by either:
   argument, or
 * Using the :option:`-a` argument to make all VFATs.
 
+Environment
+-----------
+
+.. glossary::
+
+    :envvar:`DATA_PATH`
+        The location of input data
+
+    :envvar:`ELOG_PATH`
+        Results are written in the directory pointed to by this variable
+
 Internals
 ---------
 """
