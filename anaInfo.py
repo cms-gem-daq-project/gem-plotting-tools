@@ -5,6 +5,7 @@
 
 import string
 
+#: Types of analysis and corresponding analysis tools
 ana_config = {
         "latency":"anaUltraLatency.py",
         "scurve":"anaUltraScurve.py",

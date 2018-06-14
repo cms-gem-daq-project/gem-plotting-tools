@@ -239,17 +239,39 @@ Internals
 
 def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4, skipBad=False):
     """
-    Provides a list of tuples for 1D data where each element is of the form: (indepVarVal, depVarVal, depVarValErr)
+    Provides a list of tuples for 1D data where each element is of the form:
+    ``(indepVarVal, depVarVal, depVarValErr)``
 
-    anaType - type of analysis to perform, helps build the file path to the input file(s), from set ana_config.keys()
-    listDataPtTuples - list of tuples where each element is of the form: (cName, scandate, indepVar), note indepVar is expected to be numeric
-    rootFileName - name of the TFile that will be found in the data path corresponding to anaType
-    treeName - name of the TTree inside rootFileName
-    branchName - name of a branch inside treeName that the dependent variable will be extracted from
-    vfat - vfat number that plots should be made for
-    vfatCH - channel of the vfat that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/strip
-    strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCH
-    skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
+    Args:
+        anaType (string): type of analysis to perform, helps build the file path
+            to the input file(s), from the keys of
+            :any:`utils.anaInfo.ana_config`
+
+        listDataPtTuples: list of tuples where each element is of the form
+            ``(cName, scandate, indepVar)``, note ``indepVar`` is expected to be
+            numeric
+
+        rootFileName (string): name of the ``TFile`` that will be found in the
+            data path corresponding to ``anaType``
+
+        treeName (string): name of the ``TTree`` inside ``rootFileName``
+
+        branchName (string): name of a branch inside ``treeName`` that the
+            dependent variable will be extracted from
+
+        vfat (int): vfat number that plots should be made for
+
+        vfatCH (int): channel of the vfat that should be used, if ``None`` an
+            average is performed w/stdev for error bar, mutually exclusive
+            w/ ``strip``
+
+        strip (int): strip of the detector that should be used, if ``None`` an
+            average is performed w/stdev for error bar, mutually exclusive w/
+            ``vfatCH``
+
+        skipBad (bool): if a file fails to open or the ``TTree`` cannot be
+            found, the input is skipped and the processing continues rather than
+            exiting
     """
 
     from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType
@@ -337,15 +359,31 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
 
 def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, ROBstr=True, ztrim=4, skipBad=False):
     """
-    Provides a list of tuples for 2D data where each element is of the (x,y,z) form: (indepVarVal, vfatCHOrROBstr, depVarVal)
+    Provides a list of tuples for 2D data where each element is of the
+    ``(x,y,z)`` form: ``(indepVarVal, vfatCHOrROBstr, depVarVal)``
 
-    anaType - type of analysis to perform, helps build the file path to the input file(s), from set ana_config.keys()
-    listDataPtTuples - list of tuples where each element is of the form: (cName, scandate, indepVar), note indepVar is expected to be numeric
-    rootFileName - name of the TFile that will be found in the data path corresponding to anaType
-    treeName - name of the TTree inside rootFileName
-    branchName - name of a branch inside treeName that the dependent variable will be extracted from
-    vfat - vfat number that plots should be made for
-    skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
+    Args:
+        anaType (string): type of analysis to perform, helps build the file path
+            to the input file(s), from the keys of
+            :any:`utils.anaInfo.ana_config`
+
+        listDataPtTuples: list of tuples where each element is of the form:
+            ``(cName, scandate, indepVar)``, note ``indepVar`` is expected to be
+            numeric
+
+        rootFileName (string): name of the ``TFile`` that will be found in the
+            data path corresponding to ``anaType``
+
+        treeName (string): name of the ``TTree`` inside ``rootFileName``
+
+        branchName (string): name of a branch inside ``treeName`` that the
+            dependent variable will be extracted from
+
+        vfat (int): vfat number that plots should be made for
+
+        skipBad (bool): if a file fails to open or the ``TTree`` cannot be
+            found, the input is skipped and the processing continues rather than
+            exiting
     """
   
     from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType
