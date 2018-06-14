@@ -1,6 +1,14 @@
-#These are functions which provide the mappings between strips and channels in the V2b electronics
-#All directions are in the frame with the narrow end of the detector to the left
-# By: Cameron Bravo (c.bravo@cern.ch)
+"""
+``PanChannelMaps`` --- Mappings between strips and Panasonic pins
+-----------------------------------------------------------------
+
+.. moduleauthor:: Cameron Bravo <c.bravo@cern.ch>
+
+Functions providing the mappings between strips and channels in the V2b
+electronics. All directions are in the frame with the narrow end of the detector
+to the left.
+"""
+
 from array import array
 
 def StripToPan(GEBtype,vfat,strip):

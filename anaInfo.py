@@ -1,3 +1,8 @@
+"""
+``anaInfo`` --- Analysis information
+------------------------------------
+"""
+
 import string
 
 ana_config = {

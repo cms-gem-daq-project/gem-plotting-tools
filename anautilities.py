@@ -1,8 +1,10 @@
-#!/bin/env python
-
 """
+``anautilities`` --- Various other utilities
+--------------------------------------------
+
+.. moduleauthor:: Brian Dorney <brian.l.dorney@cern.ch>
+
 Utilities for vfatqc scans
-By: Brian Dorney (brian.l.dorney@cern.ch)
 """
 
 def filePathExists(searchPath, subPath=None, debug=False):
