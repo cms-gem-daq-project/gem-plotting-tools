@@ -129,6 +129,110 @@ Optional arguments
     The ``ztrim`` value that was used when running the scans listed in
     :option:`--infilename`
 
+Examples
+--------
+
+Making a time series
+....................
+
+To automatically consider the last two weeks worth of s-curve scans, run the
+script specifying ``vt1bump`` option like this:
+
+.. code-block:: bash
+
+    plotTimeSeries.py --vt1bump=10
+
+resulting plots will be stored under:
+
+.. code-block:: bash
+
+    $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
+
+Making a 1D Plot --- Channel Level
+..................................
+
+To make a 1D plot for a given strip of a given VFAT execute:
+
+.. code-block:: bash
+
+    gemPlotter.py --infilename=<inputfilename> --anaType=<anaType> --branchName=<TBranch Name> --vfat=<VFAT No.> --strip=<Strip No.>
+
+For example, to plot ``trimDAC`` vs. an **Indep. Variable Name** defined in
+``listOfScanDates.txt`` for VFAT 12, strip number 49 execute:
+
+.. code-block:: bash
+
+    gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimDAC --vfat=12 --strip=49
+
+Additional VFATs could be plotted by either:
+
+* Making successive calls of the above command and using the
+  ``--rootOpt=UPDATE``,
+* Using the :option:`--vfatList` argument instead of the :option:`--vfat`
+  argument, or
+* Using the :option:`-a` argument to make all VFATs.
+
+Making a 1D Plot --- VFAT Level
+...............................
+
+To make a 1D plot for a given VFAT execute:
+
+.. code-block:: bash
+
+    gemPlotter.py --infilename=<inputfilename> --anaType=<anaType> --branchName=<TBranch Name> --vfat=<VFAT No.>
+
+For example, to plot ``trimRange`` vs. an **Indep. Variable Name** defined in
+``listOfScanDates.txt`` for VFAT 12 execute:
+
+.. code-block:: bash
+
+    gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimRange --vfat=12
+
+Note if **``TBranch`` Name** is a strip level observable the data points
+(y-error bars) in the produced plot will represent the mean (standard deviation)
+from all of the VFAT's channels.
+
+Additional VFATs could be plotted by either:
+
+* Making successive calls of the above command and using the
+  ``--rootOpt=UPDATE``,
+* Using the :option:`--vfatList` argument instead of the :option:`--vfat`
+  argument, or
+* Using the :option:`-a` argument to make all VFATs.
+
+To automatically extend this to all channels execute:
+
+.. code-block:: bash
+
+    gemPlotterAllChannels.sh <InFile> <anaType> <branchName>
+
+Making a 2D Plot
+................
+
+To make a 2D plot for a given VFAT execute:
+
+.. code-block:: bash
+
+    gemPlotter.py --infilename=<inputfilename> --anaType=<anaType> --branchName=<TBranch Name> --vfat=<VFAT No.> --make2D
+
+Here the output plot will be of the form "ROB Strip/VFAT Channel vs. Indep.
+Variable Name" with the z-axis storing the value of :option:`--branchName`.
+
+For example to make a 2D plot with the z-axis as trimDAC and the **Indep.
+Variable Name** defined in ``listOfScanDates.txt`` for VFAT 12 execute:
+
+.. code-block:: bash
+
+    gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimDAC --vfat=12 --make2D
+
+Additional VFATs could be plotted by either:
+
+* Making successive calls of the above command and using the
+  ``--rootOpt=UPDATE``,
+* Using the :option:`--vfatList` argument instead of the :option:`--vfat`
+  argument, or
+* Using the :option:`-a` argument to make all VFATs.
+
 Internals
 ---------
 """

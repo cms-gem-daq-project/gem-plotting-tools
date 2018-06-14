@@ -28,6 +28,10 @@ sys.path.insert(0, os.path.abspath('../macros')) # macros directory
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.napoleon', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.viewcode']
 
+# Disable numpy docstrings for Napoleon, because they eat headers such as
+# "Examples"
+napoleon_numpy_docstring = False
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
