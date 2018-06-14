@@ -1,8 +1,136 @@
 #!/bin/env python
 
-"""
+r"""
 gemPlotter
 ==========
+
+Synopsis
+--------
+
+**gemPlotter.py** \\--anaType <*ANALYSIS TYPE*> \\--branchName <*BRANCH*> -i <*INPUT FILE*> -v <*VFAT*> [*OPTIONS*]
+
+Description
+-----------
+
+The :program:`gemPlotter.py` tool is for making plots of an observable stored in
+one of the ``TTree`` objects produced by the (ana-) ultra scan scripts vs an
+arbitrary indepdent variable specified by the user. Here each data point is from
+a different ``scandate``. This is useful if you run mulitple scans in which only
+a single parameter is changed (e.g. applied high voltage, or ``VThreshold1``)
+and you want to track the dependency on this parameter.
+
+Each plot produced will be stored as an output ``*.png`` file. Additionally an
+output ``TFile`` will be produced which will contain each of the plots, stored
+as ``TGraph`` objects, and canvases produced.
+
+Mandatory arguments
+-------------------
+
+The following list shows the mandatory inputs that must be supplied to execute
+the script.
+
+.. program:: gemPlotter.py
+
+.. option:: --anaType <ANALYSIS TYPE>
+
+    Analysis type to be executed, see :any:`utils.anaInfo.tree_names` for
+    possible inputs.
+
+.. option:: --branchName <NAME>
+
+    Name of ``TBranch`` where dependent variable is found, note that this
+    ``TBranch`` should be found in the ``TTree`` that corresponds to the value
+    given to the :option:`--anaType` argument.
+
+.. option:: -i, --infilename <FILE NAME>
+
+    Physical filename of the input file to be passed to
+    :program:`gemPlotter.py`. See :any:`Three Column Format` for details on the
+    format and contents of this file.
+
+.. option:: -v, --vfat <NUMBER>
+
+    Specify VFAT to plot
+
+Note for those :option:`--anaType` values which have the substring ``Ana`` in
+their names it is expected that the user has already run :program:`ana_scans.py`
+on the corresponding ``scandate`` to produce the necessary input file for
+:program:`gemPlotter.py`.
+
+Optional arguments
+------------------
+
+.. option:: -a, --all
+
+    When providing this flag data from all 24 VFATs will be plotted.
+    Additionally a summary plot in the typical 3x8 grid will be created showing
+    the results of all 24 VFATs. May be used instead of the :option:`--vfat`
+    option.
+
+.. option:: --alphaLabels
+
+    When providing this flag :program:`gemPlotter.py` will interpret the
+    **Indep. Variable** as a string and modify the output X axis accordingly
+
+.. option:: --axisMax <NUMBER>
+
+    Maximum value for the axis depicting :option:`--branchName`.
+
+.. option:: --axisMin <NUMBER>
+
+    Minimum value for the axis depicting :option:`--branchName`.
+
+.. option:: -c, --channels
+
+    When providing this flag the :option:`--strip` option is interpreted as VFAT
+    channel number instead of readout board (ROB) strip number.
+
+.. option:: -s, --strip <NUMBER>
+
+    Specific ROB strip number to plot for :option:`--branchName`. Note for ROB
+    strip level :option:`--branchName` values (e.g. ``trimDAC``) if this option
+    is not provided the data point (error bar) will represent the mean (standard
+    deviation) of :option:`--branchName` from all strips.
+
+.. option:: --make2D
+
+    When providing this flag a 2D plot of ROB strip/vfat channel vs. independent
+    variable will be plotted whose z-axis value is :option:`--branchName`.
+
+.. option:: -p, --print
+
+    Prints a comma separated table of the plot's data to the terminal. The
+    format of this table will be compatible with the ``genericPlotter``
+    executable of the `CMS GEM Analysis Framework`_.
+
+    .. _CMS GEM Analysis Framework: https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter
+
+.. option:: --rootOpt <OPTION>
+
+    Option for creating the output ``TFile``, e.g. ``RECREATE`` or ``UPDATE``
+
+.. option:: --skipBadFiles
+
+    ``TFiles`` that fail to load, or where the ``TTree`` cannot be successfully
+    loaded, will be skipped.
+
+.. option:: --showStat
+
+    Causes the statistics box to be drawn on created plots. Note only applicable
+    when used with :option:`--make2D`.
+
+.. option:: --vfatList <COMMA-SEPARATED LIST OF INTEGERS>
+
+    List of VFATs that should be plotted. May be used instead of the
+    :option:`--vfat` option.
+
+.. option:: --ztrim <NUMBER>
+
+    The ``ztrim`` value that was used when running the scans listed in
+    :option:`--infilename`
+
+Internals
+---------
 """
 
 def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4, skipBad=False):

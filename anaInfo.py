@@ -14,10 +14,10 @@ ana_config = {
         "trim":"anaUltraScurve.py"
         }
 
-# key values match ana_config (mostly...)
-# stores a tuple where:
-#   [0] -> path of root file inside scandate/ 
-#   [1] -> name of TTree inside root file
+#: key values match ana_config (mostly...)
+#: stores a tuple where:
+#:   [0] -> path of root file inside scandate/
+#:   [1] -> name of TTree inside root file
 tree_names = {
         "latency":("LatencyScanData.root","latTree"),
         "latencyAna":("LatencyScanData/latencyAna.root","latFitTree"),
