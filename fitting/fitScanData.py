@@ -25,6 +25,7 @@ class ScanDataFitter(DeadChannelFinder):
         self.Nev = ndict()
         self.scanFuncs  = ndict()
         self.scanHistos = ndict()
+        self.scanHistosChargeBins = ndict()
         self.scanCount  = ndict()
         self.scanFitResults   = ndict()
 
@@ -58,6 +59,10 @@ class ScanDataFitter(DeadChannelFinder):
                             self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
                     self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),
                             254,self.calDAC2Q_m[vfat]*0.5+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*254.5+self.calDAC2Q_b[vfat])
+                    pass
+                self.scanHistosChargeBins[vfat][ch] = [self.scanHistos[vfat][ch].GetXaxis().GetBinLowEdge(binX) for binX in range(1,self.scanHistos[vfat][ch].GetNbinsX()+2) ] #Include overflow
+                pass
+            pass
 
         self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
 
@@ -80,7 +85,14 @@ class ScanDataFitter(DeadChannelFinder):
         else:
             if(event.vcal > 250):
                 self.scanCount[event.vfatN][event.vfatCH] += event.Nhits
-        self.scanHistos[event.vfatN][event.vfatCH].Fill(charge,event.Nhits)
+                pass
+            pass
+
+        from gempython.gemplotting.utils.anautilities import first_index_gt
+        from math import sqrt
+        chargeBin = first_index_gt(self.scanHistosChargeBins[event.vfatN][event.vfatCH], charge)-1
+        self.scanHistos[event.vfatN][event.vfatCH].SetBinContent(chargeBin,event.Nhits)
+        self.scanHistos[event.vfatN][event.vfatCH].SetBinError(chargeBin,sqrt(event.Nhits))
         self.Nev[event.vfatN][event.vfatCH] = event.Nev
 
         return
@@ -152,9 +164,9 @@ class ScanDataFitter(DeadChannelFinder):
                 stepN = 0
                 
                 if debug:
-                    print "| vfatN | vfatCH | isVFAT3 | p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
-                    print "| ----- | ------ | ------- | ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
-                while(stepN < 15):
+                    print "| stepN | vfatN | vfatCH | isVFAT3 | p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
+                    print "| ----- | ----- | ------ | ------- | ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
+                while(stepN < 30):
                     #rand = max(0.0, random.Gaus(10, 5)) # do not accept negative numbers
                     rand = abs(random.Gaus(10, 5)) # take positive definite numbers
 
@@ -168,7 +180,7 @@ class ScanDataFitter(DeadChannelFinder):
                     # Provide an initial guess
                     init_guess_p0 = self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat]
                     init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand)  #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
-                    init_guess_p2 = init_guess_p0
+                    init_guess_p2 = 0.
                     init_guess_p3 = self.Nev[vfat][ch]/2.
 
                     fitTF1.SetParameter(0, init_guess_p0)
@@ -180,17 +192,19 @@ class ScanDataFitter(DeadChannelFinder):
                     if self.isVFAT3:
                         fitTF1.SetParLimits(0, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
                         fitTF1.SetParLimits(1, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
-                        fitTF1.SetParLimits(2, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(2, 0, self.Nev[vfat][ch])
                     else:
                         fitTF1.SetParLimits(0, 0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
                         fitTF1.SetParLimits(1, 0.0,  self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
-                        fitTF1.SetParLimits(2, 0.0,  self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(2, 0, self.Nev[vfat][ch])
+                        pass
 
-                    fitTF1.SetParLimits(3, 0.0,  self.Nev[vfat][ch] * 2.)
+                    fitTF1.SetParLimits(3, 0.75*init_guess_p3, 1.25*init_guess_p3)
                     
                     if debug:
                         if self.isVFAT3:
-                            print "| %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                            print "| %i | %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                        stepN,
                                         vfat,
                                         ch,
                                         self.isVFAT3,
@@ -205,7 +219,8 @@ class ScanDataFitter(DeadChannelFinder):
                                         self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat]
                                     )
                         else:
-                            print "| %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                            print "| %i | %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                                        stepN,
                                         vfat,
                                         ch,
                                         self.isVFAT3,
@@ -246,6 +261,22 @@ class ScanDataFitter(DeadChannelFinder):
                         MinChi2Temp = fitChi2
                         pass
                     if (MinChi2Temp < 50): break
+                    pass
+                if debug:
+                    print("Converged fit results:")
+                    print "| stepN | vfatN | vfatCH | isVFAT3 | p0 | p1 | p2 | Chi2 | NDF | NormChi2"
+                    print "| ----- | ----- | ------ | ------- | -- | -- | -- | Chi2 | NDF | NormChi2"
+                    print "| %i | %i | %i | %i | %f | %f | %f | %f | %i | %f |"%(
+                            stepN,
+                            vfat,
+                            ch,
+                            self.isVFAT3,
+                            self.scanFitResults[0][vfat][ch],
+                            self.scanFitResults[1][vfat][ch],
+                            self.scanFitResults[2][vfat][ch],
+                            self.scanFitResults[3][vfat][ch],
+                            self.scanFitResults[5][vfat][ch],
+                            self.scanFitResults[3][vfat][ch] / self.scanFitResults[5][vfat][ch])
                     pass
                 pass
             pass
