@@ -1,3 +1,8 @@
+"""
+plot\_scurves\_by\_thresh
+=========================
+"""
+
 from gempython.gemplotting.macros.plotoptions import parser
 
 (options, args) = parser.parse_args()

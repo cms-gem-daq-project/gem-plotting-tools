@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+summary\_plots
+==============
+"""
+
 import os
 
 from gempython.gemplotting.utils.anautilities import saveSummary

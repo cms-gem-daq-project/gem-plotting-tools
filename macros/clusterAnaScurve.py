@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+clusterAnaScurve
+================
+"""
+
 if __name__ == '__main__':
     """
     Takes a list of scandates file, see parseListOfScanDatesFile(...) documentation,

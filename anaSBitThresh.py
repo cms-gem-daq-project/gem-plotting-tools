@@ -1,4 +1,10 @@
 #!/bin/env python
+
+"""
+anaSBitThresh
+=============
+"""
+
 import os
 import sys
 from optparse import OptionParser

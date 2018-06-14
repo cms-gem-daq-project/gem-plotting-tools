@@ -1,12 +1,13 @@
 #!/bin/env python
 
-# -*- coding: utf-8 -*-
+"""
+anaUltraLatency
+===============
+
+.. moduleauthor:: Anastasia and Cameron Bravo <c.bravo@cern.ch>
+.. moduleauthor:: Brian Dorney <brian.l.dorney@cern.ch>
 """
 
-@author: Anastasia and Cameron Bravo (c.bravo@cern.ch)
-         Brian Dorney (brian.l.dorney@cern.ch)
-
-"""
 import numpy as np
 import os
 from array import array

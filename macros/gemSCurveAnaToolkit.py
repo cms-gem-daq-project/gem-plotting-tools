@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+gemSCurveAnaToolkit
+===================
+"""
+
 if __name__ == '__main__':
     from gempython.gemplotting.utils.anaInfo import tree_names
     from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType, parseListOfScanDatesFile

@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+gemPlotter
+==========
+"""
+
 def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4, skipBad=False):
     """
     Provides a list of tuples for 1D data where each element is of the form: (indepVarVal, depVarVal, depVarValErr)
