@@ -1,8 +1,8 @@
 #!/bin/env python
 
 r"""
-gemPlotter
-==========
+``gemPlotter.py`` --- Plot time evolution of scan results
+=========================================================
 
 Synopsis
 --------
