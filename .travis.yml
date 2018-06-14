@@ -112,8 +112,7 @@ after_script: skip
     - . building/bin/activate
     - pip install --no-deps rpm/gempython_gemplotting-[0-9].[0-9].[0-9].tar.gz
     - echo "Generate documentation"
-    - pip install -U -r requirements-dev.txt
-    - make html
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -ec ". /opt/root/v6.12.06-gcc4.8/root/bin/thisroot.sh; cd /home/daqbuild; virtualenv building -p python --no-site-packages; . building/bin/activate; cd ${REPO_NAME}; pip install pip==9.0.3; pip install -U -r requirements-dev.txt; pip install rpm/gempython_gemplotting-[0-9].[0-9].[0-9].tar.gz; make html"
     - echo "Install the dependencies"
     - echo "Run the predefined test"
     - ./.ci/docker.sh stop ${DOCKER_IMAGE}
