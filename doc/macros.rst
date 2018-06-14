@@ -36,10 +36,10 @@ Macros
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: gemPlotter
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. toctree::
+    :maxdepth: 1
+
+    man/gemPlotter
 
 .. automodule:: gemSCurveAnaToolkit
     :members:

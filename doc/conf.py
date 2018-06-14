@@ -219,7 +219,9 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'gemplotting', u'gemplotting Documentation',
-     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1)
+     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
+    ('man/gemPlotter', 'gemPlotter.py', u'Plot time evolution of scan results',
+     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
 ]
 
 # If true, show URL addresses after external links.
