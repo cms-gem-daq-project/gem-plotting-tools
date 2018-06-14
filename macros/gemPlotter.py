@@ -7,7 +7,7 @@ r"""
 Synopsis
 --------
 
-**gemPlotter.py** \\--anaType <*ANALYSIS TYPE*> \\--branchName <*BRANCH*> -i <*INPUT FILE*> -v <*VFAT*> [*OPTIONS*]
+**gemPlotter.py** :token:`--anaType` <*ANALYSIS TYPE*> :token:`--branchName` <*BRANCH*> :token:`-i` <*INPUT FILE*> :token:`-v` <*VFAT*> [*OPTIONS*]
 
 Description
 -----------
