@@ -188,7 +188,7 @@ For example, to plot ``trimRange`` vs. an **Indep. Variable Name** defined in
 
     gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimRange --vfat=12
 
-Note if **``TBranch`` Name** is a strip level observable the data points
+Note if **TBranch Name** is a strip level observable the data points
 (y-error bars) in the produced plot will represent the mean (standard deviation)
 from all of the VFAT's channels.
 
