@@ -648,7 +648,7 @@ A summary table of initial `maskReason` vs VFAT is also printed at the end.
 |:-|:-|:-|
 | `-i`, `--inputDir` | path | Input directory (=output directory of `plotTimeSeries.py`) |
 | `--ranges` | string | Defines the range selection algorithm. Allowed values: `mask`, `maskReason`, `zeroInputCap` |
-| --onlyCurrent | none | Only show ranges that extend until the last scan |
+| `--onlyCurrent` | none | Only show ranges that extend until the last scan |
 
 ##### Options controlling bad scan removal
 
