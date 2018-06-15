@@ -346,6 +346,10 @@ class TimeSeriesData(object):
         self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
         self.noise = self.noise[:,:,np.logical_not(badScans)]
 
+    def numScans(self):
+        """Returns how many scans are available"""
+        return len(self.dates)
+
 if __name__ == '__main__':
     import os
     import os.path
@@ -357,6 +361,8 @@ if __name__ == '__main__':
                       help="Input directory (=output directory of plotTimeSeries.py)")
     parser.add_option("--ranges", type=str, dest="ranges", default="maskReason",
                       help="Range selection. Possible values: mask, maskReason, zeroInputCap")
+    parser.add_option("--onlyCurrent", dest="onlyCurrent", action="store_true",
+                      help="Only show ranges that extend until the last scan")
     (options, args) = parser.parse_args()
 
     if options.inputDir is None:
@@ -391,6 +397,13 @@ if __name__ == '__main__':
             ranges[vfat].append(findRangesFct(data, vfat, stripOrChan))
             pass
         pass
+
+    # Filter if needed
+    if options.onlyCurrent:
+        for vfat in range(24):
+            for stripOrChan in range(128):
+                ranges[vfat][stripOrChan] = list(filter(lambda r: r.end == data.numScans(),
+                                                        ranges[vfat][stripOrChan]))
 
     # Initialize tables
     rangesTables = [ [] for vfat in range(24) ]
