@@ -35,10 +35,9 @@ include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
 
 default:
-	$(MakeDir) $(PackageDir)/utils
-	@touch $(PackageDir)/utils/__init__.py
+	$(MakeDir) $(PackageDir)
+	@cp -rf macros fitting mapping utils $(PackageDir)
 	@cp -rf anaInfo.py anaoptions.py anautilities.py $(PackageDir)/utils
-	@cp -rf macros fitting mapping $(PackageDir)
 	@echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > pkg/$(Namespace)/__init__.py
 	@cp -rf __init__.py $(PackageDir)
 
