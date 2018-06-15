@@ -458,7 +458,7 @@ if __name__ == '__main__':
 
     headers = [
         '`%s`' % data.stripOrChanMode,
-        'Known good',
+        'Last known good',
         'Range begins',
         'Range ends',
         '#scans',
