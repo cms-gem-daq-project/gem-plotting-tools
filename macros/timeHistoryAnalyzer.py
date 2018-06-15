@@ -286,15 +286,18 @@ class TimeSeriesData(object):
 
         file_mask = r.TFile('%s/gemPlotterOutput_mask_vs_scandate.root' % inputDir, 'READ')
         if file_mask.IsZombie():
-            raise IOError('Could not open %s' % file_mask.GetPath())
+            raise IOError('Could not open %s. Is %s the output directory of plotTimeSeries.py?' % (
+                file_mask.GetPath(), inputDir))
 
         file_maskReason = r.TFile('%s/gemPlotterOutput_maskReason_vs_scandate.root' % inputDir, 'READ')
         if file_maskReason.IsZombie():
-            raise IOError('Could not open %s' % file_maskReason.GetPath())
+            raise IOError('Could not open %s. Is %s the output directory of plotTimeSeries.py?' % (
+                file_maskReason.GetPath(), inputDir))
 
         file_noise = r.TFile('%s/gemPlotterOutput_noise_vs_scandate.root' % inputDir, 'READ')
         if file_noise.IsZombie():
-            raise IOError('Could not open %s' % file_noise.GetPath())
+            raise IOError('Could not open %s. Is %s the output directory of plotTimeSeries.py?' % (
+                file_noise.GetPath(), inputDir))
 
         # Auto-detect the meaning of stripOrChan
         possibleModes = ['ROBstr', 'vfatCH'] # See gemPlotter.py
