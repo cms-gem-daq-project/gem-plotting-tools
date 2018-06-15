@@ -214,18 +214,20 @@ def findRangesMask(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
     return list(filter(lambda r: r.maskedScanCount() >= minBadScans,
                        ranges))
 
-def findRangesNoise(data,
-                    vfat,
-                    stripOrChan,
-                    maxNoise = 0.02,
-                    maxSkip = 5,
-                    minBadScans = 4):
-    """Finds ranges of scans based on noise.
+def findRangesZeroInputCap(data,
+                           vfat,
+                           stripOrChan,
+                           minNoise = 0.0414,
+                           maxNoise = 0.109,
+                           maxSkip = 5,
+                           minBadScans = 4):
+    """Finds ranges of scans whose noise is compatible with zero input
+    capacitance.
 
     Searches the data for the given vfat and stripOrChan for ranges of low-noise
-    scans. A scan has low noise if noise < maxNoise. During the search, at most
-    maxSkip scans with mask not set can be skipped. Only ranges with more than
-    minBadScans are kept.
+    scans. A scan has low noise if minNoise < noise < maxNoise. During the
+    search, at most maxSkip scans with mask not set can be skipped. Only ranges
+    with more than minBadScans are kept.
 
     Args:
         data: The TimeSeriesData object to pull data from
@@ -242,7 +244,8 @@ def findRangesNoise(data,
     ranges = _findRangesMeta(data,
                              vfat,
                              stripOrChan,
-                             data.noise[vfat,stripOrChan] < maxNoise,
+                             np.logical_and(data.noise[vfat,stripOrChan] > minNoise,
+                                            data.noise[vfat,stripOrChan] < maxNoise),
                              maxSkip)
 
     return list(filter(lambda r: np.count_nonzero(r.noise() < maxNoise) >= minBadScans,
@@ -353,7 +356,7 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputDir", type=str, dest="inputDir",
                       help="Input directory (=output directory of plotTimeSeries.py)")
     parser.add_option("--ranges", type=str, dest="ranges", default="maskReason",
-                      help="Range selection. Possible values: mask, maskReason, noise")
+                      help="Range selection. Possible values: mask, maskReason, zeroInputCap")
     (options, args) = parser.parse_args()
 
     if options.inputDir is None:
@@ -369,8 +372,8 @@ if __name__ == '__main__':
         findRangesFct = findRangesMask
     elif options.ranges == "maskReason":
         findRangesFct = findRangesMaskReason
-    elif options.ranges == "noise":
-        findRangesFct = findRangesNoise
+    elif options.ranges == "zeroInputCap":
+        findRangesFct = findRangesZeroInputCap
     else:
         print("Error: Invalid argument for --ranges: %s " % options.ranges)
         sys.exit(os.EX_USAGE)
