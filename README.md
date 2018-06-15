@@ -593,7 +593,7 @@ The analysis proceeds in three steps, executed in the following order:
 
 1. [Bad scan removal](#bad-scan-removal): Scans that failed to produce consistent results are removed.
 2. [Range detection](#range-detection): The time evolution of each channel is searched for successive scans with consistent "bad" behavior (see below). A set of such scans for a given channel is called a (time) range. What kind of behavior is searched for is used-defined.
-3. [Analysis](#analysis): The properties of "ranges" are computed and printed.
+3. [Analysis](#timehistoryanalyzerpy-output): The properties of "ranges" are computed and printed.
 
 ##### Bad scan removal
 
@@ -680,7 +680,7 @@ Note that the above structure is created automatically by `plotTimeSeries.py`.
 
 ##### Simple analysis
 
-The most simple call to `timeHistoryAnalyzer.py` is:
+The simplest possible call to `timeHistoryAnalyzer.py` is:
 
 ```
 timeHistoryAnalyzer.py -i $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
@@ -696,7 +696,7 @@ This will use the default range finder, `maskReason`, and settings. Depending on
 |     93     | 2017.03.27.16.22  | 2017.03.29.13.27 | 2017.05.31.14.48 |    46    |    56     | HotChannel             |                                  |
 |     93     | 2017.06.15.15.10  | 2017.06.16.14.35 | 2018.02.06.12.07 |   107    |    50     | HotChannel             | HighNoise                        |
 
-The meaning of the column headers is explained [above](timehistoryanalyzerpy-output). Here's the information that we can extract from the table (take a look [here](#masking-channels-algorithmically) first if you're not confident with the meaning of `maskReason`):
+The meaning of the column headers is explained [above](#timehistoryanalyzerpy-output). Here's the information that we can extract from the table (take a look [here](#masking-channels-algorithmically) first if you're not confident with the meaning of `maskReason`):
 
 * Strip number 18 became hot between 2017.10.11.11.24 and 2017.10.13.12.53. In the same period of time, strip number 31 died.
 * Strip number 91 became hot in July 2017; afterwards, it was also found to have a high noise. It was recovered in February 2018. The masked fraction at 47% indicates that during this period, about half the scans didn't result in the corresponding channel being masked.
