@@ -347,7 +347,7 @@ class TimeSeriesData(object):
 
         Any scan matching one of the following criteria is considered bad:
 
-        * The average noise is below maxAverageNoise
+        * The average noise is below minAverageNoise
         * The fraction of masked strips/channels is higher than maxMaskedStripOrChanFraction
 
         Args:
@@ -380,6 +380,12 @@ if __name__ == '__main__':
                       help="Range selection. Possible values: mask, maskReason, zeroInputCap")
     parser.add_option("--onlyCurrent", dest="onlyCurrent", action="store_true",
                       help="Only show ranges that extend until the last scan")
+
+    # Configuration of bad scan recovery
+    parser.add_option("--minScanAvgNoise", type=float, dest="minScanAvgNoise", default=0.1,
+                      help="Minimum noise, averaged over the whole detector, for a scan to be considered")
+    parser.add_option("--maxScanMaskedFrac", type=float, dest="maxScanMaskedFrac", default=0.07,
+                      help="Maximum fraction of masked channel, over the whole detector, for a scan to be considered")
 
     # Configuration of the range finding algo
     parser.add_option("--numEndScans", type=int, dest="numEndScans", default=5,
@@ -420,7 +426,8 @@ if __name__ == '__main__':
         sys.exit(os.EX_USAGE)
 
     data = TimeSeriesData(options.inputDir)
-    data.removeBadScans()
+    data.removeBadScans(minAverageNoise = options.minScanAvgNoise,
+                        maxMaskedStripOrChanFraction = options.maxScanMaskedFrac)
 
     from gempython.gemplotting.utils.anaInfo import MaskReason
 
