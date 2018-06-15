@@ -47,17 +47,9 @@ class MaskedRange(object):
             return self._dates[self.start - 1]
 
     def startString(self):
-        """Returns the date of the first scan in the range
-
-        Returns:
-            If the range includes the first available scan, returns 'first'.
-            Else returns a string containing the date of the scan, formatted as
-            %Y.%m.%d.%H.%M.
-        """
-        if self.start == 0:
-            return 'first'
-        else:
-            return self._dates[self.start]
+        """Returns the date of the first scan in the range, formatted as
+        %Y.%m.%d.%H.%M."""
+        return self._dates[self.start]
 
     def endString(self):
         """Returns the date of the last scan in the range
