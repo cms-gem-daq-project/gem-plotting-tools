@@ -260,6 +260,8 @@ class TimeSeriesData(object):
 
     Attributes:
         dates: Numpy array of strings containing the scan dates.
+        stripOrChanMode (string): Meaning of the ``stripOrChan`` index in the
+            property arrays, can be ``ROBstr`` or ``vfatCH``.
         mask: Data for the "mask" property,
         maskReason: Data for the "maskReason" property,
     """
@@ -293,6 +295,18 @@ class TimeSeriesData(object):
         file_noise = r.TFile('%s/gemPlotterOutput_noise_vs_scandate.root' % inputDir, 'READ')
         if file_noise.IsZombie():
             raise IOError('Could not open %s' % file_noise.GetPath())
+
+        # Auto-detect the meaning of stripOrChan
+        possibleModes = ['ROBstr', 'vfatCH'] # See gemPlotter.py
+        for mode in possibleModes:
+            if file_mask.Get('VFAT0/h_%s_vs_scandate_Obsmask_VFAT0' % mode):
+                self.stripOrChanMode = mode
+                break
+        else:
+            from string import join
+            raise RuntimeError(
+                'No key VFAT0/h_<MODE>_vs_scandate_Obsmask_VFAT0 in file %s\nTried MODE=%s. Was the file produced by plotTimeSeries.py?' % (
+                    file_mask.GetPath(), join(possibleModes, ',')))
 
         self.mask = [] # [vfat][time][stripOrChan]; warning: reordered after loading
         self.maskReason = [] # [vfat][time][stripOrChan]; warning: reordered after loading
@@ -440,7 +454,7 @@ if __name__ == '__main__':
     from tabulate import tabulate
 
     headers = [
-        'Channel',
+        '`%s`' % data.stripOrChanMode,
         'Known good',
         'Range begins',
         'Range ends',
