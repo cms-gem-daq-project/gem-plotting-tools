@@ -115,11 +115,11 @@ class ChannelTimeRange(object):
         the range"""
         return self._noise[self.start:self.end]
 
-def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
+def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, numEndScans):
     """Finds ranges of scans based on the contents of stripOrChanData.
 
     Searches the data for ranges of scans with stripOrChanData == true. During
-    the search, at most maxSkip scans with no maskReason set can be skipped.
+    the search, at most numEndScans scans with no maskReason set can be skipped.
     Only ranges with more than minBadScans are kept.
 
     Args:
@@ -128,7 +128,7 @@ def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
         stripOrChan: The stripOrChan to return ranges for
         stripOrChanData: A list of booleans, with each entry representing one
             scan.
-        maxSkip: The maximum number of "good" scans between two "bad" scans
+        numEndScans: The maximum number of "good" scans between two "bad" scans
 
     Returns:
         A list of ChannelTimeRange objects
@@ -146,7 +146,7 @@ def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
                     skipped = 0
                 else:
                     skipped += 1
-                if skipped > maxSkip:
+                if skipped > numEndScans:
                     break
                 pass
 
@@ -161,11 +161,11 @@ def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
     return ranges
 
 
-def findRangesMaskReason(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
+def findRangesMaskReason(data, vfat, stripOrChan, numEndScans = 5, minBadScans = 4):
     """Finds ranges of scans based on the maskReason attribute.
 
     Searches the data for the given vfat and stripOrChan for ranges of scans
-    with non-zero maskReason. During the search, at most maxSkip scans with no
+    with non-zero maskReason. During the search, at most numEndScans scans with no
     maskReason set can be skipped. Only ranges with more than minBadScans are
     kept.
 
@@ -173,7 +173,7 @@ def findRangesMaskReason(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
         stripOrChan: The stripOrChan to return ranges for
-        maxSkip: The maximum number of "good" scans between two "bad" scans
+        numEndScans: The maximum number of "good" scans between two "bad" scans
         minBadScans: The minimum number of bad scans
 
     Returns:
@@ -183,23 +183,23 @@ def findRangesMaskReason(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
                              vfat,
                              stripOrChan,
                              data.maskReason[vfat,stripOrChan] != 0,
-                             maxSkip)
+                             numEndScans)
 
     return list(filter(lambda r: r.badMaskReasonScanCount() >= minBadScans,
                        ranges))
 
-def findRangesMask(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
+def findRangesMask(data, vfat, stripOrChan, numEndScans = 5, minBadScans = 4):
     """Finds ranges of scans based on the mask attribute.
 
     Searches the data for the given vfat and stripOrChan for ranges of scans
-    with non-zero maskReason. During the search, at most maxSkip scans with mask
+    with non-zero maskReason. During the search, at most numEndScans scans with mask
     not set can be skipped. Only ranges with more than minBadScans are kept.
 
     Args:
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
         stripOrChan: The stripOrChan to return ranges for
-        maxSkip: The maximum number of "good" scans between two "bad" scans
+        numEndScans: The maximum number of "good" scans between two "bad" scans
         minBadScans: The minimum number of bad scans
 
     Returns:
@@ -209,7 +209,7 @@ def findRangesMask(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
                              vfat,
                              stripOrChan,
                              data.mask[vfat,stripOrChan] != 0,
-                             maxSkip)
+                             numEndScans)
 
     return list(filter(lambda r: r.maskedScanCount() >= minBadScans,
                        ranges))
@@ -219,14 +219,14 @@ def findRangesZeroInputCap(data,
                            stripOrChan,
                            minNoise = 0.0414,
                            maxNoise = 0.109,
-                           maxSkip = 5,
+                           numEndScans = 5,
                            minBadScans = 4):
     """Finds ranges of scans whose noise is compatible with zero input
     capacitance.
 
     Searches the data for the given vfat and stripOrChan for ranges of low-noise
     scans. A scan has low noise if minNoise < noise < maxNoise. During the
-    search, at most maxSkip scans with mask not set can be skipped. Only ranges
+    search, at most numEndScans scans with mask not set can be skipped. Only ranges
     with more than minBadScans are kept.
 
     Args:
@@ -234,7 +234,7 @@ def findRangesZeroInputCap(data,
         vfat: The VFAT to return ranges for
         stripOrChan: The stripOrChan to return ranges for
         maxNoise: Scans with a noise below this value are considered low-noise
-        maxSkip: The maximum number of consecutive scans that don't fulfill the
+        numEndScans: The maximum number of consecutive scans that don't fulfill the
             low-noise condition between two scans that do
         minBadScans: The minimum number of low-noise scans in any returned range
 
@@ -246,7 +246,7 @@ def findRangesZeroInputCap(data,
                              stripOrChan,
                              np.logical_and(data.noise[vfat,stripOrChan] > minNoise,
                                             data.noise[vfat,stripOrChan] < maxNoise),
-                             maxSkip)
+                             numEndScans)
 
     return list(filter(lambda r: np.count_nonzero(r.noise() < maxNoise) >= minBadScans,
                        ranges))
@@ -380,6 +380,18 @@ if __name__ == '__main__':
                       help="Range selection. Possible values: mask, maskReason, zeroInputCap")
     parser.add_option("--onlyCurrent", dest="onlyCurrent", action="store_true",
                       help="Only show ranges that extend until the last scan")
+
+    # Configuration of the range finding algo
+    parser.add_option("--numEndScans", type=int, dest="numEndScans", default=5,
+                      help="Number of 'good' scans to end a range")
+    parser.add_option("--minBadScans", type=int, dest="minBadScans", default=4,
+                      help="Minimum number of 'bad' scans to keep a range")
+    # Only for 'zeroInputCap' range finder
+    parser.add_option("--minNoise", type=float, dest="minNoise", default=0.0414,
+                      help="Lower bound on noise for the 'zeroInputCap' range finder")
+    parser.add_option("--maxNoise", type=float, dest="maxNoise", default=0.109,
+                      help="Upper bound on noise for the 'zeroInputCap' range finder")
+
     (options, args) = parser.parse_args()
 
     if options.inputDir is None:
@@ -391,12 +403,18 @@ if __name__ == '__main__':
         sys.exit(os.EX_USAGE)
 
     findRangesFct = None
+    findRangesKwArgs = {
+        'numEndScans': options.numEndScans,
+        'minBadScans': options.minBadScans,
+    }
     if options.ranges == "mask":
         findRangesFct = findRangesMask
     elif options.ranges == "maskReason":
         findRangesFct = findRangesMaskReason
     elif options.ranges == "zeroInputCap":
         findRangesFct = findRangesZeroInputCap
+        findRangesKwArgs['minNoise'] = options.minNoise
+        findRangesKwArgs['maxNoise'] = options.maxNoise
     else:
         print("Error: Invalid argument for --ranges: %s " % options.ranges)
         sys.exit(os.EX_USAGE)
@@ -411,7 +429,7 @@ if __name__ == '__main__':
     for vfat in range(24):
         ranges.append([])
         for stripOrChan in range(128):
-            ranges[vfat].append(findRangesFct(data, vfat, stripOrChan))
+            ranges[vfat].append(findRangesFct(data, vfat, stripOrChan, **findRangesKwArgs))
             pass
         pass
 
