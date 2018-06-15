@@ -4,32 +4,32 @@ import numpy as np
 
 class MaskedRange(object):
     """Represents a range of scans in TimeSeriesData, for a given VFAT and
-    channel
+    strip/channel
 
     Attributes:
         begin: Index of the first scan in the range
         end: Index of the first scan not in the range
         vfat: VFAT number
-        channel: Channel number
+        stripOrChan: Channel number
     """
 
-    def __init__(self, data, vfat, channel, start, end):
+    def __init__(self, data, vfat, stripOrChan, start, end):
         """Constructor
 
         Args:
             data: A TimeSeriesData object to load scan results from
             vfat: The VFAT number
-            channel: The channel number in the VFAT
+            stripOrChan: The stripOrChan number in the VFAT
             start: The index of the first scan in the range
             end: The index of the first scan not in the range
         """
         self._dates = data.dates
-        self._mask = data.mask[vfat,channel]
-        self._maskReason = data.maskReason[vfat,channel]
-        self._noise = data.noise[vfat,channel]
+        self._mask = data.mask[vfat,stripOrChan]
+        self._maskReason = data.maskReason[vfat,stripOrChan]
+        self._noise = data.noise[vfat,stripOrChan]
 
         self.vfat = vfat
-        self.channel = channel
+        self.stripOrChan = stripOrChan
         self.start = start
         self.end = end
 
@@ -115,18 +115,19 @@ class MaskedRange(object):
         the range"""
         return self._noise[self.start:self.end]
 
-def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
-    """Finds ranges of scans based on the contents of channelData.
+def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
+    """Finds ranges of scans based on the contents of stripOrChanData.
 
-    Searches the data for ranges of scans with channelData == true. During the
-    search, at most maxSkip scans with no maskReason set can be skipped. Only
-    ranges with more than minBadScans are kept.
+    Searches the data for ranges of scans with stripOrChanData == true. During
+    the search, at most maxSkip scans with no maskReason set can be skipped.
+    Only ranges with more than minBadScans are kept.
 
     Args:
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
-        channel: The channel to return ranges for
-        channelData: A list of booleans, with each entry representing one scan
+        stripOrChan: The stripOrChan to return ranges for
+        stripOrChanData: A list of booleans, with each entry representing one
+            scan.
         maxSkip: The maximum number of "good" scans between two "bad" scans
 
     Returns:
@@ -135,12 +136,12 @@ def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
     ranges = []
 
     start = 0
-    while start < len(channelData) - 1:
-        if channelData[start]:
+    while start < len(stripOrChanData) - 1:
+        if stripOrChanData[start]:
             end = start
             skipped = 0
-            for time in range(start, len(channelData)):
-                if channelData[time]:
+            for time in range(start, len(stripOrChanData)):
+                if stripOrChanData[time]:
                     end = time + 1
                     skipped = 0
                 else:
@@ -150,7 +151,7 @@ def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
                 pass
 
             if end > start:
-                ranges.append(MaskedRange(data, vfat, channel, start, end))
+                ranges.append(MaskedRange(data, vfat, stripOrChan, start, end))
 
             start = end + 1
         else:
@@ -160,18 +161,18 @@ def _findRangesMeta(data, vfat, channel, channelData, maxSkip):
     return ranges
 
 
-def findRangesMaskReason(data, vfat, channel, maxSkip = 5, minBadScans = 4):
+def findRangesMaskReason(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
     """Finds ranges of scans based on the maskReason attribute.
 
-    Searches the data for the given vfat and channel for ranges of scans with
-    non-zero maskReason. During the search, at most maxSkip scans with no
+    Searches the data for the given vfat and stripOrChan for ranges of scans
+    with non-zero maskReason. During the search, at most maxSkip scans with no
     maskReason set can be skipped. Only ranges with more than minBadScans are
     kept.
 
     Args:
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
-        channel: The channel to return ranges for
+        stripOrChan: The stripOrChan to return ranges for
         maxSkip: The maximum number of "good" scans between two "bad" scans
         minBadScans: The minimum number of bad scans
 
@@ -180,24 +181,24 @@ def findRangesMaskReason(data, vfat, channel, maxSkip = 5, minBadScans = 4):
     """
     ranges = _findRangesMeta(data,
                              vfat,
-                             channel,
-                             data.maskReason[vfat,channel] != 0,
+                             stripOrChan,
+                             data.maskReason[vfat,stripOrChan] != 0,
                              maxSkip)
 
     return list(filter(lambda r: r.badMaskReasonScanCount() >= minBadScans,
                        ranges))
 
-def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
+def findRangesMask(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
     """Finds ranges of scans based on the mask attribute.
 
-    Searches the data for the given vfat and channel for ranges of scans with
-    non-zero maskReason. During the search, at most maxSkip scans with mask not
-    set can be skipped. Only ranges with more than minBadScans are kept.
+    Searches the data for the given vfat and stripOrChan for ranges of scans
+    with non-zero maskReason. During the search, at most maxSkip scans with mask
+    not set can be skipped. Only ranges with more than minBadScans are kept.
 
     Args:
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
-        channel: The channel to return ranges for
+        stripOrChan: The stripOrChan to return ranges for
         maxSkip: The maximum number of "good" scans between two "bad" scans
         minBadScans: The minimum number of bad scans
 
@@ -206,8 +207,8 @@ def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
     """
     ranges = _findRangesMeta(data,
                              vfat,
-                             channel,
-                             data.mask[vfat,channel] != 0,
+                             stripOrChan,
+                             data.mask[vfat,stripOrChan] != 0,
                              maxSkip)
 
     return list(filter(lambda r: r.maskedScanCount() >= minBadScans,
@@ -215,13 +216,13 @@ def findRangesMask(data, vfat, channel, maxSkip = 5, minBadScans = 4):
 
 def findRangesNoise(data,
                     vfat,
-                    channel,
+                    stripOrChan,
                     maxNoise = 0.02,
                     maxSkip = 5,
                     minBadScans = 4):
     """Finds ranges of scans based on noise.
 
-    Searches the data for the given vfat and channel for ranges of low-noise
+    Searches the data for the given vfat and stripOrChan for ranges of low-noise
     scans. A scan has low noise if noise < maxNoise. During the search, at most
     maxSkip scans with mask not set can be skipped. Only ranges with more than
     minBadScans are kept.
@@ -229,7 +230,7 @@ def findRangesNoise(data,
     Args:
         data: The TimeSeriesData object to pull data from
         vfat: The VFAT to return ranges for
-        channel: The channel to return ranges for
+        stripOrChan: The stripOrChan to return ranges for
         maxNoise: Scans with a noise below this value are considered low-noise
         maxSkip: The maximum number of consecutive scans that don't fulfill the
             low-noise condition between two scans that do
@@ -240,8 +241,8 @@ def findRangesNoise(data,
     """
     ranges = _findRangesMeta(data,
                              vfat,
-                             channel,
-                             data.noise[vfat,channel] < maxNoise,
+                             stripOrChan,
+                             data.noise[vfat,stripOrChan] < maxNoise,
                              maxSkip)
 
     return list(filter(lambda r: np.count_nonzero(r.noise() < maxNoise) >= minBadScans,
@@ -251,7 +252,7 @@ class TimeSeriesData(object):
     """Holds information about time variation of scan results.
 
     Each property is stored as a 3D Numpy array with indexes
-    [vfat][channel][time]. The time index -> scan date mapping is exposed in the
+    [vfat][stripOrChan][time]. The time index -> scan date mapping is exposed in the
     date attribute.
 
     Attributes:
@@ -290,9 +291,9 @@ class TimeSeriesData(object):
         if file_noise.IsZombie():
             raise IOError('Could not open %s' % file_noise.GetPath())
 
-        self.mask = [] # [vfat][time][channel]; warning: reordered after loading
-        self.maskReason = [] # [vfat][time][channel]; warning: reordered after loading
-        self.noise = [] # [vfat][time][channel]; warning: reordered after loading
+        self.mask = [] # [vfat][time][stripOrChan]; warning: reordered after loading
+        self.maskReason = [] # [vfat][time][stripOrChan]; warning: reordered after loading
+        self.noise = [] # [vfat][time][stripOrChan]; warning: reordered after loading
 
         for vfat in range(0,24):
             hist_mask = file_mask.Get(
@@ -317,26 +318,26 @@ class TimeSeriesData(object):
         self.maskReason = np.array(self.maskReason)
         self.noise = np.array(self.noise)
 
-        self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][channel][time]
-        self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][channel][time]
-        self.noise = np.swapaxes(self.noise, 1, 2) # Reorder to [vfat][channel][time]
+        self.mask = np.swapaxes(self.mask, 1, 2) # Reorder to [vfat][stripOrChan][time]
+        self.maskReason = np.swapaxes(self.maskReason, 1, 2) # Reorder to [vfat][stripOrChan][time]
+        self.noise = np.swapaxes(self.noise, 1, 2) # Reorder to [vfat][stripOrChan][time]
 
-    def removeBadScans(self, minAverageNoise = 0.1, maxMaskedChannelFraction = 0.07):
+    def removeBadScans(self, minAverageNoise = 0.1, maxMaskedStripOrChanFraction = 0.07):
         """Finds bad scans and removes them from the data.
 
         Any scan matching one of the following criteria is considered bad:
 
         * The average noise is below maxAverageNoise
-        * The fraction of masked channels is higher than maxMaskedChannelFraction
+        * The fraction of masked strips/channels is higher than maxMaskedStripOrChanFraction
 
         Args:
             minAverageNoise: The minimum noise, averaged over all channels, for
                 a scan to be kept. Value in fC.
-            maxMaskedChannelFraction: The maximum fraction of masked channels
-                for a scan to be kept.
+            maxMaskedStripOrChanFraction: The maximum fraction of masked
+                strips/channels for a scan to be kept.
         """
         badScans = np.logical_or(np.mean(self.noise, (0, 1)) < minAverageNoise,
-                                 np.count_nonzero(self.mask, (0, 1)) / 24. / 128 > maxMaskedChannelFraction)
+                                 np.count_nonzero(self.mask, (0, 1)) / 24. / 128 > maxMaskedStripOrChanFraction)
         self.dates = self.dates[np.logical_not(badScans)]
         self.mask = self.mask[:,:,np.logical_not(badScans)]
         self.maskReason = self.maskReason[:,:,np.logical_not(badScans)]
@@ -380,11 +381,11 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.anaInfo import MaskReason
 
     # Find ranges
-    ranges = [] # [vfat][channel][ranges]
+    ranges = [] # [vfat][stripOrChan][ranges]
     for vfat in range(24):
         ranges.append([])
-        for channel in range(128):
-            ranges[vfat].append(findRangesFct(data, vfat, channel))
+        for stripOrChan in range(128):
+            ranges[vfat].append(findRangesFct(data, vfat, stripOrChan))
             pass
         pass
 
@@ -396,12 +397,12 @@ if __name__ == '__main__':
 
     # Fill tables
     for vfat in range(24):
-        for channel in range(128):
-            for rng in ranges[vfat][channel]:
+        for stripOrChan in range(128):
+            for rng in ranges[vfat][stripOrChan]:
                 # Per-vfat table
                 additionnalReasons = rng.additionnalMaskReasons()
                 rangesTables[vfat].append([
-                    rng.channel,
+                    rng.stripOrChan,
                     rng.beforeStartString(),
                     rng.startString(),
                     rng.endString(),
