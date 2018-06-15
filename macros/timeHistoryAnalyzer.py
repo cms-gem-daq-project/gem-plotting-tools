@@ -2,7 +2,7 @@
 
 import numpy as np
 
-class MaskedRange(object):
+class ChannelTimeRange(object):
     """Represents a range of scans in TimeSeriesData, for a given VFAT and
     strip/channel
 
@@ -131,7 +131,7 @@ def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
         maxSkip: The maximum number of "good" scans between two "bad" scans
 
     Returns:
-        A list of MaskedRange objects
+        A list of ChannelTimeRange objects
     """
     ranges = []
 
@@ -151,7 +151,7 @@ def _findRangesMeta(data, vfat, stripOrChan, stripOrChanData, maxSkip):
                 pass
 
             if end > start:
-                ranges.append(MaskedRange(data, vfat, stripOrChan, start, end))
+                ranges.append(ChannelTimeRange(data, vfat, stripOrChan, start, end))
 
             start = end + 1
         else:
@@ -177,7 +177,7 @@ def findRangesMaskReason(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
         minBadScans: The minimum number of bad scans
 
     Returns:
-        A list of MaskedRange objects
+        A list of ChannelTimeRange objects
     """
     ranges = _findRangesMeta(data,
                              vfat,
@@ -203,7 +203,7 @@ def findRangesMask(data, vfat, stripOrChan, maxSkip = 5, minBadScans = 4):
         minBadScans: The minimum number of bad scans
 
     Returns:
-        A list of MaskedRange objects
+        A list of ChannelTimeRange objects
     """
     ranges = _findRangesMeta(data,
                              vfat,
@@ -239,7 +239,7 @@ def findRangesZeroInputCap(data,
         minBadScans: The minimum number of low-noise scans in any returned range
 
     Returns:
-        A list of MaskedRange objects
+        A list of ChannelTimeRange objects
     """
     ranges = _findRangesMeta(data,
                              vfat,
