@@ -702,6 +702,46 @@ The meaning of the column headers is explained [above](#timehistoryanalyzerpy-ou
 * Strip number 91 became hot in July 2017; afterwards, it was also found to have a high noise. It was recovered in February 2018. The masked fraction at 47% indicates that during this period, about half the scans didn't result in the corresponding channel being masked.
 * Strip number 93 was hot during two periods: from the end of March to the end of May 2017, and afterwards from the beginning of April 2017 to the beginning of February 2018. Since both ranges have similar properties and the masked fraction is low, the split in two is likely an accident.
 
+##### Using a different range finder
+
+The example above used the `maskReason` range finder. Let's try with `zeroInputCap`:
+
+```
+timeHistoryAnalyzer.py -i $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/ --ranges zeroInputCap
+```
+
+Note that `--ranges zeroInputCap` typically produces in a lot less output than the default.
+
+##### Reading the summary table
+
+At the end of its output, `timeHistoryAnalyzer.py` prints the following table (some lines were stripped for concision):
+
+|    |  HotChannel  |  FitFailed  |  DeadChannel  |  HighNoise  |  HighEffPed  |
+|:--:|:------------:|:-----------:|:-------------:|:-----------:|:------------:|
+| 0  |      0       |      0      |       2       |      0      |      0       |
+| 7  |      2       |      0      |       3       |      0      |      0       |
+
+The first column is the VFAT number; the others correspond to the possible entries in `maskReason`.
+
+The table counts how many times a given `MaskReason` appears in the "Initial `maskReason`" column of each per-VFAT tables. Indeed, if we look at VFAT 0 for the above example, we find:
+
+|  `ROBstr`  | Last known good   | Range begins     | Range ends   |  #scans  |  Masked%  | Initial `maskReason`   | Other subsequent `maskReason`s   |
+|:----------:|:------------------|:-----------------|:-------------|:--------:|:---------:|:-----------------------|:---------------------------------|
+|     63     | 2017.04.07.15.46  | 2017.04.09.14.27 | never        |   220    |     6     | DeadChannel            | HotChannel                       |
+|     64     | never             | 2017.03.27.13.51 | never        |   229    |     0     | DeadChannel            |                                  |
+
+The two entries in the DeadChannel column correspond to two ranges, that turn out to be from different strips (this may not be the case). Now VFAT 7:
+
+|  `ROBstr`  | Last known good   | Range begins     | Range ends   |  #scans  |  Masked%  | Initial `maskReason`   | Other subsequent `maskReason`s   |
+|:----------:|:------------------|:-----------------|:-------------|:--------:|:---------:|:-----------------------|:---------------------------------|
+|     0      | 2017.05.10.20.41  | 2017.05.31.09.21 | never        |   182    |     0     | DeadChannel            |                                  |
+|     2      | 2017.05.08.09.10  | 2017.05.10.19.57 | never        |   184    |     1     | HotChannel,DeadChannel |                                  |
+|     3      | 2017.05.08.09.10  | 2017.05.10.19.57 | never        |   184    |     1     | HotChannel,DeadChannel |                                  |
+
+We can see that the three entries in the DeadChannel column and the two in the HotChannel column come from the *same* ranges.
+
+**Note** When using the `--onlyCurrent` option, there's only one range per channel, which makes the table easier to understand.
+
 ## Packaging Tool: packageFiles4Docker.py
 You may occasionally need to update the `travis CI` docker which checks the code quality *or* you may want to transfer a number of files corresponding to a series of scandates from the P5 machine to another area.  The `packageFiles4Docker.py` tool enables you to do this.  The output of `packageFiles4Docker.py` will be a `*.tar` file that:
 
