@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # Configuration of bad scan recovery
     group = OptionGroup(parser, 'Options controlling bad scan removal')
     group.add_option("--minScanAvgNoise", type=float, dest="minScanAvgNoise", default=0.1,
-                     help="Minimum noise, averaged over the whole detector, for a scan to be considered")
+                     help="Minimum noise if fC, averaged over the whole detector, for a scan to be considered")
     group.add_option("--maxScanMaskedFrac", type=float, dest="maxScanMaskedFrac", default=0.07,
                      help="Maximum fraction of masked channel, over the whole detector, for a scan to be considered")
     parser.add_option_group(group)
