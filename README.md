@@ -10,7 +10,8 @@ Table of Contents
 =================
 
    * [gem-plotting-tools](#gem-plotting-tools)
-      * [Setup:](#setup)
+      * [Setup](#setup)
+        * [Setup at Point 5](#setup-at-point-5)
       * [Masking Channels Algorithmically](#masking-channels-algorithmically)
          * [Definitions](#definitions)
          * [Deriving Channel Configuration](#deriving-channel-configuration)
@@ -62,47 +63,123 @@ Table of Contents
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
-## Setup:
-The following `$SHELL` variables should be defined:
+## Setup
 
-- `$BUILD_HOME`
-- `$DATA_PATH`
-- `$ELOG_PATH`
+The `$SHELL` variable `$ELOG_PATH` should be defined:
+
+```
+export ELOG_PATH=/your/favorite/elog/path
+```
+
+Remove and download the setup script to ensure you have the most up-to-date version:
+
+```
+rm -f setup_gemdaq.sh
+wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
+```
 
 Then execute:
 
 ```
-source $BUILD_HOME/cmsgemos/setup/paths.sh
-source $BUILD_HOME/gem-plotting-tools/setup/paths.sh
+source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional>
 ```
 
-If this is the first time you are executing the above commands on `lxplus` it will create a `python v2.7` `virtualenv` for you.  It may take some time to download the necessary packages so be patient and do not interrupt the installation.  To disable this python env execute:
+Tags for each of the repo's can be found:
+
+* [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version X.Y.Z (`-c X.Y.Z`)
+* [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version X.Y.Z-dev**A** (`-g X.Y.Z -G A`)
+
+Where `X`, `Y`, `Z`, and `A` are integers, and most likely will be different for each of the repositories. If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. It may take some time to download them, so be patient and do not interrupt the installation.
+
+> **Example**
+>
+> ```
+> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5
+> ```
+>
+> This command will install the following packages:
+>
+> * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
+> * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+
+In addition to installing the dependencies, the script will try to guess `$DATA_PATH` based on the machine you are using.
+
+To disable the python env execute:
 
 ```
 deactivate
 ```
 
-To re-enable the python env execute:
+To re-enable the python env, source the script again:
 
 ```
-source $BUILD_HOME/venv/slc6/py27/bin/activate
+source setup_gemdaq.sh
 ```
 
-If you are working on a 904 machine, regardless if it is the first time you are executing the above commands or not, the default python `virtualenv` available on the 904 NAS for your operating system (e.g. `cc7` or `slc6`) will be enabled.
+Note that you should always source the setup script from the same directory.
+
+### Setup at Point 5
+
+Due to the limited Internet access, the setup at Point 5 is slightly more involved.
+
+Create a SOCKS proxy that will allow `pip` to reach the outer world:
+
+```
+PORT=5000
+ssh -D *:$PORT lxplus.cern.ch -N -f
+```
+
+If you get an error saying `bind: Address already in use`, try with `PORT=5001`, `5002`, ...
+
+> **Note**
+> The proxy expires after some time. Just create it again if `pip` complains about the network being unreachable.
+
+Define `$ELOG_PATH`:
+
+```
+export ELOG_PATH=/your/favorite/elog/path
+```
+
+Remove and download the setup script to ensure you have the most up-to-date version:
+
+```
+rm -f setup_gemdaq.sh
+ssh cmsusr wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
+```
+Then execute:
+
+```
+source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -P $PORT
+```
+
+If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
+
+> **Example**
+>
+> ```
+> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -P $PORT
+> ```
+>
+> This command will install the following packages:
+>
+> * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
+> * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
+
+After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again (see above).
 
 ## Masking Channels Algorithmically
 
 ### Definitions
-When the analysis software decides a channel should be masked it is because it falls under one of the categories defined in the `maskReason` class of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anaInfo.py). Multiple reasons can be assigned to a channel for why it is masked, and the total `maskReason` is a 6-bit binary number. Presently these reasons are:
+When the analysis software decides a channel should be masked it is because it falls under one of the categories defined in the `MaskReason` class of [anaInfo.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/anaInfo.py). Multiple reasons can be assigned to a channel for why it is masked, and the total `maskReason` is a 5-bit binary number. Presently these reasons are:
 
 | Name | Bit | Reason |
 | :--: | :---: | :----- |
-| `NotMasked` | 0 | the channel is not masked. |
-| `HotChannel` | 1 | the channel was identified as an outlier using the MAD algorithm, see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf). |
-| `FitFailed` | 2 | the s-curve fit of the channel failed. |
-| `DeadChannel` | 3 | the channel has a burned or disconnected input. |
-| `HighNoise` | 4 | the channel has an scurve sigma above the cut value. | 
-| `HighEffPed` | 5 | the channel has an effective pedestal above the cut value. |
+| `NotMasked` | (none set) | the channel is not masked. |
+| `HotChannel` | 0 | the channel was identified as an outlier using the MAD algorithm, see talks by [B. Dorney](https://indico.cern.ch/event/638404/contributions/2643292/attachments/1483873/2302543/BDorney_OpsMtg_20170627.pdf) or [L. Moureaux](https://indico.cern.ch/event/659794/contributions/2691237/attachments/1508531/2351619/UpdateOnHotChannelIdentificationAlgo.pdf). |
+| `FitFailed` | 1 | the s-curve fit of the channel failed. |
+| `DeadChannel` | 2 | the channel has a burned or disconnected input. |
+| `HighNoise` | 3 | the channel has an scurve sigma above the cut value. |
+| `HighEffPed` | 4 | the channel has an effective pedestal above the cut value. |
 
 The scurve sigma is the sigma of the modified error function used to fit the s-curve measurements.  It comes from the `TF1` object used to fit scurves in `ScanDataFitter::fit()` of [fitScanData.py](https://github.com/cms-gem-daq-project/gem-plotting-tools/blob/develop/fitting/fitScanData.py).
 
@@ -114,7 +191,7 @@ effPed = scurve_fit_func.Eval(0) / n_pulses
 
 Where `n_pulses` are the number of charge injections for a given DAC value performed by the calibration module.
 
-The analysis software will record the `maskReason` in decimal reprementation.  So for example a channel having `maskReason = 48` corresponds to `0b110000` which means the channel was assigned the `HighEffPed` and `HighNoise` maskReasons.
+The analysis software will record the `maskReason` in decimal reprementation.  So for example a channel having `maskReason = 24` corresponds to `0b11000` which means the channel was assigned the `HighEffPed` and `HighNoise` maskReasons.
 
 ### Deriving Channel Configuration
 The following procedure is used, note these steps must be executed one after another, without LV power cycle or action to cause a reset of the VFAT settings (e.g. SCA reset):
@@ -545,7 +622,7 @@ The format of this input file should follow the [Two Column Format](two-column-f
 To plot the scurves, and their fits, for VFAT0 channel 29 from a set of scandates defined in `listOfScanDates_Scurve.txt` taken by `ultraScurve.py` and analyzed with `anaUltraScurve.py` you would call:
 
 ```
-gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg 
+gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg
 ```
 
 This will produce a `*.png` file for each of the scandates defined in `listOfScanDates_Scurve.txt` and one `*.png` file showing all the scurves with their fits drawn on it as a summary.  Additionally an output `TFile` will be produced containing each of the scurves and their fits.
