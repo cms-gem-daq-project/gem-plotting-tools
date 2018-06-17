@@ -27,6 +27,7 @@
 
 # Don't ignore select scripts
 !macros/gemPlotterAllChannels.sh
+!macros/timeHistoryAnalyzerAllRanges.sh
 !setup/createVirtualEnvPy26.sh
 !setup/createVirtualEnvPy27.sh
 !setup/paths.sh
