@@ -16,21 +16,25 @@ if __name__ == '__main__':
                       help="Only show ranges that extend until the last scan")
 
     # Configuration of bad scan recovery
-    parser.add_option("--minScanAvgNoise", type=float, dest="minScanAvgNoise", default=0.1,
-                      help="Minimum noise, averaged over the whole detector, for a scan to be considered")
-    parser.add_option("--maxScanMaskedFrac", type=float, dest="maxScanMaskedFrac", default=0.07,
-                      help="Maximum fraction of masked channel, over the whole detector, for a scan to be considered")
+    group = OptionGroup(parser, 'Options controlling bad scan removal')
+    group.add_option("--minScanAvgNoise", type=float, dest="minScanAvgNoise", default=0.1,
+                     help="Minimum noise, averaged over the whole detector, for a scan to be considered")
+    group.add_option("--maxScanMaskedFrac", type=float, dest="maxScanMaskedFrac", default=0.07,
+                     help="Maximum fraction of masked channel, over the whole detector, for a scan to be considered")
+    parser.add_option_group(group)
 
     # Configuration of the range finding algo
-    parser.add_option("--numEndScans", type=int, dest="numEndScans", default=5,
-                      help="Number of 'good' scans to end a range")
-    parser.add_option("--minBadScans", type=int, dest="minBadScans", default=4,
-                      help="Minimum number of 'bad' scans to keep a range")
+    group = OptionGroup(parser, 'Options controlling the range finding algorithm')
+    group.add_option("--numEndScans", type=int, dest="numEndScans", default=5,
+                     help="Number of 'good' scans to end a range")
+    group.add_option("--minBadScans", type=int, dest="minBadScans", default=4,
+                     help="Minimum number of 'bad' scans to keep a range")
     # Only for 'zeroInputCap' range finder
-    parser.add_option("--minNoise", type=float, dest="minNoise", default=0.0414,
-                      help="Lower bound on noise for the 'zeroInputCap' range finder")
-    parser.add_option("--maxNoise", type=float, dest="maxNoise", default=0.109,
-                      help="Upper bound on noise for the 'zeroInputCap' range finder")
+    group.add_option("--minNoise", type=float, dest="minNoise", default=0.0414,
+                     help="Lower bound on noise for the 'zeroInputCap' range finder, in fC")
+    group.add_option("--maxNoise", type=float, dest="maxNoise", default=0.109,
+                     help="Upper bound on noise for the 'zeroInputCap' range finder, in fC")
+    parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
 
