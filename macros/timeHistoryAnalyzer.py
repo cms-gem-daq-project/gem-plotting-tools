@@ -74,11 +74,11 @@ if __name__ == '__main__':
                         maxMaskedStripOrChanFraction = options.maxScanMaskedFrac)
 
     from gempython.gemplotting.utils.anaInfo import MaskReason
+    from gempython.gemplotting.utils.anautilities import getEmptyPerVFATList
 
     # Find ranges
-    ranges = [] # [vfat][stripOrChan][ranges]
+    ranges = getEmptyPerVFATList() # [vfat][stripOrChan][ranges]
     for vfat in range(24):
-        ranges.append([])
         for stripOrChan in range(128):
             ranges[vfat].append(findRangesFct(data, vfat, stripOrChan, **findRangesKwArgs))
             pass
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                                                         ranges[vfat][stripOrChan]))
 
     # Initialize tables
-    rangesTables = [ [] for vfat in range(24) ]
+    rangesTables = getEmptyPerVFATList()
 
     maskReasonList = MaskReason.listReasons()
     summaryTable = np.zeros((24, len(maskReasonList)))
