@@ -49,6 +49,9 @@ Table of Contents
             * [plotSCurveFitResults.py Arguments](#plotscurvefitresultspy-arguments)
             * [plotSCurveFitResults.py Input File](#plotscurvefitresultspy-input-file)
             * [plotSCurveFitResults.py Example](#plotscurvefitresultspy-example)
+         * [Analyzing the Time Evolution of Channels: timeHistoryAnalyzer.py](#analyzing-the-time-evolution-of-channels-timehistoryanalyzerpy)
+            * [timeHistoryAnalyzer.py Arguments](#timehistoryanalyzerpy-arguments)
+            * [timeHistoryAnalyzer.py Examples](#timehistoryanalyzerpy-examples)
       * [Packaging Tool: packageFiles4Docker.py](#packaging-tool-packagefiles4dockerpy)
          * [packageFiles4Docker.py Arguments](#packagefiles4dockerpy-arguments)
          * [packageFiles4Docker.py Input Files](#packagefiles4dockerpy-input-files)
@@ -658,6 +661,163 @@ plotSCurveFitResults.py --anaType=scurveAna --drawLeg -i listOfScanDates_Scurve.
 ```
 
 This will produce the five `*.png` files mentioned above along with the output `TFile`.
+
+### Analyzing the Time Evolution of Channels: timeHistoryAnalyzer.py
+
+`timeHistoryAnalyzer.py` is a tool that finds when a channel turns bad (see below for the available definitions), and possibly when it is recovered. It takes as input a set of files produced by `plotTimeSeries.py`, and the results are printed to the terminal.
+
+The analysis proceeds in three steps, executed in the following order:
+
+1. [Bad scan removal](#bad-scan-removal): Scans that failed to produce consistent results are removed.
+2. [Range detection](#range-detection): The time evolution of each channel is searched for successive scans with consistent "bad" behavior (see below). A set of such scans for a given channel is called a (time) range. What kind of behavior is searched for is used-defined.
+3. [Analysis](#timehistoryanalyzerpy-output): The properties of "ranges" are computed and printed.
+
+##### Bad scan removal
+
+Scans that pass any the following cuts are removed:
+
+* The average noise over the entire detector is lower than 0.1 fC (or `--minScanAvgNoise`). This cuts scans with no or very few channels responding.
+* The fraction of masked channels is above 7% (or `--maxScanMaskedFrac`). This cuts e.g scans that produced no data and for which all fits failed.
+
+Note that the options are named in the positive way, ie they tell which scans to *keep*.
+
+##### Range detection
+
+The time evolution of each channel is searched for successive scans with consistent behavior. A set of such scans "bad" scans for a given channel is called a (time) range; the definition of bad is user defined (see below).
+
+Range finding starts with a list of scans, where each scan is marked as "good" or "bad". The definition of "bad" depends on what's being searched for (and "good" is always defined as "not bad"). The start of a range is determined by:
+
+* Starts with a "bad" scan (see below)
+* The channel wasn't "bad" in the previous scan (e.g going good to bad)
+
+Then the range continues and the end of the range is determined by 5 consecutive good scans appearing (option: `--numEndScans`). To prevent the printing of spurious ranges due to transient effects ranges with less than 4 "bad" scans in total are suppressed (option: `--minBadScans`). A "range" found by this algorithm can have include some "good" scans.
+
+As a side-effect, channels with sparse "bad" behavior are also extracted. This can be controlled by tightening the cuts in the algorithm above.
+
+Three definitions of "bad" are currently available:
+
+* `mask`: the channel under consideration is masked
+* `maskReason`: the channel under consideration has a non-zero `maskReason`
+*  `zeroInputCap`: the channel under consideration has an scurve width that is consistent with zero input capacitance (`4.14E-02 < scurevWidth < 1.09E-01 fC`). The precise values can be controlled using the `--minNoise` and `--maxNoise` options.
+
+##### timeHistoryAnalyzer.py Output
+
+For every "range" found in each of the VFATs, the following properties are computed and printed in a table:
+
+| Column header | Meaning |
+|:-|:-|
+| `ROBstr` or `vfatCH` | Strip number and VFAT channel, respectively |
+| Last known good | Date and time of the last good scan before the range ("never" if the range starts at the first scan) |
+| Range begins | Start date and time |
+| Range ends | End date and time ("never" if the range includes the lastest scan) |
+| #scans | Total number of scans (good and bad) |
+| masked% | Percentage of `#scans` where the channel is "masked" not to be confused with "bad (useful to investigate channels that behave badly once in a while) |
+| Initial `maskReason` | `maskReason` for the first scan in the range |
+| Other subsequent `maskReason`s | `maskReason` not present for the first scan but found in a later scan in the same range |
+
+A summary table of initial `maskReason` vs VFAT is also printed at the end.
+
+#### timeHistoryAnalyzer.py Arguments
+
+##### General arguments
+
+| Name | Type | Description |
+|:-|:-|:-|
+| `-i`, `--inputDir` | path | Input directory (=output directory of `plotTimeSeries.py`) |
+| `--ranges` | string | Defines the range selection algorithm. Allowed values: `mask`, `maskReason`, `zeroInputCap` |
+| `--onlyCurrent` | none | Only show ranges that extend until the last scan |
+
+##### Options controlling bad scan removal
+
+| Name | Type | Description |
+|:-|:-|:-|
+| `--minScanAvgNoise` | float | Minimum noise in fC, averaged over the whole detector, for a scan to be considered |
+| `--maxScanMaskedFrac` | float | Maximum fraction of masked channel, over the whole detector, for a scan to be considered |
+
+##### Options controlling the range finding algorithm
+
+| Name | Type | Description |
+|:-|:-|:-|
+| `--numEndScans` | int | Number of 'good' scans to end a range |
+| `--minBadScans` | int | Minimum number of 'bad' scans to keep a range |
+| `--minNoise` | float | Lower bound on noise for the `zeroInputCap` range finder, in fC |
+| `--maxNoise` | float | Upper bound on noise for the `zeroInputCap` range finder, in fC |
+
+#### timeHistoryAnalyzer.py Examples
+
+The examples below assume that you have analyzed S-curves
+[using plotTimeSeries.py](#gemplotterpy-example-making-a-time-series-with-plottimeseriespy),
+and that the output is located at:
+
+```
+$ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
+```
+
+Note that the above structure is created automatically by `plotTimeSeries.py`.
+
+##### Simple analysis
+
+The simplest possible call to `timeHistoryAnalyzer.py` is:
+
+```
+timeHistoryAnalyzer.py -i $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
+```
+
+This will use the default range finder, `maskReason`, and settings. Depending on the detector and number of scans being analyzed, it may result in a lot of output being printed to the terminal. For every VFAT, you will get a table that looks like this:
+
+|  `ROBstr`  | Last known good   | Range begins     | Range ends       |  #scans  |  Masked%  | Initial `maskReason`   | Other subsequent `maskReason`s   |
+|:----------:|:------------------|:-----------------|:-----------------|:--------:|:---------:|:-----------------------|:---------------------------------|
+|     18     | 2017.10.11.11.24  | 2017.10.13.12.53 | never            |   127    |    100    | HotChannel,FitFailed   |                                  |
+|     31     | 2017.10.11.11.24  | 2017.10.13.12.53 | never            |   127    |     0     | DeadChannel            |                                  |
+|     91     | 2017.06.15.15.10  | 2017.06.16.14.35 | 2018.02.06.12.07 |   107    |    47     | HotChannel             | HighNoise                        |
+|     93     | 2017.03.27.16.22  | 2017.03.29.13.27 | 2017.05.31.14.48 |    46    |    56     | HotChannel             |                                  |
+|     93     | 2017.06.15.15.10  | 2017.06.16.14.35 | 2018.02.06.12.07 |   107    |    50     | HotChannel             | HighNoise                        |
+
+The meaning of the column headers is explained [above](#timehistoryanalyzerpy-output). Here's the information that we can extract from the table (take a look [here](#masking-channels-algorithmically) first if you're not confident with the meaning of `maskReason`):
+
+* Strip number 18 became hot between 2017.10.11.11.24 and 2017.10.13.12.53. In the same period of time, strip number 31 died.
+* Strip number 91 became hot in July 2017; afterwards, it was also found to have a high noise. It was recovered in February 2018. The masked fraction at 47% indicates that during this period, about half the scans didn't result in the corresponding channel being masked.
+* Strip number 93 was hot during two periods: from the end of March to the end of May 2017, and afterwards from the beginning of April 2017 to the beginning of February 2018. Since both ranges have similar properties and the masked fraction is low, the split in two is likely an accident.
+
+##### Using a different range finder
+
+The example above used the `maskReason` range finder. Let's try with `zeroInputCap`:
+
+```
+timeHistoryAnalyzer.py -i $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/ --ranges zeroInputCap
+```
+
+Note that `--ranges zeroInputCap` typically produces in a lot less output than the default.
+
+##### Reading the summary table
+
+At the end of its output, `timeHistoryAnalyzer.py` prints the following table (some lines were stripped for concision):
+
+|    |  HotChannel  |  FitFailed  |  DeadChannel  |  HighNoise  |  HighEffPed  |
+|:--:|:------------:|:-----------:|:-------------:|:-----------:|:------------:|
+| 0  |      0       |      0      |       2       |      0      |      0       |
+| 7  |      2       |      0      |       3       |      0      |      0       |
+
+The first column is the VFAT number; the others correspond to the possible entries in `maskReason`.
+
+The table counts how many times a given `MaskReason` appears in the "Initial `maskReason`" column of each per-VFAT tables. Indeed, if we look at VFAT 0 for the above example, we find:
+
+|  `ROBstr`  | Last known good   | Range begins     | Range ends   |  #scans  |  Masked%  | Initial `maskReason`   | Other subsequent `maskReason`s   |
+|:----------:|:------------------|:-----------------|:-------------|:--------:|:---------:|:-----------------------|:---------------------------------|
+|     63     | 2017.04.07.15.46  | 2017.04.09.14.27 | never        |   220    |     6     | DeadChannel            | HotChannel                       |
+|     64     | never             | 2017.03.27.13.51 | never        |   229    |     0     | DeadChannel            |                                  |
+
+The two entries in the DeadChannel column correspond to two ranges, that turn out to be from different strips (this may not be the case). Now VFAT 7:
+
+|  `ROBstr`  | Last known good   | Range begins     | Range ends   |  #scans  |  Masked%  | Initial `maskReason`   | Other subsequent `maskReason`s   |
+|:----------:|:------------------|:-----------------|:-------------|:--------:|:---------:|:-----------------------|:---------------------------------|
+|     0      | 2017.05.10.20.41  | 2017.05.31.09.21 | never        |   182    |     0     | DeadChannel            |                                  |
+|     2      | 2017.05.08.09.10  | 2017.05.10.19.57 | never        |   184    |     1     | HotChannel,DeadChannel |                                  |
+|     3      | 2017.05.08.09.10  | 2017.05.10.19.57 | never        |   184    |     1     | HotChannel,DeadChannel |                                  |
+
+We can see that the three entries in the DeadChannel column and the two in the HotChannel column come from the *same* ranges.
+
+**Note** When using the `--onlyCurrent` option, there's only one range per channel, which makes the table easier to understand.
 
 ## Packaging Tool: packageFiles4Docker.py
 You may occasionally need to update the `travis CI` docker which checks the code quality *or* you may want to transfer a number of files corresponding to a series of scandates from the P5 machine to another area.  The `packageFiles4Docker.py` tool enables you to do this.  The output of `packageFiles4Docker.py` will be a `*.tar` file that:

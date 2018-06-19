@@ -62,6 +62,15 @@ class MaskReason:
     HighEffPed  = 0x10
 
     @staticmethod
+    def listReasons():
+        """Returns a table of (name, mask) tuples for all MaskReasons"""
+        list = []
+        for name, value in MaskReason.__dict__.iteritems():
+            if type(value) == int and value != MaskReason.NotMasked:
+                list.append((name, value))
+        return list
+
+    @staticmethod
     def humanReadable(reason):
         """Returns the human-readable string that corresponds to a mask reason"""
         names = []
