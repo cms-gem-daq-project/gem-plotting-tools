@@ -154,7 +154,7 @@ if __name__ == '__main__':
                       help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
-    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3",
+    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3", default=False,
                       help="Provide this argument if input data was acquired from vfat3", metavar="isVFAT3")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
