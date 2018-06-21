@@ -192,11 +192,11 @@ class ScanDataFitter(DeadChannelFinder):
                     if self.isVFAT3:
                         fitTF1.SetParLimits(0, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
                         fitTF1.SetParLimits(1, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
-                        fitTF1.SetParLimits(2, 0, self.Nev[vfat][ch])
+                        fitTF1.SetParLimits(2, -0.01, self.Nev[vfat][ch])
                     else:
-                        fitTF1.SetParLimits(0, 0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(0, -0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
                         fitTF1.SetParLimits(1, 0.0,  self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
-                        fitTF1.SetParLimits(2, 0, self.Nev[vfat][ch])
+                        fitTF1.SetParLimits(2, -0.01, self.Nev[vfat][ch])
                         pass
 
                     fitTF1.SetParLimits(3, 0.75*init_guess_p3, 1.25*init_guess_p3)
@@ -214,9 +214,9 @@ class ScanDataFitter(DeadChannelFinder):
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
                                         init_guess_p1,
                                         self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
-                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
+                                        -0.01,
                                         init_guess_p2,
-                                        self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat]
+                                        self.Nev[vfat][ch]
                                     )
                         else:
                             print "| %i | %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
@@ -224,15 +224,15 @@ class ScanDataFitter(DeadChannelFinder):
                                         vfat,
                                         ch,
                                         self.isVFAT3,
-                                        0.01,
+                                        -0.01,
                                         init_guess_p0,
                                         self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat],
                                         0.0,
                                         init_guess_p1,
                                         self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat],
-                                        0.0,
+                                        -0.01,
                                         init_guess_p2,
-                                        self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]
+                                        self.Nev[vfat][ch]
                                     )
 
                     # Fit
