@@ -159,7 +159,7 @@ if __name__ == '__main__':
                       help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
-    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3",
+    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3", default=False,
                       help="Provide this argument if input data was acquired from vfat3", metavar="isVFAT3")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
@@ -220,17 +220,24 @@ if __name__ == '__main__':
 
     # Initialize distributions
     for vfat in range(0,24):
+        if options.isVFAT3:
+            yMin_Charge = calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat]
+            yMax_Charge = calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat]
+        else:
+            yMin_Charge = calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat]
+            yMax_Charge = calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat]
+            pass
         vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                 'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
-                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
-                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
+                yMin_Charge,
+                yMax_Charge)
         vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
         vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
                 'VFAT %i;Channels;VCal #left(fC#right)'%vfat,
                 128,-0.5,127.5,256,
-                calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
-                calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
+                yMin_Charge,
+                yMax_Charge)
         vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
         if not (options.channels or options.PanPin):
             vSummaryPlots[vfat].SetXTitle('Strip')
@@ -240,26 +247,26 @@ if __name__ == '__main__':
             vSummaryPlots[vfat] = r.TH2D('vSummaryPlots%i'%vfat,
                     'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
+                    yMin_Charge,
+                    yMax_Charge)
             vSummaryPlots[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChan[vfat] = r.TH2D('vSummaryPlotsNoMaskedChan%i'%vfat,
                     'VFAT %i_0-63;63 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
+                    yMin_Charge,
+                    yMax_Charge)
             vSummaryPlotsNoMaskedChan[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsPanPin2[vfat] = r.TH2D('vSummaryPlotsPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
+                    yMin_Charge,
+                    yMax_Charge)
             vSummaryPlotsPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             vSummaryPlotsNoMaskedChanPanPin2[vfat] = r.TH2D('vSummaryPlotsNoMaskedChanPanPin2_%i'%vfat,
                     'vSummaryPlots%i_64-127;127 - Panasonic Pin;VCal #left(fC#right)'%vfat,
                     64,-0.5,63.5,256,
-                    calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat],
-                    calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat])
+                    yMin_Charge,
+                    yMax_Charge)
             vSummaryPlotsNoMaskedChanPanPin2[vfat].GetYaxis().SetTitleOffset(1.5)
             pass
         for chan in range (0,128):
