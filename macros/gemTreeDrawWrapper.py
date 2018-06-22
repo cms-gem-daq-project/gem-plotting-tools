@@ -56,7 +56,7 @@ the script.
 Note for those :option:`--anaType` values which have the substring ``Ana`` in
 their names it is expected that the user has already run :program:`ana_scans.py`
 on the corresponding ``scandate`` to produce the necessary input file for
-:program:`gemPlotter.py`.
+:program:`gemTreeDrawWrapper.py`.
 
 Optional arguments
 ------------------
