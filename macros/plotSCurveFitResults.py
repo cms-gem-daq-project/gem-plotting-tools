@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+plotSCurveFitResults
+====================
+"""
+
 if __name__ == '__main__':
     from gempython.gemplotting.utils.anaInfo import tree_names
     from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make2x4Canvas, make3x8Canvas, parseListOfScanDatesFile

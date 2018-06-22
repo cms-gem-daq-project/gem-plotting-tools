@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+plot\_vfat\_summary
+===================
+"""
+
 if __name__ == '__main__':
     from gempython.gemplotting.macros.plotoptions import parser
     (options, args) = parser.parse_args()

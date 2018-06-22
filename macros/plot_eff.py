@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+plot\_eff
+=========
+"""
+
 def calcEffErr(eff, nTriggers):
     """
     Returns the binomial error on the input efficiency

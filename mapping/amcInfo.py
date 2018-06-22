@@ -1,3 +1,8 @@
+"""
+``amcInfo`` --- CTP7 information
+--------------------------------
+"""
+
 class ctp7Params:
     # Key (shelf,slot); val = eagleXX
     # See: https://twiki.cern.ch/twiki/bin/view/CMS/GEMDAQExpert#List_of_CTP7_s

@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+packageFiles4Docker
+===================
+"""
+
 def getListOfCmdTuples(filename, anaType):
     """
     Returns a list of tuples where each element is:

@@ -1,3 +1,8 @@
+"""
+scurvePlottingUtitilities
+=========================
+"""
+
 def overlay_scurve(vfat, vfatCH, fit_filename=None, tupleTObjects=None, vfatChNotROBstr=True, debug=False):
     """
     Draws an scurve histogram and the fit to the scurve on a common canvas

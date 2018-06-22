@@ -1,18 +1,288 @@
 #!/bin/env python
 
+r"""
+``gemPlotter.py`` --- Plot time evolution of scan results
+=========================================================
+
+Synopsis
+--------
+
+**gemPlotter.py** :token:`--anaType` <*ANALYSIS TYPE*> :token:`--branchName` <*BRANCH*> :token:`-i` <*INPUT FILE*> :token:`-v` <*VFAT*> [*OPTIONS*]
+
+Description
+-----------
+
+The :program:`gemPlotter.py` tool is for making plots of an observable stored in
+one of the ``TTree`` objects produced by the (ana-) ultra scan scripts vs an
+arbitrary indepdent variable specified by the user. Here each data point is from
+a different ``scandate``. This is useful if you run mulitple scans in which only
+a single parameter is changed (e.g. applied high voltage, or ``VThreshold1``)
+and you want to track the dependency on this parameter.
+
+Each plot produced will be stored as an output ``*.png`` file. Additionally an
+output ``TFile`` will be produced which will contain each of the plots, stored
+as ``TGraph`` objects, and canvases produced.
+
+Mandatory arguments
+-------------------
+
+The following list shows the mandatory inputs that must be supplied to execute
+the script.
+
+.. program:: gemPlotter.py
+
+.. option:: --anaType <ANALYSIS TYPE>
+
+    Analysis type to be executed, see :any:`utils.anaInfo.tree_names` for
+    possible inputs.
+
+.. option:: --branchName <NAME>
+
+    Name of ``TBranch`` where dependent variable is found, note that this
+    ``TBranch`` should be found in the ``TTree`` that corresponds to the value
+    given to the :option:`--anaType` argument.
+
+.. option:: -i, --infilename <FILE NAME>
+
+    Physical filename of the input file to be passed to
+    :program:`gemPlotter.py`. See :any:`Three Column Format` for details on the
+    format and contents of this file.
+
+.. option:: -v, --vfat <NUMBER>
+
+    Specify VFAT to plot
+
+Note for those :option:`--anaType` values which have the substring ``Ana`` in
+their names it is expected that the user has already run :program:`ana_scans.py`
+on the corresponding ``scandate`` to produce the necessary input file for
+:program:`gemPlotter.py`.
+
+Optional arguments
+------------------
+
+.. option:: -a, --all
+
+    When providing this flag data from all 24 VFATs will be plotted.
+    Additionally a summary plot in the typical 3x8 grid will be created showing
+    the results of all 24 VFATs. May be used instead of the :option:`--vfat`
+    option.
+
+.. option:: --alphaLabels
+
+    When providing this flag :program:`gemPlotter.py` will interpret the
+    **Indep. Variable** as a string and modify the output X axis accordingly
+
+.. option:: --axisMax <NUMBER>
+
+    Maximum value for the axis depicting :option:`--branchName`.
+
+.. option:: --axisMin <NUMBER>
+
+    Minimum value for the axis depicting :option:`--branchName`.
+
+.. option:: -c, --channels
+
+    When providing this flag the :option:`--strip` option is interpreted as VFAT
+    channel number instead of readout board (ROB) strip number.
+
+.. option:: -s, --strip <NUMBER>
+
+    Specific ROB strip number to plot for :option:`--branchName`. Note for ROB
+    strip level :option:`--branchName` values (e.g. ``trimDAC``) if this option
+    is not provided the data point (error bar) will represent the mean (standard
+    deviation) of :option:`--branchName` from all strips.
+
+.. option:: --make2D
+
+    When providing this flag a 2D plot of ROB strip/vfat channel vs. independent
+    variable will be plotted whose z-axis value is :option:`--branchName`.
+
+.. option:: -p, --print
+
+    Prints a comma separated table of the plot's data to the terminal. The
+    format of this table will be compatible with the ``genericPlotter``
+    executable of the `CMS GEM Analysis Framework`_.
+
+    .. _CMS GEM Analysis Framework: https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter
+
+.. option:: --rootOpt <OPTION>
+
+    Option for creating the output ``TFile``, e.g. ``RECREATE`` or ``UPDATE``
+
+.. option:: --skipBadFiles
+
+    ``TFiles`` that fail to load, or where the ``TTree`` cannot be successfully
+    loaded, will be skipped.
+
+.. option:: --showStat
+
+    Causes the statistics box to be drawn on created plots. Note only applicable
+    when used with :option:`--make2D`.
+
+.. option:: --vfatList <COMMA-SEPARATED LIST OF INTEGERS>
+
+    List of VFATs that should be plotted. May be used instead of the
+    :option:`--vfat` option.
+
+.. option:: --ztrim <NUMBER>
+
+    The ``ztrim`` value that was used when running the scans listed in
+    :option:`--infilename`
+
+Examples
+--------
+
+Making a time series
+....................
+
+To automatically consider the last two weeks worth of s-curve scans, run the
+script specifying ``vt1bump`` option like this:
+
+.. code-block:: bash
+
+    plotTimeSeries.py --vt1bump=10
+
+resulting plots will be stored under:
+
+.. code-block:: bash
+
+    $ELOG_PATH/timeSeriesPlots/<chamber name>/vt1bumpX/
+
+Making a 1D Plot --- Channel Level
+..................................
+
+To make a 1D plot for a given strip of a given VFAT execute:
+
+.. code-block:: bash
+
+    gemPlotter.py --infilename=<inputfilename> --anaType=<anaType> --branchName=<TBranch Name> --vfat=<VFAT No.> --strip=<Strip No.>
+
+For example, to plot ``trimDAC`` vs. an **Indep. Variable Name** defined in
+``listOfScanDates.txt`` for VFAT 12, strip number 49 execute:
+
+.. code-block:: bash
+
+    gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimDAC --vfat=12 --strip=49
+
+Additional VFATs could be plotted by either:
+
+* Making successive calls of the above command and using the
+  ``--rootOpt=UPDATE``,
+* Using the :option:`--vfatList` argument instead of the :option:`--vfat`
+  argument, or
+* Using the :option:`-a` argument to make all VFATs.
+
+Making a 1D Plot --- VFAT Level
+...............................
+
+To make a 1D plot for a given VFAT execute:
+
+.. code-block:: bash
+
+    gemPlotter.py --infilename=<inputfilename> --anaType=<anaType> --branchName=<TBranch Name> --vfat=<VFAT No.>
+
+For example, to plot ``trimRange`` vs. an **Indep. Variable Name** defined in
+``listOfScanDates.txt`` for VFAT 12 execute:
+
+.. code-block:: bash
+
+    gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimRange --vfat=12
+
+Note if **TBranch Name** is a strip level observable the data points
+(y-error bars) in the produced plot will represent the mean (standard deviation)
+from all of the VFAT's channels.
+
+Additional VFATs could be plotted by either:
+
+* Making successive calls of the above command and using the
+  ``--rootOpt=UPDATE``,
+* Using the :option:`--vfatList` argument instead of the :option:`--vfat`
+  argument, or
+* Using the :option:`-a` argument to make all VFATs.
+
+To automatically extend this to all channels execute:
+
+.. code-block:: bash
+
+    gemPlotterAllChannels.sh <InFile> <anaType> <branchName>
+
+Making a 2D Plot
+................
+
+To make a 2D plot for a given VFAT execute:
+
+.. code-block:: bash
+
+    gemPlotter.py --infilename=<inputfilename> --anaType=<anaType> --branchName=<TBranch Name> --vfat=<VFAT No.> --make2D
+
+Here the output plot will be of the form "ROB Strip/VFAT Channel vs. Indep.
+Variable Name" with the z-axis storing the value of :option:`--branchName`.
+
+For example to make a 2D plot with the z-axis as trimDAC and the **Indep.
+Variable Name** defined in ``listOfScanDates.txt`` for VFAT 12 execute:
+
+.. code-block:: bash
+
+    gemPlotter.py -ilistOfScanDates.txt --anaType=trimAna --branchName=trimDAC --vfat=12 --make2D
+
+Additional VFATs could be plotted by either:
+
+* Making successive calls of the above command and using the
+  ``--rootOpt=UPDATE``,
+* Using the :option:`--vfatList` argument instead of the :option:`--vfat`
+  argument, or
+* Using the :option:`-a` argument to make all VFATs.
+
+Environment
+-----------
+
+.. glossary::
+
+    :envvar:`DATA_PATH`
+        The location of input data
+
+    :envvar:`ELOG_PATH`
+        Results are written in the directory pointed to by this variable
+
+Internals
+---------
+"""
+
 def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, vfatCH=None, strip=None, ztrim=4, skipBad=False):
     """
-    Provides a list of tuples for 1D data where each element is of the form: (indepVarVal, depVarVal, depVarValErr)
+    Provides a list of tuples for 1D data where each element is of the form:
+    ``(indepVarVal, depVarVal, depVarValErr)``
 
-    anaType - type of analysis to perform, helps build the file path to the input file(s), from set ana_config.keys()
-    listDataPtTuples - list of tuples where each element is of the form: (cName, scandate, indepVar), note indepVar is expected to be numeric
-    rootFileName - name of the TFile that will be found in the data path corresponding to anaType
-    treeName - name of the TTree inside rootFileName
-    branchName - name of a branch inside treeName that the dependent variable will be extracted from
-    vfat - vfat number that plots should be made for
-    vfatCH - channel of the vfat that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/strip
-    strip - strip of the detector that should be used, if None an average is performed w/stdev for error bar, mutually exclusive w/vfatCH
-    skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
+    Args:
+        anaType (string): type of analysis to perform, helps build the file path
+            to the input file(s), from the keys of
+            :any:`utils.anaInfo.ana_config`
+
+        listDataPtTuples: list of tuples where each element is of the form
+            ``(cName, scandate, indepVar)``, note ``indepVar`` is expected to be
+            numeric
+
+        rootFileName (string): name of the ``TFile`` that will be found in the
+            data path corresponding to ``anaType``
+
+        treeName (string): name of the ``TTree`` inside ``rootFileName``
+
+        branchName (string): name of a branch inside ``treeName`` that the
+            dependent variable will be extracted from
+
+        vfat (int): vfat number that plots should be made for
+
+        vfatCH (int): channel of the vfat that should be used, if ``None`` an
+            average is performed w/stdev for error bar, mutually exclusive
+            w/ ``strip``
+
+        strip (int): strip of the detector that should be used, if ``None`` an
+            average is performed w/stdev for error bar, mutually exclusive w/
+            ``vfatCH``
+
+        skipBad (bool): if a file fails to open or the ``TTree`` cannot be
+            found, the input is skipped and the processing continues rather than
+            exiting
     """
 
     from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType
@@ -100,15 +370,31 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
 
 def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branchName, vfat, ROBstr=True, ztrim=4, skipBad=False):
     """
-    Provides a list of tuples for 2D data where each element is of the (x,y,z) form: (indepVarVal, vfatCHOrROBstr, depVarVal)
+    Provides a list of tuples for 2D data where each element is of the
+    ``(x,y,z)`` form: ``(indepVarVal, vfatCHOrROBstr, depVarVal)``
 
-    anaType - type of analysis to perform, helps build the file path to the input file(s), from set ana_config.keys()
-    listDataPtTuples - list of tuples where each element is of the form: (cName, scandate, indepVar), note indepVar is expected to be numeric
-    rootFileName - name of the TFile that will be found in the data path corresponding to anaType
-    treeName - name of the TTree inside rootFileName
-    branchName - name of a branch inside treeName that the dependent variable will be extracted from
-    vfat - vfat number that plots should be made for
-    skipBad - if a file fails to open or the TTree cannot be found, the input is skipped and the processing continues rather than exiting
+    Args:
+        anaType (string): type of analysis to perform, helps build the file path
+            to the input file(s), from the keys of
+            :any:`utils.anaInfo.ana_config`
+
+        listDataPtTuples: list of tuples where each element is of the form:
+            ``(cName, scandate, indepVar)``, note ``indepVar`` is expected to be
+            numeric
+
+        rootFileName (string): name of the ``TFile`` that will be found in the
+            data path corresponding to ``anaType``
+
+        treeName (string): name of the ``TTree`` inside ``rootFileName``
+
+        branchName (string): name of a branch inside ``treeName`` that the
+            dependent variable will be extracted from
+
+        vfat (int): vfat number that plots should be made for
+
+        skipBad (bool): if a file fails to open or the ``TTree`` cannot be
+            found, the input is skipped and the processing continues rather than
+            exiting
     """
   
     from gempython.gemplotting.utils.anautilities import filePathExists, getDirByAnaType

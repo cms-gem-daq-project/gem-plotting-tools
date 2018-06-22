@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+anaUltraScurve
+==============
+"""
+
 def fill2DScurveSummaryPlots(scurveTree, vfatHistos, vfatChanLUT, vfatHistosPanPin2=None, lutType="vfatCH", chanMasks=None, calDAC2Q_m=None, calDAC2Q_b=None):
     """
     Fills 2D Scurve summary plots from scurveTree TTree
