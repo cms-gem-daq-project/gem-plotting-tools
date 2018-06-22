@@ -192,15 +192,21 @@ Internals
 
 def getPlotFromTree(filename, treeName, expression, selection=""):
     """
-    Returns the type of TObject returned by TTree::Draw(expression, selection, drawOpt)
+    Returns the type of ``TObject`` returned by
+    ``TTree::Draw(expression, selection, drawOpt)``. See `the documentation`_
+    for ``TTree::Draw()`` details.
 
-    filename - string, physical filename of the input TFile
-    treeName - string, name of the TTree found in filename
+    .. _the documentation: https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45
 
-    See https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45 for TTree::Draw() documentation
+    Args:
+        filename (string): Physical filename of the input ``TFile``
 
-    expression - string, the "varexp" argument passed to TTree::Draw()
-    selection - string, the "selection" argument passed to TTree::Draw()
+        treeName (string): Name of the ``TTree`` found in ``filename``
+
+        expression (string): The ``varexp`` argument passed to ``TTree::Draw()``
+
+        selection (string): The ``selection`` argument passed to
+            ``TTree::Draw()``
     """
   
     from gempython.gemplotting.utils.anautilities import filePathExists, getStringNoSpecials, getDirByAnaType
