@@ -12,6 +12,8 @@
 # serve to show the default.
 
 import sys, os
+import datetime
+import string
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -20,6 +22,15 @@ sys.path.insert(0, os.path.abspath('..')) # Root of the repo
 sys.path.insert(0, os.path.abspath('../macros')) # macros directory
 
 # -- General configuration -----------------------------------------------------
+
+# List all authors here
+authors = [
+    'Cameron Bravo',
+    'Mykhailo Dalchenko',
+    'Brian Dorney',
+    'Louis Moureaux',
+    'Jared Sturdy',
+]
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -53,7 +64,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'gempython.gemplotting'
-copyright = u'2018, Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'
+copyright = '%d %s' % (datetime.date.today().year, string.join(authors, ', '))
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -196,7 +207,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'gemplotting.tex', u'gemplotting Documentation',
-   u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy', 'manual'),
+   string.join(authors, ', '), 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -226,13 +237,13 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'gemplotting', u'gemplotting Documentation',
-     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
+     authors, 1),
     ('man/gemPlotter', 'gemPlotter.py', u'Plot time evolution of scan results',
-     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
+     authors, 1),
     ('man/gemTreeDrawWrapper', 'gemTreeDrawWrapper.py', u'Make X-Y plots for each scan date',
-     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
+     authors, 1),
     ('man/packageFiles4Docker', 'packageFiles4Docker.py', u'Creates a tarball containing data',
-     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
+     authors, 1),
 ]
 
 # If true, show URL addresses after external links.
@@ -246,7 +257,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'gemplotting', u'gemplotting Documentation',
-   u'Mykhailo Dalchenko, Evaldas Juska, RobertKing, Andrew Peck, Jared Sturdy', 'gemplotting', 'One line description of project.',
+   string.join(authors, ', '), 'gemplotting', 'GEM commissioning plotting tools.',
    'Miscellaneous'),
 ]
 
