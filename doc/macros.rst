@@ -46,10 +46,10 @@ Macros
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: gemTreeDrawWrapper
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. toctree::
+    :maxdepth: 1
+
+    man/gemTreeDrawWrapper
 
 .. automodule:: packageFiles4Docker
     :members:

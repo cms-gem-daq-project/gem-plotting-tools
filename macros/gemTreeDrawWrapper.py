@@ -1,8 +1,33 @@
 #!/bin/env python
 
-"""
-gemTreeDrawWrapper
-==================
+r"""
+``gemTreeDrawWrapper.py`` --- Make X-Y plots for each scan date
+===============================================================
+
+Synopsis
+--------
+
+**gemTreeDrawWrapper.py** :token:`--anaType` <*ANALYSIS TYPE*> :token:`--treeExpress` <*EXPRESSION*> :token:`-i` <*INPUT FILE*> [*OPTIONS*]
+
+Description
+-----------
+
+The :program:`gemTreeDrawWrapper.py` tool is for making a given 'Y vs. X' plot
+for each scandate of interest. Here Y and X are quantities stored in
+``TBranches`` of one of the ``TTree`` objects produced by the (ana-) ultra scan
+scripts. This is designed to complement :program:`gemPlotter.py` and should
+speed up plotting in general. This tool is essesntially a wrapper for the
+``TTree::Draw()`` method. To make full use of this tool you should familiarize
+yourself with the ``TTree::Draw()`` `documentation`_.
+
+.. _documentation: https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45
+
+Additionally :program:`gemTreeDrawWrapper.py` can also fit produced plots with a
+function defined at runtime through the command line arguments.
+
+Each plot produced will be stored as an output ``*.png`` file. Additionally an
+output ``TFile`` will be produced which will contain each of the plots, stored
+as ``TGraph`` objects, canvases, and fits produced.
 """
 
 def getPlotFromTree(filename, treeName, expression, selection=""):
