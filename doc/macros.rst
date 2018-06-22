@@ -50,11 +50,7 @@ Macros
     :maxdepth: 1
 
     man/gemTreeDrawWrapper
-
-.. automodule:: packageFiles4Docker
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    man/packageFiles4Docker
 
 .. automodule:: plotSCurveFitResults
     :members:

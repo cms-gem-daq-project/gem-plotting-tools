@@ -1,18 +1,114 @@
 #!/bin/env python
 
-"""
-packageFiles4Docker
-===================
+r"""
+``packageFiles4Docker.py`` --- Creates a tarball containing data
+================================================================
+
+Synopsis
+--------
+
+**packageFiles4Docker.py** [*OPTIONS*]
+
+Description
+-----------
+
+You may occasionally need to update the travis CI docker which checks the code
+quality or you may want to transfer a number of files corresponding to a series
+of scandates from the P5 machine to another area. The
+:program:`packageFiles4Docker.py` tool enables you to do this. The output of :program:`packageFiles4Docker.py` will be a ``*.tar`` file that:
+
+* mimics the file structure of ``$DATA_PATH``, and
+* contains each of the input ``listOfScandates.txt`` files supplied at runtime,
+  and
+* a temorary ``chamberInfo.py`` file which can be placed in the docker for
+  testing.
+
+Arguments
+---------
+
+.. program:: packageFiles4Docker.py
+
+.. option:: --fileListLat <FILE>
+
+    Specify Input Filename for list of scandates for latency files.
+
+.. option:: --fileListScurve <FILE>
+
+    Specify Input Filename for list of scandates for scurve files.
+
+.. option:: --fileListThresh <FILE>
+
+    Specify Input Filename for list of scandates for threshold files.
+
+.. option:: --fileListTrim <FILE>
+
+    Specify Input Filename for list of scandates for trim files.
+
+.. option:: --ignoreFailedReads
+
+    Ignores failed read errors in tarball creation, useful for ignoring scans
+    that did not finish successfully.
+
+.. option:: --onlyRawData
+
+    Files produced by ``anaUltra*.py`` scripts will not be included.
+
+.. option:: --tarBallName <FILE>
+
+    Specify the name of the output tarball.
+
+.. option:: --ztrim <NUMBER>
+
+    The ztrim value of interest for scandates given in --fileListTrim.
+
+.. option:: -d, --debug
+
+    Prints the commands that would be exectuted but does not call them.
+
+Please note that multiple :token:`--fileListX` arguments can be supplied at
+runtime, but at least one must be supplied.
+
+Each of the :token:`--fileListX` arguments can be supplied with a
+``listOfScanDates.txt`` file that follows either the :any:`Two Column Format` or
+the :any:`Three Column Format`.
+
+Example
+-------
+
+To make a tarball of containing scurve scandates defined in
+``listOfScanDates.txt`` for ``GEMINIm01L1`` execute:
+
+.. code-block:: bash
+
+    packageFiles4Docker.py --ignoreFailedReads --fileListScurve=$DATA_PATH/GEMINIm01L1/scurve/listOfScanDates.txt --tarBallName=GEMINIm01L1_scurves.tar --ztrim=4 --onlyRawData
+
+In this case failed read errors in the tar command will be ignored and only the
+raw data, e.g. ``SCurveData.root`` files, will be stored in the tarball
+following the appropriate file structure.
+
+Environment
+-----------
+
+.. glossary::
+
+    :envvar:`DATA_PATH`
+        The location of input data
+
+Internals
+---------
 """
 
 def getListOfCmdTuples(filename, anaType):
     """
     Returns a list of tuples where each element is:
-        (anaType, cName, scandate)
+    ``(anaType, cName, scandate)``
 
-    filename - physical filename of input file, see parseListOfScanDatesFile 
-               for details on expected format
-    anaType - string matching a key in ana_config of anaInfo.py
+    Args:
+        filename (string): Physical filename of input file, see
+            :any:`parseListOfScanDatesFile` for details on expected format
+
+        anaType (string): String matching a key in
+            :any:`utils.anaInfo.ana_config`
     """
 
     from gempython.gemplotting.utils.anaInfo import ana_config
@@ -35,9 +131,6 @@ def getListOfCmdTuples(filename, anaType):
     return ret_list_cmd_tuples
 
 if __name__ == '__main__':
-    """
-    Creates a tar ball to be used with the docker for unit tests with travis
-    """
     from gempython.gemplotting.utils.anaInfo import tree_names
     from gempython.gemplotting.utils.anautilities import getDirByAnaType
     from gempython.utils.wrappers import runCommand

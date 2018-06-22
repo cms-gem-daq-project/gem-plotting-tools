@@ -224,6 +224,8 @@ man_pages = [
      [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
     ('man/gemTreeDrawWrapper', 'gemTreeDrawWrapper.py', u'Make X-Y plots for each scan date',
      [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
+    ('man/packageFiles4Docker', 'packageFiles4Docker.py', u'Creates a tarball containing data',
+     [u'Cameron Bravo, Mykhailo Dalchenko, Brian Dorney, Louis Moureaux, Jared Sturdy'], 1),
 ]
 
 # If true, show URL addresses after external links.
