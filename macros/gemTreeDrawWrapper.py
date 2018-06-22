@@ -134,6 +134,58 @@ Optional arguments
     The ztrim value that was used when running the scans listed in
     :option:`--infilename`
 
+Examples
+--------
+
+Making a Plot
+.............
+
+For example to make a plot from a latency scan, ``Nhits`` vs. ``lat`` for
+VFAT12, use the following command:
+
+.. code-block:: bash
+
+    gemTreeDrawWrapper.py -ilistOfScanDates_TreeDraw.txt --anaType=latency --summary --treeExpress="Nhits:lat" --treeDrawOpt=APE1 --treeSel="vfatN==12" --axisMaxY=1000 --axisMinX=39 --axisMaxX=49 --drawLeg
+
+This will produce one ``Nhits`` vs. ``lat`` plot for VFAT12 for each
+``(ChamberName,scandate)`` pair found in ``listOfScanDates_TreeDraw.txt``.
+Additionally it will make one summary plot with a legend drawn which contains
+all of the produced plots.
+
+Fitting a Plot
+..............
+
+For example to plot and fit an scurve from an scurve scan, ``Nhits`` vs
+``vcal``, for VFAT12 channel 45, use the following command:
+
+.. code-block:: bash
+
+    gemTreeDrawWrapper.py -ilistOfScanDates_TreeDraw.txt --anaType=scurve --treeExpress="Nhits:vcal" --treeDrawOpt=APE1 --treeSel="vfatN==12 && vfatCH==45" --fitFunc="500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500" --fitRange=70,150 --fitOpt="RM" --fitGuess=110,10,10
+
+Here the fit that will be applied will be equivalent too:
+
+.. code-block:: python
+
+    myFunc = r.TF1(strName,"500*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+500",70,150)
+    myFunc.SetParameter(0,110)
+    myFunc.SetParameter(0,10)
+    myFunc.SetParameter(0,10)
+
+The fit option that will be used will be ``RM``. This fit will be applied to the
+scurve generated from VFAT12 channel 45 for each ``(ChamberName,scandate)`` pair
+found in ``listOfScanDates_TreeDraw.txt``.
+
+Environment
+-----------
+
+.. glossary::
+
+    :envvar:`DATA_PATH`
+        The location of input data
+
+    :envvar:`ELOG_PATH`
+        Results are written in the directory pointed to by this variable
+
 Internals
 ---------
 """
