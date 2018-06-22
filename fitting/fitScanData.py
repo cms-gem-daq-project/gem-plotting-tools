@@ -1,3 +1,8 @@
+"""
+``fitScanData`` --- S-curves fits
+---------------------------------
+"""
+
 import numpy as np
 import ROOT as r
 from gempython.gemplotting.utils.anaInfo import dict_calSF

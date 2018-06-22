@@ -1,3 +1,8 @@
+"""
+``anaoptions`` --- Common options for analysis tools
+----------------------------------------------------
+"""
+
 from optparse import OptionParser
 
 parser = OptionParser()

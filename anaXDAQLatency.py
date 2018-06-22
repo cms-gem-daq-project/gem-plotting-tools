@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+anaXDAQLatency
+==============
+"""
+
 import sys, re
 import time, datetime, os
 

@@ -1,5 +1,10 @@
 #!/bin/env python
 
+"""
+gemTreeDrawWrapper
+==================
+"""
+
 def getPlotFromTree(filename, treeName, expression, selection=""):
     """
     Returns the type of TObject returned by TTree::Draw(expression, selection, drawOpt)

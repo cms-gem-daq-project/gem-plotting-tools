@@ -1,51 +1,57 @@
-from gempython.gemplotting.macros.plotoptions import parser
+"""
+plot\_scurves\_by\_thresh
+=========================
+"""
 
-(options, args) = parser.parse_args()
+if __name__ == '__main__':
+    from gempython.gemplotting.macros.plotoptions import parser
 
-filename = options.filename
-vfat = options.vfat
-strip = options.strip
+    (options, args) = parser.parse_args()
 
-import ROOT as r
-r.gStyle.SetOptStat(0)
+    filename = options.filename
+    vfat = options.vfat
+    strip = options.strip
 
-thr     = []
-Scurves = []
-fitF = r.TFile(filename)
-for event in fitF.scurveFitTree:
-    if (event.vthr) not in thr:
-        thr.append(event.vthr)
-        pass
-    pass
-print thr
+    import ROOT as r
+    r.gStyle.SetOptStat(0)
 
-canvas = r.TCanvas('canvas', 'canvas', 500, 500)
-canvas.cd()
-i = 0
-for thresh in thr:
+    thr     = []
+    Scurves = []
+    fitF = r.TFile(filename)
     for event in fitF.scurveFitTree:
-        if (event.vthr == thresh) and (event.vfatN == vfat) and (event.ROBstr == strip):
-            Scurves.append((event.scurve_h).Clone())
+        if (event.vthr) not in thr:
+            thr.append(event.vthr)
             pass
         pass
-    pass
+    print thr
 
-leg = r.TLegend(0.1, 0.6, 0.3, 0.8)
+    canvas = r.TCanvas('canvas', 'canvas', 500, 500)
+    canvas.cd()
+    i = 0
+    for thresh in thr:
+        for event in fitF.scurveFitTree:
+            if (event.vthr == thresh) and (event.vfatN == vfat) and (event.ROBstr == strip):
+                Scurves.append((event.scurve_h).Clone())
+                pass
+            pass
+        pass
 
-for hist in Scurves:
-    hist.SetTitle("")
-    hist.SetLineColor((i%9) + 1)
-    if i == 0:
-        hist.Draw()
-        hist.Set
-        i+=1
+    leg = r.TLegend(0.1, 0.6, 0.3, 0.8)
+
+    for hist in Scurves:
+        hist.SetTitle("")
+        hist.SetLineColor((i%9) + 1)
+        if i == 0:
+            hist.Draw()
+            hist.Set
+            i+=1
+            pass
+        else:
+            hist.Draw('SAME')
+            i+=1
+            pass
+        leg.AddEntry(hist, "Scurve for vthr%i"%thr[i-1])
         pass
-    else:
-        hist.Draw('SAME')
-        i+=1
-        pass
-    leg.AddEntry(hist, "Scurve for vthr%i"%thr[i-1])
-    pass
-leg.Draw('SAME')
-canvas.Update()
-canvas.SaveAs('Scurve_vs_Thresh_VFAT_%i_Strip_%i.png'%(vfat, strip))
+    leg.Draw('SAME')
+    canvas.Update()
+    canvas.SaveAs('Scurve_vs_Thresh_VFAT_%i_Strip_%i.png'%(vfat, strip))

@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+"""
+plotTimeSeries
+==============
+"""
+
 def makePlots(chamberName, anaType, vt1bump, elog_path):
     call_command = 'gemPlotter.py --skipBadFiles --infilename='+getDirByAnaType(anaType,chamberName)+'listOfScanDates.txt --anaType=scurveAna --branchName=threshold --make2D --alphaLabels -a --axisMax=10'
     os.system(call_command)

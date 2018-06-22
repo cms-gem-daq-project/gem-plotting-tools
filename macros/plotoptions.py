@@ -1,5 +1,10 @@
 from optparse import OptionParser
 
+"""
+plotoptions
+===========
+"""
+
 parser = OptionParser()
 parser.add_option("-c","--channels", action="store_true", dest="channels",
                   help="Make plots vs channels instead of strips", metavar="channels")
