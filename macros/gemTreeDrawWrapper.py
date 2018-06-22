@@ -28,6 +28,114 @@ function defined at runtime through the command line arguments.
 Each plot produced will be stored as an output ``*.png`` file. Additionally an
 output ``TFile`` will be produced which will contain each of the plots, stored
 as ``TGraph`` objects, canvases, and fits produced.
+
+Mandatory arguments
+-------------------
+
+The following list shows the mandatory inputs that must be supplied to execute
+the script.
+
+.. program:: gemTreeDrawWrapper.py
+
+.. option:: --anaType <ANALYSIS TYPE>
+
+    Analysis type to be executed, see :any:`utils.anaInfo.tree_names` for
+    possible inputs.
+
+.. option:: --treeExpress <EXPRESSION>
+
+    Expression to be drawn, corresponds to the ``varexp`` argument of
+    ``TTree::Draw()``.
+
+.. option:: -i, --infilename <FILE NAME>
+
+    Physical filename of the input file to be passed to
+    :program:`gemPlotter.py`. See :any:`Two Column Format` for details on the
+    format and contents of this file.
+
+Note for those :option:`--anaType` values which have the substring ``Ana`` in
+their names it is expected that the user has already run :program:`ana_scans.py`
+on the corresponding ``scandate`` to produce the necessary input file for
+:program:`gemPlotter.py`.
+
+Optional arguments
+------------------
+
+.. option:: --axisMaxX <NUMBER>
+
+    Maximum value for X-axis range.
+
+.. option:: --axisMinX <NUMBER
+
+    Minimum value for X-axis range, note this parameter will default to 0
+    :option:`--axisMaxX` is given.
+
+.. option:: --axisMaxY <NUMBER>
+
+    Maximum value for Y-axis range.
+
+.. option:: --axisMinY <NUMBER>
+
+    Minimum value for Y-axis range, note this parameter will default to 0
+    :option:`--axisMaxY` is given.
+
+.. option:: --drawLeg
+
+    When used with :option:`--summary` option draws a ``TLegend`` on the output
+    plot.
+
+.. option:: --fitFunc <EXPRESSION>
+
+    Expression following the `TFormula syntax`_ for defining a ``TF1`` to be
+    fitted to the plot.
+
+    .. _TFormula syntax: https://root.cern.ch/doc/master/classTFormula.html
+
+.. option:: --fitGuess <COMMA-SEPARATED LIST OF NUMBERS>
+
+    Initial guess for fit parameters defined in :option:`--fitFunc`. Note, order
+    of params here should match that of :option:`--fitFunc`.
+
+.. option:: --fitOpt <OPTION>
+
+    Option to be used when fitting, a complete list can be found `here`_.
+
+    .. _here: https://root.cern.ch/doc/master/classTH1.html#a7e7d34c91d5ebab4fc9bba3ca47dabdd
+
+.. option:: --fitRange <COMMA-SEPARATED LIST OF NUMBERS>
+
+    Defines the range the fit function is valid on.
+
+.. option:: --rootOpt <OPTION>
+
+    Option for creating the output ``TFile``, e.g. ``RECREATE`` or ``UPDATE``
+
+.. option:: --showStat
+
+    Causes the statistics box to be drawn on created plots.
+
+.. option:: --summary
+
+    Make a summary canvas with all created plots drawn on it.
+
+.. option:: --treeSel <EXPRESSION>
+
+    Selection to be used when making the plot, corresponds to the selection
+    argument of `TTree::Draw()`_.
+
+    .. _TTree::Draw(): https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45
+
+.. option:: --treeDrawOpt <OPTION>
+
+    Draw option to be used for the procued plots.
+
+.. option:: --ztrim <NUMBER>
+
+    The ztrim value that was used when running the scans listed in
+    :option:`--infilename`
+
+Internals
+---------
 """
 
 def getPlotFromTree(filename, treeName, expression, selection=""):
