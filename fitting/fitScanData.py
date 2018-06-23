@@ -10,11 +10,6 @@ class DeadChannelFinder(object):
     This class has only one function, :py:meth:`feed`, that takes an entry from
     the S-curve tree and updates the results.
 
-    Attributes:
-        isDead (numpy.array): 2D array of ``bool``s, indexed as
-            ``[vfat][channel]``. Each entry is ``True`` if the channel is
-            dead, ``False`` otherwise.
-
     Example:
         Typical usage:
 
@@ -26,6 +21,10 @@ class DeadChannelFinder(object):
                 pass
             # Use the results...
 
+    Attributes:
+        isDead (numpy.ndarray): 2D array of ``bool``, indexed as
+            ``[vfat][channel]``. Each entry is ``True`` if the channel is
+            dead, ``False`` otherwise.
     """
     def __init__(self):
         self.isDead = [ np.ones(128, dtype=bool) for i in range(24) ]
