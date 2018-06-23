@@ -37,13 +37,87 @@ class DeadChannelFinder(object):
         self.isDead[event.vfatN][event.vfatCH] = False
 
 class ScanDataFitter(DeadChannelFinder):
-    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False):
-        """
-        calDAC2Q_m - list of slope values for "fC = m * cal_dac + b" equation, ordered by vfat position
-        calDAC2Q_b - as calDAC2Q_m but for intercept b
-        isVFAT3 - if using VFAT3
-        """
+    r"""
+    Fits S-curves.
 
+    This class is used in two steps:
+
+    #. The data to fit is passed to the object using :py:meth:`feedHisto`,
+       :py:meth:`readFile` or repeated calls to :py:meth:`feed`.
+    #. The fit is performed by calling :py:meth:`fit`.
+
+    One cannot count on all attributes being present before calling
+    :py:meth:`fit`.
+
+    .. note::
+
+        If the :py:attr:`calDAC2Q_m` and :py:attr:`calDAC2Q_b` were supplied at
+        construction time, values will be in charge units instead of DAC units.
+
+    See :program:`anaUltraScurve.py` for example usage.
+
+    Attributes:
+        Nev (ndict): 2D array of ``int``, indexed as ``[vfat][channel]``.
+
+        scanFuncs (ndict): 2D array of ``TF1``, indexed as ``[vfat][channel]``.
+            After fitting, each entry contains the fit function for the
+            corresponding channel. The functions are color-coded:
+
+            ======= =====================================
+            Color   Meaning
+            ======= =====================================
+            Black   Default
+            Blue    Fit Converged
+            Gray    Dead channel or empty input histogram
+            Orange  Fit result is empty
+            ======= =====================================
+
+        scanHistos (ndict): 2D array of ``TH1``, indexed as
+            ``[vfat][channel]``, that contain the S-curve results (number of
+            events vs charge)
+
+        scanCount (ndict): 2D array of ``int``, indexed as ``[vfat][channel]``.
+            Each entry contains the total number of events for the corresponding
+            channel.
+
+        scanFitResults (ndict): 3D array of ``float``, indexed as
+            ``[idx][vfat][channel]``, that contain the fit results. ``idx`` has
+            the following meaning:
+
+            0. S-curve mean in either DAC units or charge (threshold of
+               comparator)
+            1. S-curve width in either DAC units or charge (noise seen by
+               comparator)
+            2. S-curve pedestal in hits (e.g. at 0 VCAL this is the
+               noise)
+            3. :math:`\chi^2` of the fit
+            4. Same as ``self.scanCount[vfat][channel]``
+            5. Number of degrees of freedom (NDF) of the fit
+
+        calDAC2Q_m (numpy.ndarray): Calibration of ``calDAC`` to charge for each
+            VFAT. This corresponds to :math:`m` in
+
+            .. math::
+
+                Q = m * \mathtt{calDAC} + b
+
+            If no value was given at construction time, this is an arrays of
+            ones.
+
+        calDAC2Q_b (numpy.ndarray): Calibration of ``calDAC`` to charge for each
+            VFAT. This corresponds to :math:`b` in
+
+            .. math::
+
+                Q = m * \mathtt{calDAC} + b
+
+            If no value was given at construction time, this is an arrays of
+            zeros.
+
+        isVFAT3 (bool): Whether the detector under consideration uses VFAT3
+    """
+
+    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False):
         super(ScanDataFitter, self).__init__()
 
         from gempython.utils.nesteddict import nesteddict as ndict
@@ -96,6 +170,7 @@ class ScanDataFitter(DeadChannelFinder):
         return
 
     def feed(self, event):
+        # Docs inherited from parent class
         super(ScanDataFitter, self).feed(event)
 
         charge = self.calDAC2Q_m[event.vfatN]*event.vcal+self.calDAC2Q_b[event.vfatN]
@@ -125,6 +200,16 @@ class ScanDataFitter(DeadChannelFinder):
         return
 
     def feedHisto(self, vfatN, vfatCH, histo, nEvts=None):
+        """
+        Feed the fitter with data stored in an histogram.
+
+        Args:
+            vfatN (int): The VFAT under consideration
+            vfatCH (int): The channel under consideration
+            histo (int): The data for the channel under consideration
+            nEvts (int): Override :py:attr`Nev` for the channel under
+                consideration (else the maximum value in the histogram is used)
+        """
         self.scanHistos[vfatN][vfatCH] = histo
         self.isDead[vfatN][vfatCH] = False
         if nEvts is None:
@@ -137,25 +222,10 @@ class ScanDataFitter(DeadChannelFinder):
 
     def fit(self, debug=False):
         """
-        Iteratively fits all scurves
-        Note:   if the user supplied calDAC2Q_m and calDAC2Q_b at
-                construction then output container will have relevant
-                parameters in charge units instead of DAC units
+        Iteratively fits all scurves, and populates the relevant class
+        attributes.
 
-        Returns self.scanFitResults
-            
-                 [0][vfat][ch] = scurve mean in either DAC units or charge (threshold of comparator)
-                 [1][vfat][ch] = scurve width in either DAC units or charge (noise seen by comparator)
-                 [2][vfat][ch] = scurve pedestal in hits (e.g. at 0 VCAL this is the noise)
-                 [3][vfat][ch] = fitChi2
-                 [4][vfat][ch] = self.scanCount[vfat][ch]
-                 [5][vfat][ch] = fitNDF
-
-        The TF1 is color coded:
-            Black - Default
-            Blue - Fit Converged 
-            Gray - Dead channel or empty input histogram
-            Orange - Fit result is empty
+        Returns: The filled :py:attr:`scanFitResults`
         """
 
         r.gROOT.SetBatch(True)
@@ -310,15 +380,34 @@ class ScanDataFitter(DeadChannelFinder):
         return self.scanFitResults
     
     def getFunc(self, vfat, ch):
+        """Returns the fit function for the given VFAT and channel"""
         return self.scanFuncs[vfat][ch]
 
     def readFile(self, treeFileName):
+        """
+        Reads data from an ``scurveData.root`` file produced by
+        ``ultraScurve.py``.
+        """
         inF = r.TFile(treeFileName)
         for event in inF.scurveTree :
             self.feed(event)
         return
 
 def fitScanData(treeFileName, isVFAT3=False, calFileName=None):
+    """
+    Helper function to fit scan data. Creates a :py:class:`ScanDataFitter`,
+    loads the data and returns the results of :py:meth:`ScanDataFitter.fit`.
+
+    Args:
+        treeFileName (string): Path to the ``TFile`` that contains the scan data
+        isVFAT3 (bool): Whether the detector uses VFAT3
+        calFileName (string): Path to the file that contains calibration data
+
+    .. seealso::
+
+        :py:func:`gempython.gemplotting.utils.anautilities.parseCalFile` for the
+        format of the calibration file.
+    """
     from gempython.gemplotting.utils.anautilities import parseCalFile
     
     # Get the fitter
