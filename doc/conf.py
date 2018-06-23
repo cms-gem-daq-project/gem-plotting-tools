@@ -26,7 +26,14 @@ sys.path.insert(0, os.path.abspath('../macros')) # macros directory
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.napoleon', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.viewcode']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinxcontrib.napoleon',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
+    'sphinx.ext.pngmath',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode']
 
 # Disable numpy docstrings for Napoleon, because they eat headers such as
 # "Examples"
