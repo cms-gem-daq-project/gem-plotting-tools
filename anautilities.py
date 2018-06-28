@@ -69,8 +69,8 @@ def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
     for idx in range(3072):
         # Determine vfat, ieta, and iphi
         vfat = idx // 128
-        ieta = chamber_vfatPos2iEtaiPhi[vfatN][0]
-        iphi = chamber_vfatPos2iEtaiPhi[vfatN][1]
+        ieta = chamber_vfatPos2iEtaiPhi[vfat][0]
+        iphi = chamber_vfatPos2iEtaiPhi[vfat][1]
 
         # Determine strip, panasonic pin, or channel
         chan = idx % 128
