@@ -37,6 +37,51 @@ def first_index_gt(data_list, value):
     except StopIteration: 
         return len(data_list)
 
+def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
+    """
+    Generates a 2D map of the detector as a TH2D. Y-axis will be ieta. X-axis will be ROBstr (strip),
+    vfat channel or panasonic pin number.  The z-axis will be the elements of obsData with label zLabel
+
+    vfatChanLUT - Nested dictionary specifying the VFAT channel to strip and PanPin mapping;
+                  see getMapping() for details on expected format
+    obsData     - Numpy array w/3072 entries storing, index goes as [vfat*128+chan]
+    mapName     - Type of map to be produced, will be the x-axis.  See mappingNames of anaInfo
+                  for possible options
+    zLabel      - Label of the z-axis
+    """
+
+    from anaInfo import mappingNames
+    import os
+
+    if mapName not in mappingNames:
+        print("get2DMapOfDetector(): mapName %s not recognized"%mapName)
+        print("\tAvailable options are:")
+        print("\t",mappingNames)
+        raise LookupError
+
+    import ROOT as r
+    hRetMap = r.TH2F("ieta_vs_%s_%s"%(mapName,zLabel),"",384,-0.5,383.5,8,0.5,8.5)
+    hRetMap.SetXTitle(mapName)
+    hRetMap.SetYTitle("i#eta")
+    hRetMap.SetZTitle(zLabel)
+
+    from ..mapping.chamberInfo import chamber_vfatPos2iEtaiPhi
+    for idx in range(3072):
+        # Determine vfat, ieta, and iphi
+        vfat = idx // 128
+        ieta = chamber_vfatPos2iEtaiPhi[vfatN][0]
+        iphi = chamber_vfatPos2iEtaiPhi[vfatN][1]
+
+        # Determine strip, panasonic pin, or channel
+        chan = idx % 128
+        stripPinOrChan = vfatChanLUT[vfat][mapName][chan]
+
+        # Set Bin Content of Histogram
+        hRetMap.SetBinContent( ((iphi-1)*128+stripPinOrChan)+1, ieta, obsData[idx])
+        pass
+
+    return hRetMap
+
 def getCyclicColor(idx):
     import ROOT as r
 

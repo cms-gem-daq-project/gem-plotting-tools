@@ -142,7 +142,7 @@ if __name__ == '__main__':
     import ROOT as r
     
     from array import array
-    from gempython.gemplotting.utils.anautilities import getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
+    from gempython.gemplotting.utils.anautilities import get2DMapOfDetector, getEmptyPerVFATList, getMapping, isOutlierMADOneSided, parseCalFile, saveSummary, saveSummaryByiEta
     from gempython.gemplotting.utils.anaInfo import mappingNames, MaskReason
     from gempython.gemplotting.fitting.fitScanData import ScanDataFitter
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -660,6 +660,9 @@ if __name__ == '__main__':
         gDetThresh_All.GetXaxis().SetTitle("scurve mean pos #left(fC#right)")
         gDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
 
+        # Make a thresh map dist for the entire detector
+        hDetMapThresh = get2DMapOfDetector(dict_vfatChanLUT, allThresh, stripChanOrPinType, "threshold #left(fC#right)")
+
         # Make a EffPed Summary Dist For the entire Detector
         hDetEffPed_All = r.TH1F("hScurveEffPedDist_All","All VFATs;S-Curve Effective Pedestal #left(N#right);N",
                                 nPulses+1, -0.5, nPulses+0.5)
@@ -690,7 +693,10 @@ if __name__ == '__main__':
         gDetENC_All.SetName("gScurveSigmaDist_All")
         gDetENC_All.GetXaxis().SetTitle("scurve sigma #left(fC#right)")
         gDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/10.))
-    
+        
+        # Make a ENC map dist for the entire detector
+        hDetMapENC = get2DMapOfDetector(dict_vfatChanLUT, allENC, stripChanOrPinType, "noise #left(fC#right)")
+
         # Make the plots by iEta
         for ieta in range(1,9):
             # S-curve mean position (threshold)
@@ -861,10 +867,12 @@ if __name__ == '__main__':
         dirSummary.cd()
         hDetThresh_All.Write()
         gDetThresh_All.Write()
+        hDetMapThresh.Write()
         hDetEffPed_All.Write()
         gDetEffPed_All.Write()
         hDetENC_All.Write()
         gDetENC_All.Write()
+        hDetMapENC.Write()
    
         for ieta in range(1,9):
             dir_iEta = dirSummary.mkdir("ieta%i"%ieta)
