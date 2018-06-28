@@ -661,7 +661,8 @@ if __name__ == '__main__':
         gDetThresh_All.GetYaxis().SetTitle("Entries / %f fC"%(detThresh_Std/10.))
 
         # Make a thresh map dist for the entire detector
-        hDetMapThresh = get2DMapOfDetector(dict_vfatChanLUT, allThresh, stripChanOrPinType, "threshold #left(fC#right)")
+        hDetMapThresh = get2DMapOfDetector(dict_vfatChanLUT, allThresh, stripChanOrPinType, "threshold")
+        hDetMapThresh.SetZTitle("threshold #left(fC#right)")
 
         # Make a EffPed Summary Dist For the entire Detector
         hDetEffPed_All = r.TH1F("hScurveEffPedDist_All","All VFATs;S-Curve Effective Pedestal #left(N#right);N",
@@ -695,7 +696,9 @@ if __name__ == '__main__':
         gDetENC_All.GetYaxis().SetTitle("Entries / %f fC"%(detENC_Std/10.))
         
         # Make a ENC map dist for the entire detector
-        hDetMapENC = get2DMapOfDetector(dict_vfatChanLUT, allENC, stripChanOrPinType, "noise #left(fC#right)")
+        hDetMapENC = get2DMapOfDetector(dict_vfatChanLUT, allENC, stripChanOrPinType, "noise")
+        hDetMapENC.SetZTitle("noise #left(fC#right)")
+        hDetMapENC.GetZaxis().SetRangeUser(0.5,0.30)
 
         # Make the plots by iEta
         for ieta in range(1,9):
