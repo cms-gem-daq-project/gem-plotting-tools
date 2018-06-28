@@ -70,9 +70,11 @@ chamber_iEta2VFATPos = {
         }
 
 chamber_vfatPos2iEta = {}
+chamber_vfatPos2iEtaiPhi = {}
 for ieta, vfatRow in chamber_iEta2VFATPos.iteritems():
     for vfat,phi in vfatRow.iteritems():
         chamber_vfatPos2iEta[vfat] = ieta
+        chamber_vfatPos2iEtaiPhi[vfat] = (ieta,phi)
         pass
     pass
 
@@ -91,7 +93,7 @@ chamber_vfatDACSettings = {
     #        #Set the Latency - 10x10 PMT on R&D Setup
     #        "CFG_LATENCY":98,
     #        #Correct the bug in the shaper
-    #        "CFG_PT":3,
+    #        "CFG_PT":7,
     #        #Updated DAC settings from Flavio
     #        "CFG_BIAS_SH_I_BDIFF":150,
     #        "CFG_BIAS_SH_I_BFCAS":250,
@@ -126,7 +128,7 @@ chamber_vfatDACSettings = {
     #        #Set the Latency - 10x10 PMT on R&D Setup
     #        "CFG_LATENCY":98,
     #        #Correct the bug in the shaper
-    #        "CFG_PT":3,
+    #        "CFG_PT":7,
     #        #Updated DAC settings from Flavio
     #        "CFG_BIAS_SH_I_BDIFF":150,
     #        "CFG_BIAS_SH_I_BFCAS":250,
