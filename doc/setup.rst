@@ -65,3 +65,15 @@ To re-enable the python env, source the script again:
     source setup_gemdaq.sh
 
 Note that you should always source the setup script from the same directory.
+
+.. note::
+
+    On the P5 machines, ``gem-plotting-tools`` is already installed system-wide.
+    Setting it up is as simple as:
+
+    .. code-block:: bash
+
+        source /nfshome0/gempro/bin/get_gem_env.sh
+
+    This command should be run every time you connect. You can put it in your
+    ``.bashrc`` or ``.bash_profile`` so it's done automatically.
