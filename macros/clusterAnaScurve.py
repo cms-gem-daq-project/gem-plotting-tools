@@ -112,9 +112,32 @@ Optional arguments
     Specify the :math:`P`-value of the trim in the quantity:
     ``scurve_mean - ztrim * scurve_sigma``
 
-Finally :program:`clusterAnaScurve.py` can also be passed the cut values used in
-assigning a ``maskReason`` described at
-:any:`Providing Cuts for ``maskReason`` at Runtime`.
+Parameters which specify how Dead, Noisy, and High Pedestal Channels are
+characterized:
+
+.. option:: --maxEffPedPercent <PERCENTS>
+
+    Threshold for setting the ``HighEffPed`` mask reason, if channel
+    (``effPed > maxEffPedPercent * nevts``) then
+    :py:data:`gempython.gemplotting.utils.anaInfo.MaskReason.HighEffPed` is set.
+
+.. option:: --highNoiseCut <CHARGE>
+
+    Threshold for setting the ``HighNoise`` ``maskReason``, if channel
+    (``scurve_sigma > highNoiseCut``) then
+    :py:data:`gempython.gemplotting.utils.anaInfo.MaskReason.HighNoise` is set.
+
+.. option:: --deadChanCutLow <CHARGE>
+
+    If channel (``deadChanCutLow < scurve_sigma < deadChanCutHigh``) then
+    :py:data:`gempython.gemplotting.utils.anaInfo.MaskReason.DeadChannel` is
+    set.
+
+.. option:: --deadChanCutHigh <CHARGE>
+
+    If channel (``deadChanCutHigh < scurve_sigma < deadChanCutHigh``) then
+    :py:data:`gempython.gemplotting.utils.anaInfo.MaskReason.DeadChannel` is
+    set.
 
 Full Example For P5 S-Curve Data
 --------------------------------
