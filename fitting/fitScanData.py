@@ -1,17 +1,40 @@
-"""
-``fitScanData`` --- S-curves fits
----------------------------------
-"""
-
 import numpy as np
 import ROOT as r
 from gempython.gemplotting.utils.anaInfo import dict_calSF
 
 class DeadChannelFinder(object):
+    r"""
+    Finds channels that returned no data during an S-curve scan ("dead"
+    channels).
+
+    This class has only one function, :py:meth:`feed`, that takes an entry from
+    the S-curve tree and updates the results.
+
+    Attributes:
+        isDead (numpy.array): 2D array of ``bool``s, indexed as
+            ``[vfat][channel]``. Each entry is ``True`` if the channel is
+            dead, ``False`` otherwise.
+
+    Example:
+        Typical usage:
+
+        .. code-block:: python
+
+            finder = DeadChannelFinder()
+            for event in file.scurveTree:
+                finder.feed(event)
+                pass
+            # Use the results...
+
+    """
     def __init__(self):
         self.isDead = [ np.ones(128, dtype=bool) for i in range(24) ]
 
     def feed(self, event):
+        """
+        Takes an entry from the S-curve tree and updates the results
+        accordingly.
+        """
         self.isDead[event.vfatN][event.vfatCH] = False
 
 class ScanDataFitter(DeadChannelFinder):
