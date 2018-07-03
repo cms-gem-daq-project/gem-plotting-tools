@@ -7,6 +7,7 @@ Table of contents
 .. toctree::
    :maxdepth: 2
 
+   coding
    macros
    fitting
    mapping
