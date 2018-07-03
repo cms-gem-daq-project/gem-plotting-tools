@@ -31,14 +31,10 @@ Macros
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: clusterAnaScurve
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 .. toctree::
     :maxdepth: 1
 
+    man/clusterAnaScurve
     man/gemPlotter
 
 .. automodule:: gemSCurveAnaToolkit

@@ -3,6 +3,7 @@
 --------------------------------------------------------
 """
 
+#: Available chambers
 chamber_config = {
     #Coffin Setup
     #0:"GE11-VI-L-CERN-0002"
