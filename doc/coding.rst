@@ -183,6 +183,70 @@ They are located in ``doc/_build/man`` and can be viewed using ``man <FILE>``.
     new ``pip`` package and install it before running ``make html`` or
     ``make man``.
 
+Writing documentation
+.....................
+
+The documentation uses Restructured Text. It should be easy to learn if you
+already know Markdown, but it is much more powerful. Here are some useful links
+to get you started, in no particular order:
+
+  * https://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html
+  * http://www.sphinx-doc.org/en/stable/markup/para.html
+
+The structure of the documentation is created by hand using ```.rst``` files
+located in the ```doc``` folder. ``man`` pages are created from files located in
+``doc/man`` and must be listed in ``doc/conf.py`` to be generated.
+
+Cross-referencing (links *within* the documentation) is achieved using so-called
+*roles*. A role specifies the kind of resource that the link should point to (Is
+it a Python function? A module? A documentation page?) The list of roles used to
+document Python code can be found
+`here <http://www.sphinx-doc.org/en/stable/domains.html#python-roles>`_.
+
+Tips
+....
+
+* You may sometimes want to use backslashes (\) in your documentation, be it to
+  escape some active characters like * or to include LaTeX code (see below).
+  When inside a Python docstring, these can be mangled by the interpreter: in
+  the following code, "\r" is turned into a carriage return:
+
+  .. code-block:: python
+
+    """I want to say \r"""
+
+  An easy way to avoid this problem is to use "raw" strings:
+
+  .. code-block:: python
+
+    r"""I want to say \r"""
+
+* It's possible to put LaTeX formulas in the documentation. Use them instead of
+  fixed-width characters: they are easier to the eye of a physicist. Here's an
+  example:
+
+  .. code-block:: rst
+
+    .. math::
+
+        f(x) =
+            A \operatorname{erf} \left[
+                \frac{\max(x_0, x)-\mu}{\sqrt 2 \sigma}
+            \right]
+            + B
+
+  This gives:
+
+  .. math::
+
+    f(x) =
+        A \operatorname{erf} \left[
+            \frac{\max(x_0, x)-\mu}{\sqrt 2 \sigma}
+        \right]
+        + B
+
+  Did you recognize the S-curve fit function?
+
 .. Link targets
 
 .. _gembuild: https://github.com/cms-gem-daq-project/gembuild
