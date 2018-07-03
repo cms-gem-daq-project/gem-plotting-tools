@@ -26,7 +26,7 @@ Tags for each of the repo's can be found:
 * `cmsgemos <https://github.com/cms-gem-daq-project/cmsgemos/tags>`_ version
   X.Y.Z (``-c X.Y.Z``)
 * `gemplotting <https://github.com/cms-gem-daq-project/gem-plotting-tools/tags>`_
-  version X.Y.Z-dev**A** (``-g X.Y.Z -G A``)
+  version X.Y.Z-devA (``-g X.Y.Z -G A``)
 
 Where ``X``, ``Y``, ``Z``, and ``A`` are integers, and most likely will be
 different for each of the repositories. If a development version is not to be
