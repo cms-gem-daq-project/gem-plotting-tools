@@ -66,6 +66,10 @@ Once the package is built, it can be installed using:
 
     This command will *replace* any previously installed version.
 
+Once the package is installed, the tools in :envvar:`PATH` will be replaced by
+the version you have checked out, and any new developments will be made
+available.
+
 Guidelines
 ----------
 
