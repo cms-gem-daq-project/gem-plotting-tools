@@ -3,7 +3,8 @@ Coding
 
 Coding is done from within your ``virtualenv``, ideally on one of the 904 DAQ
 machines; ``lxplus`` is only supported on a *best-effort* basis. Follow the
-:doc:`setup instructions <setup>` first (or :any:`Setting up a virtualenv at P5` if you
+:doc:`setup instructions <setup>` first (or :doc:`Setting up a virtualenv at P5
+<virtualenv-p5>` if you
 need to work there). It is recommended that you use a separate ``virtualenv``
 for development. The instructions below assume that your ``virtualenv`` is
 installed and activated.

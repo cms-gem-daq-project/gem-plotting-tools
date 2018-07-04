@@ -9,6 +9,7 @@ Table of contents
 
    setup
    coding
+   virtualenv-p5
    macros
    fitting
    mapping
