@@ -149,7 +149,7 @@ Testing
 Documentation
 -------------
 
-This project is documented using `Sphinx`. Once the package has been installed
+This project is documented using `Sphinx`_. Once the package has been installed
 in your ``virtualenv``, the documentation can be built using:
 
 .. code-block:: bash
