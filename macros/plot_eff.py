@@ -40,7 +40,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     # Load data - RAW
     import root_numpy as rp
     import numpy as np
-    list_bNames = ["vfatN","lat","Nhits","Nev"]
+    list_bNames = ["vfatN","latency","Nhits","Nev"]
     try:
         array_VFATData = rp.root2array(filename_RAW,"latTree",list_bNames)
         pass
@@ -76,7 +76,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
                 exit(os.EX_DATAERR)
         else:
             vfatData = array_VFATData[ array_VFATData['vfatN'] == vfat]
-            latData = vfatData[vfatData['lat'] == latBin]
+            latData = vfatData[vfatData['latency'] == latBin]
             nHits += np.asscalar(latData['Nhits'])
 
     # Calc Eff & Error
