@@ -86,7 +86,8 @@ The basic idea is the following:
 * Create a branch to develop your particular feature (based off of ``develop``,
   or in some cases, the current release branch)
 
-  * ``hotfix`` may be created from ``master``
+  * ``hotfix`` may be created from ``master`` if the corresponding fix is also
+    applied to ``develop``
   * Once that feature is completed, create a pull request
 
 * ``master`` should always be stable: Do not commit directly onto ``master`` or
