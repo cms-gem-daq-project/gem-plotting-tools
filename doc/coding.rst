@@ -60,7 +60,7 @@ Once the package is built, it can be installed using:
 
 .. code-block:: bash
 
-    pip install -U rpm/gempython_gemplotting-1.0.0.tar.gz
+    pip install -I rpm/gempython_gemplotting-1.0.0.tar.gz
 
 .. warning::
 
