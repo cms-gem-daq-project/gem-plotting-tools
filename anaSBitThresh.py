@@ -44,6 +44,15 @@ if __name__ == '__main__':
         vRate2D[vfat] = r.TH2D("h2DRate_vthr_vs_chan_VFAT%i"%vfat,"VFAT%i;vfatCH;CFG_THR_ARM_DAC #left[DAC Units#right];Rate #left(Hz#right)"%vfat,128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
         vRate2D[vfat].GetYaxis().SetRangeUser(1e-1,1e9)
 
+    # Overall distribution
+    #1D distribution
+    vRate[24] = r.TH1D("h_Rate_vs_vthr_AllVFATs","All VFATs;CFG_THR_ARM_DAC #left[DAC Units#right];Rate #left(Hz#right)",VT1_MAX+1,-0.5,VT1_MAX+0.5)
+    vRate[24].GetXaxis().SetRangeUser(1e-1,1e9)
+
+    #2D distribution
+    vRate2D[24] = r.TH2D("h2DRate_vthr_vs_chan_AllVFATs","All VFATs;vfatCH;CFG_THR_ARM_DAC #left[DAC Units#right];Rate #left(Hz#right)",128,-0.5,127.5,VT1_MAX+1,-0.5,VT1_MAX+0.5)
+    vRate2D[24].GetYaxis().SetRangeUser(1e-1,1e9)
+
     print 'Filling Histograms'
     for event in inF.rateTree :
         if event.vfatCH == 128:
@@ -63,6 +72,7 @@ if __name__ == '__main__':
         canv_RateSummary.cd(chamber_vfatPos2PadIdx[vfat]).Update()
         dirRatePlots1D.cd()
         vRate[vfat].Write()
+    vRate[24].Write()
     canv_RateSummary.SaveAs(filename+'/RateSummary1D.png')
 
     canv_Rate2DSummary = make3x8Canvas('canv_Rate2DSummary', vRate2D, 'colz')
@@ -72,6 +82,7 @@ if __name__ == '__main__':
         canv_Rate2DSummary.cd(chamber_vfatPos2PadIdx[vfat]).Update()
         dirRatePlots2D.cd()
         vRate2D[vfat].Write()
+    vRate2D[24].Write()
     canv_Rate2DSummary.SaveAs(filename+'/RateSummary2D.png')
 
     #Now determine what VT1 to use for configuration.  The first threshold bin with no entries for now.
