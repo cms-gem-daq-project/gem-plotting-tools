@@ -11,7 +11,7 @@ We have been utilizing a very helpful guideline for our development model outlin
 The basic idea is the following:
 * fork from [cms-gem-daq-project/gem-plotting-tools](https://github.com/cms-gem-daq-project/gem-plotting-tools)
 * create a branch to develop your particular feature (based off of `develop`, or in some cases, the current `release` branch)
-  * `hotfix` may be created from `master`
+  * `hotfix` may be created from `master` if the corresponding fix is also applied to ``develop``
   * once that feature is completed, create a pull request
 * `master` should *always* be stable
   * Do *not* commit directly onto `master` or `develop`, and ensure that your `master` and `develop` are **always** up-to-date with `cms-gem-daq-project` before starting new developments
@@ -28,6 +28,15 @@ The basic idea is the following:
 ### Coding Style
 * Avoid using `tab`s, use an editor that is smart enough to convert all `tab`s to `space`s
 * Current convention is 4 `space`s per `tab` for `python` and `c++` code
+* Every externally visible entity *must* be documented
+* Python scripts should have an extensive module-level docstring describing, at the minimum:
+  * The calling syntax ("Synopsis" section)
+  * A description of what the script does
+  * The list of all arguments
+  * A list of relevant environment variable, and an explanation of how they influence the behaviour of the script
+  Adding a comprehensive set of examples is strongly encouraged but not mandatory.
+
+* Documentation of Python code should follow the [Google style](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings)
 
 ### Testing
 * You should, at a minimum, test that your interprets properly, and if possible, test that it runs without crashing
