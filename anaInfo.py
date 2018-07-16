@@ -69,6 +69,9 @@ class MaskReason:
     >>> from gempython.gemplotting.utils.anaInfo import MaskReason
     >>> MaskReason.humanReadable(24)
     'HighNoise,HighEffPed'
+
+    You'll find more detail about channel masking on the :doc:`dedicated page
+    </masking>`.
     """
 
     #: The channel is not masked
