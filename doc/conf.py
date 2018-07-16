@@ -42,6 +42,7 @@ extensions = [
     'sphinxcontrib.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
+    'sphinx.ext.doctest',
     'sphinx.ext.pngmath',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode']
