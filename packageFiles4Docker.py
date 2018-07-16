@@ -69,8 +69,7 @@ Please note that multiple :token:`--fileListX` arguments can be supplied at
 runtime, but at least one must be supplied.
 
 Each of the :token:`--fileListX` arguments can be supplied with a
-``listOfScanDates.txt`` file that follows either the :any:`Two Column Format` or
-the :any:`Three Column Format`.
+``listOfScanDates.txt`` file (:doc:`see here </scandate-list-formats>`).
 
 Example
 -------
