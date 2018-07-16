@@ -120,52 +120,13 @@ Note that you should always source the setup script from the same directory.
 
 ### Setup at Point 5
 
-Due to the limited Internet access, the setup at Point 5 is slightly more involved.
-
-Create a SOCKS proxy that will allow `pip` to reach the outer world:
+At P5, `gem-plotting-tools` is installed system-wide. Setting it up is as simple as:
 
 ```
-PORT=5000
-ssh -D *:$PORT lxplus.cern.ch -N -f
+source /nfshome0/gempro/bin/get_gem_env.sh
 ```
 
-If you get an error saying `bind: Address already in use`, try with `PORT=5001`, `5002`, ...
-
-> **Note**
-> The proxy expires after some time. Just create it again if `pip` complains about the network being unreachable.
-
-Define `$ELOG_PATH`:
-
-```
-export ELOG_PATH=/your/favorite/elog/path
-```
-
-Remove and download the setup script to ensure you have the most up-to-date version:
-
-```
-rm -f setup_gemdaq.sh
-ssh cmsusr wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
-```
-Then execute:
-
-```
-source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional> -P $PORT
-```
-
-If a development version is not to be used (normal case), you can drop the `-G` option. If this is the first time you are executing the above command, it will create a Python `virtualenv` for you and install the `cmsgemos` and `gemplotting` packages. You will be asked for you `cmsusr` and `lxplus` passwords, possibly several times.
-
-> **Example**
->
-> ```
-> source setup_gemdaq.sh -c 0.3.1 -g 1.0.0 -G 5 -P $PORT
-> ```
->
-> This command will install the following packages:
->
-> * [cmsgemos](https://github.com/cms-gem-daq-project/cmsgemos/tags) version 0.3.1 (`-c 0.3.1`)
-> * [gemplotting](https://github.com/cms-gem-daq-project/gem-plotting-tools/tags) version 1.0.0-dev5 (`-g 1.0.0 -G 5`)
-
-After the script completes, you can use the usual commands to `deactivate` your `virtualenv` and activate it again (see above).
+This command should be run every time you connect. You can put it in your `.bashrc` or `.bash_profile` so it's done automatically.
 
 ## Masking Channels Algorithmically
 

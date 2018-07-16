@@ -7,6 +7,9 @@ Table of contents
 .. toctree::
    :maxdepth: 2
 
+   setup
+   coding
+   virtualenv-p5
    macros
    fitting
    mapping
