@@ -11,6 +11,7 @@ Table of contents
    coding
    virtualenv-p5
    macros
+   scandate-list-formats
    fitting
    mapping
    utils
