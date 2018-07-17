@@ -7,7 +7,7 @@
 Synopsis
 --------
 
-**gemSCurveAnaToolkit.py** :token:`-i` <*LIST OF SCAN DATES*> :token:`--anaType` <*ANALYSIS TYPE*> :token:`-v` <*VFAT*> :token:`-s` <*STRIP OR CHANNEL*> [*OPTIONS*]
+**gemSCurveAnaToolkit.py** :token:`-i` <*LIST OF SCAN DATES FILE*> :token:`--anaType` <*ANALYSIS TYPE*> :token:`-v` <*VFAT*> :token:`-s` <*STRIP OR CHANNEL*> [*OPTIONS*]
 
 Description
 -----------
