@@ -1,6 +1,13 @@
-"""
+r"""
 ``anaInfo`` --- Analysis information
-------------------------------------
+====================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.utils.anahistory
+
+Documentation
+-------------
 """
 
 import string

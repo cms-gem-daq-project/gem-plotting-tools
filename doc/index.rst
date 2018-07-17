@@ -15,9 +15,7 @@ Table of contents
    analyzing-scans
    scurve-plotting-tools
    man-index
-   fitting
-   mapping
-   utils
+   modules-index
 
 Indices and tables
 ------------------

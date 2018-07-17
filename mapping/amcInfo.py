@@ -1,6 +1,13 @@
-"""
-``amcInfo`` --- CTP7 information
---------------------------------
+r"""
+``fitScanData`` --- CTP7 information
+====================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.mapping.amcInfo
+
+Documentation
+-------------
 """
 
 class ctp7Params:

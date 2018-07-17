@@ -1,6 +1,13 @@
-"""
+r"""
 ``anaoptions`` --- Common options for analysis tools
-----------------------------------------------------
+====================================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.utils.anahistory
+
+Documentation
+-------------
 """
 
 from optparse import OptionParser
