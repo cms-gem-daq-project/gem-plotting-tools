@@ -927,7 +927,7 @@ Then provide the terminal output of this last command to one of the GEM DAQ Expe
 For case 2, create time series plots to summarize the entire dataset, execute:
 
 ```
-<editor of your choice> $GEM_PLOTTING_PROJECT/mapping/chamberInfo.py
+<editor of your choice> $VIRTUAL_ENV/lib/python*/site-packages/gempython/gemplotting/mapping/chamberInfo.py
 ```
 
 And ensure the only uncommented entries of the `chamber_config` dictionary match the set of `ChamberName`'s that you have submitted jobs for.  Then execute:
