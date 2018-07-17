@@ -72,7 +72,7 @@ def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
     hRetMap.SetYTitle("i#eta")
     hRetMap.SetZTitle(zLabel)
 
-    from ..mapping.chamberInfo import chamber_vfatPos2iEtaiPhi
+    from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2iEtaiPhi
     for idx in range(3072):
         # Determine vfat, ieta, and iphi
         vfat = idx // 128
