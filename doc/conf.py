@@ -241,6 +241,8 @@ man_pages = [
      authors, 1),
     ('man/gemPlotter', 'gemPlotter.py', u'Plot time evolution of scan results',
      authors, 1),
+    ('man/gemSCurveAnaToolkit', 'gemSCurveAnaToolkit.py', u'Plot scan results vs time',
+     authors, 1),
     ('man/gemTreeDrawWrapper', 'gemTreeDrawWrapper.py', u'Make X-Y plots for each scan date',
      authors, 1),
     ('man/packageFiles4Docker', 'packageFiles4Docker.py', u'Creates a tarball containing data',

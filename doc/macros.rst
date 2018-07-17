@@ -36,15 +36,7 @@ Macros
 
     man/clusterAnaScurve
     man/gemPlotter
-
-.. automodule:: gemSCurveAnaToolkit
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-.. toctree::
-    :maxdepth: 1
-
+    man/gemSCurveAnaToolkit
     man/gemTreeDrawWrapper
     man/packageFiles4Docker
 
