@@ -46,10 +46,10 @@ Macros
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: plot_eff
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. toctree::
+    :maxdepth: 1
+
+    man/plot_eff
 
 .. automodule:: plot_noise_vs_trim
     :members:

@@ -13,6 +13,8 @@ Table of contents
    macros
    scandate-list-formats
    masking
+   analyzing-scans
+   scurve-plotting-tools
    fitting
    mapping
    utils
