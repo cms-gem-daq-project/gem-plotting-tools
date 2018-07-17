@@ -1,5 +1,6 @@
 """
-Tools to analyze the time evolution of detectors.
+``anahistory`` --- Tools to analyze the time evolution of detectors
+-------------------------------------------------------------------
 """
 
 import numpy as _np
