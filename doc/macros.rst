@@ -39,11 +39,7 @@ Macros
     man/gemSCurveAnaToolkit
     man/gemTreeDrawWrapper
     man/packageFiles4Docker
-
-.. automodule:: plotSCurveFitResults
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    man/plotSCurveFitResults
 
 .. automodule:: plotTimeSeries
     :members:
