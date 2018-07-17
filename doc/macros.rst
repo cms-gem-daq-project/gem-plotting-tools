@@ -97,3 +97,8 @@ Macros
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. toctree::
+    :maxdepth: 1
+
+    man/timeHistoryAnalyzer

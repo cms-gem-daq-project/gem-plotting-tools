@@ -245,6 +245,8 @@ man_pages = [
      authors, 1),
     ('man/packageFiles4Docker', 'packageFiles4Docker.py', u'Creates a tarball containing data',
      authors, 1),
+    ('man/timeHistoryAnalyzer', 'timeHistoryAnalyzer.py', u'Analyze the time evolution of channels',
+     authors, 1),
     ('man/clusterAnaScurve', 'clusterAnaScurve.py', u'Analyze S-curves using the LSF cluster',
      authors, 1),
 ]
