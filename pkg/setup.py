@@ -7,6 +7,7 @@ from os.path import isfile,join
 scriptdir  = 'gempython/scripts'
 scriptpath = '/opt/cmsgemos/bin'
 scripts    = listdir(scriptdir)
+mandir     = 'man'
 
 def readme():
     with open('README.md') as f:
@@ -53,6 +54,20 @@ __builddate__='{6:s}'
 """.format(__version__,__release__,__buildtag__,__gitrev__,__gitver__,__packager__,__builddate__))
     return '{0:s}'.format(__version__)
 
+def getdatafiles():
+    data_files = []
+
+    # Man files
+    man_sections = {}
+    for file in listdir(mandir):
+        print('Found man page: %s' % file)
+        section = file.split('.')[-1]
+        man_sections[section] = man_sections.get(section, []) + [join(mandir, file)]
+    for section in man_sections:
+        data_files.append(('share/man/man%s' % section, man_sections[section]))
+
+    return data_files
+
 setup(name             = '__packagename__',
       version          = getVersion(),
       # use_scm_version  = True,
@@ -66,6 +81,7 @@ setup(name             = '__packagename__',
       url              = 'https://cms-gem-daq-project.github.io/gem-plotting-tools',
       # namespace_package = "gempython",
       # packages         = __pythonmodules__, # for PEP420 native namespace util
+      data_files       = getdatafiles(),
       packages           = find_packages(), # for pkgutil namespace method
       include_package_data = True,
       package_data     = getpkgdata(),

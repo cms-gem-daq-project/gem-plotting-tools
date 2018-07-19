@@ -13,6 +13,7 @@ LongPackage  := gemplotting
 PackageName  := $(Namespace)_$(ShortPackage)
 PackageDir   := pkg/$(Namespace)/$(ShortPackage)
 ScriptDir    := pkg/$(Namespace)/scripts
+ManDir       := pkg/man
 
 # Explicitly define the modules that are being exported (for PEP420 compliance)
 PythonModules = ["$(Namespace).$(ShortPackage)", \
@@ -44,7 +45,7 @@ default:
 # need to ensure that the python only stuff is packaged into RPMs
 .PHONY: clean preprpm
 _rpmprep: preprpm
-preprpm: default
+preprpm: default man
 	@if ! [ -e pkg/installrpm.sh ]; then \
 		cp -rf config/scriptlets/installrpm.sh pkg/; \
 	fi
@@ -55,12 +56,15 @@ preprpm: default
 	@cp -rf ana_scans.py $(ScriptDir)
 	@cp -rf anaXDAQLatency.py $(ScriptDir)
 	@cp -rf packageFiles4Docker.py $(ScriptDir)
+	$(MakeDir) $(ManDir)
+	@cp -rf doc/_build/man/* $(ManDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt pkg
 
 clean:
 	-rm -rf $(ScriptDir)
 	-rm -rf $(PackageDir)
+	-rm -rf $(ManDir)
 	-rm -f  pkg/$(Namespace)/__init__.py
 	-rm -f  pkg/README.md
 	-rm -f  pkg/LICENSE
