@@ -8,6 +8,7 @@ The following tools exist for helping to understand scurve data:
 3. :program:`plot_vfat_and_channel_Scurve.py`
 4. :program:`plot_vfat_summary.py`
 5. :program:`summary_plots.py`
+6. :doc:`plotSCurveFitResults.py </man/plotSCurveFitResults>`
 
 These tools can all by found in the ``macros/`` subdirectory and are designed to
 be run on ``TFile`` objects containing the ``scurveFitTree`` ``TTree`` object
@@ -23,6 +24,8 @@ file; the plots made by tools 2-4 are:
   ``TH1D`` and its ``TF1`` on a ``TCanvas``, and
 - :program:`plot_vfat_summary.py`: Plots all scurves from a given VFAT as a ``TH2D`` on
   a ``TCanvas``.
+- :program:plotSCurveFitResults.py`: Superimposes the results of S-curve fits
+  for several scandates.
 
 Tool 5 :program:`summary_plots.py` produces the following plots from a single
 input file for a given VFAT depending on the command line argument supplied:
