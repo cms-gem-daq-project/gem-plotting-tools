@@ -587,12 +587,12 @@ def performFit(gDist, formula="gaus", fitOption="RQ"):
     import ROOT as r
 
     # Fit Scurve Mean distribution
-    arrayX = np.array(gMean.GetX())
-    name = "func_{0}".format((hMean.GetName()).strip('g'))
+    arrayX = np.array(gDist.GetX())
+    name = "func_{0}".format((gDist.GetName()).strip('g'))
     func = r.TF1(name,formula,np.min(arrayX), np.max(arrayX))
-    gMean.Fit(funcMean, fitOption)
+    gDist.Fit(func, fitOption)
 
-    return funcMean
+    return func
 
 #Use Median absolute deviation (MAD) to reject outliers
 #See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
