@@ -75,5 +75,5 @@ setup(name             = '__packagename__',
           'setuptools>=25.0'
       ],
       install_requires = getreqs(),
-      license          = 'MIT',
+      license          = 'GNU General Public License v3 (GPLv3)',
 )
