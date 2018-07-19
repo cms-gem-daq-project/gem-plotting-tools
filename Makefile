@@ -56,8 +56,10 @@ preprpm: default man
 	@cp -rf ana_scans.py $(ScriptDir)
 	@cp -rf anaXDAQLatency.py $(ScriptDir)
 	@cp -rf packageFiles4Docker.py $(ScriptDir)
+	-rm -rf $(ManDir)
 	$(MakeDir) $(ManDir)
 	@cp -rf doc/_build/man/* $(ManDir)
+	gzip $(ManDir)/*
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt pkg
 
