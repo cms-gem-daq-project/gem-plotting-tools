@@ -564,7 +564,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
 
     return (parsedListOfScanDates,strIndepVar)
 
-def performGaussianFit(gDist, formula="gaus", fitOption="RQ"):
+def performFit(gDist, formula="gaus", fitOption="RQ"):
     """
     Given an input TGraphErrors object fits it with the formula
     given by ``formula`` using the fit option ``fitOption``. 
