@@ -10,6 +10,21 @@ interchangeable.
 .. contents:: Table of Contents
     :local:
 
+Expected File Layout
+--------------------
+
+It is expected that :envvar:`DATA_PATH` is organized as follows:
+
+.. code-block:: bash
+
+    $DATA_PATH/<ChamberName>/<anaType>/<scandate>
+
+Where ``anaType`` may be multiple subdirectories (e.g. for latency scans with
+tracking data, it is ``latency/trk``). The function :py:func:`getDirByAnaType
+<gempython.gemplotting.utils.anautilities.getDirByAnaType>` is used to determine
+this full path (from :envvar:`DATA_PATH` to the scandate).
+
+
 Two Column Format
 -----------------
 
@@ -111,7 +126,7 @@ For each detector defined in the keys of :py:data:`chamber_config
 
 ::
 
-    $DATA_PATH/<ChamberName>/scurve/
+    $DATA_PATH/<ChamberName>/<anaType>/
 
 If you are interested in generating a set of ``listOfScanDates.txt`` files for
 measurements other than S-curves, supply the ``--anaType`` argument at the time
