@@ -42,11 +42,12 @@ if __name__ == '__main__':
 
     # Do we load an optional vfat serial number table? (e.g. chips did not have serial number in efuse burned in)
     import numpy as np
+    import root_numpy as rp
     if options.listOfVFATs is not None:
         try:
             mapVFATPos2VFATSN = np.loadtxt(
-                        fname = options.listOfVFATs
-                        dtype={'names': ('vfatN', 'serialNum'),
+                        fname = options.listOfVFATs,
+                        dtype={'names':('vfatN', 'serialNum'),
                                 'formats':('i4', 'i4')},
                         skiprows=1,
                     )
@@ -72,15 +73,16 @@ if __name__ == '__main__':
     legArmDacValues = r.TLegend(0.6,0.6,0.9,0.9)
 
     # Get the plots from all files
+    from gempython.gemplotting.utils.anaInfo import tree_names
     for idx,infoTuple in enumerate(listChamberAndScanDate):
         # Setup the path
-        dirPath = getDirByAnaType(options.anaType.strip("Ana"), infoTuple[0])
+        dirPath = getDirByAnaType("scurve", infoTuple[0])
         if not filePathExists(dirPath, infoTuple[1]):
             print 'Filepath %s/%s does not exist!'%(dirPath, infoTuple[1])
             print 'Please cross-check, exiting!'
             outF.Close()
             exit(os.EX_DATAERR)
-        filename = "%s/%s/%s"%(dirPath, infoTuple[1], tree_names[options.anaType][0])
+        filename = "%s/%s/%s"%(dirPath, infoTuple[1], tree_names["scurveAna"][0])
 
         # Load the file
         r.TH1.AddDirectory(False)
@@ -92,6 +94,11 @@ if __name__ == '__main__':
             print("And then call this script again")
             raise IOError
 
+        # Determine vfatID
+        list_bNames = ['vfatN','vfatID']
+        array_vfatData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
+        array_vfatData = np.unique(array_vfatData)
+        
         ###################
         # Get and fit individual distributions
         ###################
@@ -100,7 +107,14 @@ if __name__ == '__main__':
                 suffix = "All"
                 directory = "Summary"
             else:
-                suffix = "vfat{0}".format(vfat)
+                if options.listOfVFATs is not None:
+                    vfatID = mapVFATPos2VFATSN[mapVFATPos2VFATSN['vfatN'] == vfat]
+                else:
+                    if len(array_vfatData[array_vfatData['vfatN'] == vfat]) > 0:
+                        vfatID = array_vfatData[array_vfatData['vfatN'] == vfat]
+                    else:
+                        vfatID = 0
+                suffix = "vfatN{0}_vfatID{1}".format(vfat,vfatID)
                 directory = suffix.upper()
 
             # Make the TMultiGraph Objects
