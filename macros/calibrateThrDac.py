@@ -203,14 +203,16 @@ if __name__ == '__main__':
 
             # Make the TMultiGraph Objects
             if idx == 0:
-                dict_mGraphScurveMean[vfat] = r.TMultiGraph("mGraph_ScurveMeanByThrDac_{0}".format(suffix),"{0}".format(suffix))
-                dict_mGraphScurveSigma[vfat] = r.TMultiGraph("mGraph_ScurveSigmaByThrDac_{0}".format(suffix),"{0}".format(suffix))
+                dict_mGraphScurveMean[vfat] = r.TMultiGraph("mGraph_ScurveMeanByThrDac_{0}".format(suffix),suffix)
+                dict_mGraphScurveSigma[vfat] = r.TMultiGraph("mGraph_ScurveSigmaByThrDac_{0}".format(suffix),suffix)
 
                 dict_ScurveMeanVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
+                dict_ScurveMeanVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveMeanVsThrDac[vfat].SetName("gScurveMean_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveMeanVsThrDac[vfat].SetMarkerStyle(23)
 
                 dict_ScurveSigmaVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
+                dict_ScurveSigmaVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveSigmaVsThrDac[vfat].SetName("gScurveSigma_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveSigmaVsThrDac[vfat].SetMarkerStyle(23)
 
