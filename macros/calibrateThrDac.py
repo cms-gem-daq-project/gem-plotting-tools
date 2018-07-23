@@ -12,13 +12,13 @@ Synopsis
 Description
 -----------
 
-The :program:`calibrateThrDac.py` tool is for calibrating either the ``CFG_THR_ARM_DAC`` or the ``CFG_THR_ZCC_DAC`` register of a set of ``vfat3`` ``ASIC``s.  The user should have taken a set of scurves at varying ``CFG_THR_X_DAC`` settings, for ``X={ARM,ZCC``. Then these scurves are expected to have been analyzed, including fitting, with the :program:`anaUltraScurve.py`.  The correct `CFG_CAL_DAC` calibration must have been used during this analysis.
+The :program:`calibrateThrDac.py` tool is for calibrating either the ``CFG_THR_ARM_DAC`` or the ``CFG_THR_ZCC_DAC`` register of a set of ``vfat3`` ``ASIC``s.  The user should have taken a set of scurves at varying ``CFG_THR_X_DAC`` settings, for ``X={ARM,ZCC}``. Then these scurves are expected to have been analyzed, including fitting, with the :program:`anaUltraScurve.py`.  The correct `CFG_CAL_DAC` calibration must have been used during this analysis.
 
-The ``FILENAME`` file is expected to be in the :any:`Three Column Format` with the independent variable being ``CFG_THR_X_DAC``. For each scandate in ``FILENAME`` the scruve ``gScurveMeanDist_*`` and ``gScurveSigmaDist_*`` ``TGraphErrors`` objects for each VFAT, and summary level, will be fit with a Gaussian distribution.  The mean of this Gaussian will be plotted against the provided ``CFG_THR_X_DAC`` value with hte Gaussian's sigma taken as the error on the mean.  The resulting scurveMean(Sigma) vs. ``CFG_THR_X_DAC`` distribution will be fit with a pol1(pol0) function.  The fit function for the scurveMean vs. ``CFG_THR_X_DAC`` gives the calibration of the THR DAC in terms of fC while the fit function for the scurveSigma vs. ``CFG_THR_X_DAC`` gives the horizontal asymptote of the average ENC across the ``vfat``.
+The ``FILENAME`` file is expected to be in the :any:`Three Column Format` with the independent variable being ``CFG_THR_X_DAC``. For each scandate in ``FILENAME`` the scruve ``gScurveMeanDist_*`` and ``gScurveSigmaDist_*`` ``TGraphErrors`` objects for each VFAT, and summary level, will be fit with a Gaussian distribution.  The mean of this Gaussian will be plotted against the provided ``CFG_THR_X_DAC`` value with the Gaussian's sigma taken as the error on the mean.  The resulting scurveMean(Sigma) vs. ``CFG_THR_X_DAC`` distribution will be fit with a ``pol1``(``pol0``) function.  The fit function for the scurveMean vs. ``CFG_THR_X_DAC`` gives the calibration of the THR DAC in terms of fC while the fit function for the scurveSigma vs. ``CFG_THR_X_DAC`` gives the horizontal asymptote of the average ENC across the ``vfat``.
 
 An output table will be produced at the end of the function call which shows the calibration information and ENC by VFAT position and overall (e.g. vfat position = ``All``).  Numerically the ``All`` case is assigned a value of ``-1``.
 
-Output files will be found in :envvar:`$ELOG\_PATH`.  The ``calFile_CFG_THR_X_DAC_<Det S/N>.txt`` file will be a text file specifying the ``CFG_THR_X_DAC`` calibration parameters (slope and intercept) by vfat position.  Additionally all ``TObjects`` created during the analysis will be found in ``calFile_<Det S/N>_CFG_THR_X_DAC.root``.
+Output files will be found in :envvar:`$ELOG\_PATH`.  The ``calFile_CFG_THR_X_DAC_<Det S/N>.txt`` file will be a text file specifying the ``CFG_THR_X_DAC`` calibration parameters (slope and intercept) by vfat position.  Additionally all ``TObject``s created during the analysis will be found in ``calFile_<Det S/N>_CFG_THR_X_DAC.root``.
 
 Mandatory arguments
 -------------------
@@ -28,7 +28,7 @@ Mandatory arguments
     Physical filename of the input file to be passed to
     :program:`calibrateThrDac.py`.  See :any:`Three Column Format` for
     details on the format and contents of this file.  The independent
-    variable is expected to be ``CFG_THR_X_DAC`` for ``X={ARM,ZCC``.
+    variable is expected to be ``CFG_THR_X_DAC`` for ``X={ARM,ZCC}``.
 
 Optional arguments
 ------------------
