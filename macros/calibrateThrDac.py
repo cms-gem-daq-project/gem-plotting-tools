@@ -365,7 +365,7 @@ if __name__ == '__main__':
         dict_canvScurveMeanByThrDac[vfat].cd()
         dict_mGraphScurveMean[vfat].Draw("APE1")
         dict_mGraphScurveMean[vfat].GetXaxis().SetRangeUser(0,80)
-        dict_mGraphScurveMean[vfat].GetXaxis().SetTitlle("Scurve Mean #left(fC#right)")
+        dict_mGraphScurveMean[vfat].GetXaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_mGraphScurveMean[vfat].Draw("APE1")
         dict_mGraphScurveMean[vfat].Write()
 
@@ -374,7 +374,7 @@ if __name__ == '__main__':
         dict_canvScurveSigmaByThrDac[vfat].cd()
         dict_mGraphScurveSigma[vfat].Draw("APE1")
         dict_mGraphScurveSigma[vfat].GetXaxis().SetRangeUser(0,5)
-        dict_mGraphScurveSigma[vfat].GetXaxis().SetTitlle("Scurve Sigma #left(fC#right)")
+        dict_mGraphScurveSigma[vfat].GetXaxis().SetTitle("Scurve Sigma #left(fC#right)")
         dict_mGraphScurveSigma[vfat].Draw("APE1")
         dict_mGraphScurveSigma[vfat].Write()
 
