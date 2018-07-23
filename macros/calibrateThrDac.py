@@ -365,6 +365,8 @@ if __name__ == '__main__':
         dict_canvScurveMeanByThrDac[vfat].cd()
         dict_mGraphScurveMean[vfat].Draw("APE1")
         dict_mGraphScurveMean[vfat].GetXaxis().SetRangeUser(0,80)
+        dict_mGraphScurveMean[vfat].GetXaxis().SetTitlle("Scurve Mean #left(fC#right)")
+        dict_mGraphScurveMean[vfat].Draw("APE1")
         dict_mGraphScurveMean[vfat].Write()
 
         # Sigma by CFG_THR_*_DAC
@@ -372,11 +374,16 @@ if __name__ == '__main__':
         dict_canvScurveSigmaByThrDac[vfat].cd()
         dict_mGraphScurveSigma[vfat].Draw("APE1")
         dict_mGraphScurveSigma[vfat].GetXaxis().SetRangeUser(0,5)
+        dict_mGraphScurveSigma[vfat].GetXaxis().SetTitlle("Scurve Sigma #left(fC#right)")
+        dict_mGraphScurveSigma[vfat].Draw("APE1")
         dict_mGraphScurveSigma[vfat].Write()
 
         # Mean vs CFG_THR_*_DAC
         dict_canvScurveMeanVsThrDac[vfat] = r.TCanvas("canvScurveMeanVsThrDac_{0}".format(suffix),"Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveMeanVsThrDac[vfat].cd()
+        dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
+        dict_ScurveMeanVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
+        dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
         func_ScurveMeanVsThrDac = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x+[1]",min(fitRange), max(fitRange) )
         dict_ScurveMeanVsThrDac[vfat].Fit(func_ScurveMeanVsThrDac,"QR")
@@ -386,6 +393,9 @@ if __name__ == '__main__':
         # Sigma vs CFG_THR_*_DAC
         dict_canvScurveSigmaVsThrDac[vfat] = r.TCanvas("canvScurveSigmaVsThrDac_{0}".format(suffix),"Scurve Sigma vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveSigmaVsThrDac[vfat].cd()
+        dict_ScurveSigmaVsThrDac[vfat].Draw("APE1")
+        dict_ScurveSigmaVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
+        dict_ScurveSigmaVsThrDac[vfat].GetYaxis().SetTitle("Scurve Sigma #left(fC#right)")
         dict_ScurveSigmaVsThrDac[vfat].Draw("APE1")
         func_ScurveSigmaVsThrDac = r.TF1("func_{0}".format((dict_ScurveSigmaVsThrDac[vfat].GetName()).strip('g')),"[0]",min(fitRange), max(fitRange) )
         dict_ScurveSigmaVsThrDac[vfat].Fit(func_ScurveSigmaVsThrDac,"QR")
