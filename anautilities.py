@@ -564,36 +564,6 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
 
     return (parsedListOfScanDates,strIndepVar)
 
-def performFit(gDist, formula="gaus", fitOption="RQ"):
-    """
-    Given an input TGraphErrors object fits it with the formula
-    given by ``formula`` using the fit option ``fitOption``. 
-    Returns the ``TF1`` object.
-
-    The name of the ``TF1`` object is set as ``func_<name of input>``
-    with the "g" character stripped.
-
-    The x-range of the fit is automatically set based on ``gDist``
-
-    Args:
-        gDist (TGraphErrors): distribution to be fit
-
-        formula (string): string to use as the `TFormula`
-
-        fitOption (string): fit option to use with the `TGraphErrors::Fit()` method
-    """
-
-    import numpy as np
-    import ROOT as r
-
-    # Fit Scurve Mean distribution
-    arrayX = np.array(gDist.GetX())
-    name = "func_{0}".format((gDist.GetName()).strip('g'))
-    func = r.TF1(name,formula,np.min(arrayX), np.max(arrayX))
-    gDist.Fit(func, fitOption)
-
-    return func
-
 #Use Median absolute deviation (MAD) to reject outliers
 #See: http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
 #And also: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
