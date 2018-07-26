@@ -83,22 +83,7 @@ def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
     return hRetMap
 
 def getCyclicColor(idx):
-    import ROOT as r
-
-    colors = {
-        0:r.kBlack,
-        1:r.kGreen-1,
-        2:r.kRed-1,
-        3:r.kBlue-1,
-        4:r.kGreen-2,
-        5:r.kRed-2,
-        6:r.kBlue-2,
-        7:r.kGreen-3,
-        8:r.kRed-3,
-        9:r.kBlue-3,
-            }
-
-    return colors[idx % 10]
+    return 30+4*idx
 
 def getDirByAnaType(anaType, cName, ztrim=4):
     from anaInfo import ana_config
