@@ -341,7 +341,8 @@ if __name__ == '__main__':
     ###################
     # Now Make plots & Fit DAC Curves
     ###################
-    print("vfatN\tcal_thr_m\tcal_thr_m_err\tcal_thr_b\tcal_thr_b_err\tnoise\tnoise_err")
+    print("| vfatN | cal_thr_m | cal_thr_m_err | cal_thr_b | cal_thr_b_err | noise | noise_err |")
+    print("| :---: | :-------: | :-----------: | :-------: | :-----------: | :---: | :-------: |")
     fitRange = [int(item) for item in args.fitRange.split(",")]
     for vfat in range(-1,24):
         if vfat == -1:
@@ -430,7 +431,7 @@ if __name__ == '__main__':
         vfatOrAll = vfat
         if vfat == -1:
             vfatOrAll == "All"
-        print("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}".format(
+        print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} |".format(
             vfatOrAll,
             func_ScurveMeanVsThrDac.GetParameter(0),
             func_ScurveMeanVsThrDac.GetParError(0),
