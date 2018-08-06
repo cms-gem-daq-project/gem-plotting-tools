@@ -92,6 +92,6 @@ the ``DeadChannel``, ``HighNoise``, and ``HighEffPed`` pedestal:
 
     If channel ``deadChanCutHigh < scurve_sigma < deadChanCutHigh`` then
     ``DeadChannel`` is set, see slide 22 of `this talk`_ for the origin of the
-    default values in fC.
+    default values in fC (VFAT 2 only, values for VFAT 3 coming soon).
 
 .. _this talk: https://indico.cern.ch/event/721622/contributions/2968019/attachments/1631961/2602748/BDorney_GEMDAQMtg_20180412_BurnedVFATInputs.pdf
