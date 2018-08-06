@@ -24,8 +24,8 @@ file; the plots made by tools 2-4 are:
   ``TH1D`` and its ``TF1`` on a ``TCanvas``, and
 - :program:`plot_vfat_summary.py`: Plots all scurves from a given VFAT as a ``TH2D`` on
   a ``TCanvas``.
-- :program:plotSCurveFitResults.py`: Superimposes the results of S-curve fits
-  for several scandates.
+- :doc:`plotSCurveFitResults.py </man/plotSCurveFitResults>`: Superimposes the
+  results of S-curve fits for several scandates.
 
 Tool 5 :program:`summary_plots.py` produces the following plots from a single
 input file for a given VFAT depending on the command line argument supplied:
