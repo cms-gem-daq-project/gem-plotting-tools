@@ -377,7 +377,7 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
     endDay = datetime.date.today()
     if endDate is not None:
         endDateInfo = [ int(info) for info in endDate.split(".") ]
-        endDat = datetime.date(endDateInfo[0], endDateInfo[1], endDateInfo[2])
+        endDay = datetime.date(endDateInfo[0], endDateInfo[1], endDateInfo[2])
         pass
 
     import os
