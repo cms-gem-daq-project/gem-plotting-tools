@@ -24,8 +24,6 @@ file; the plots made by tools 2-4 are:
   ``TH1D`` and its ``TF1`` on a ``TCanvas``, and
 - :program:`plot_vfat_summary.py`: Plots all scurves from a given VFAT as a ``TH2D`` on
   a ``TCanvas``.
-- :doc:`plotSCurveFitResults.py </man/plotSCurveFitResults>`: Superimposes the
-  results of S-curve fits for several scandates.
 
 Tool 5 :program:`summary_plots.py` produces the following plots from a single
 input file for a given VFAT depending on the command line argument supplied:
@@ -36,6 +34,9 @@ input file for a given VFAT depending on the command line argument supplied:
 - Plot of Chi<sup>2</sup> of the channel/strip scurve fits as a ``TH1D``,
 - Plot of channel/strip scurve mean vs. scurve width as a ``TH2D``, and
 - Plot of channel/strip scurve width vs. trimDAC as a ``TH2D``.
+
+Tool 6 :doc:`plotSCurveFitResults.py </man/plotSCurveFitResults>` superimposes
+the results of S-curve fits for several scandates.
 
 The command line options for tools 2-5 are:
 
