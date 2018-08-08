@@ -337,15 +337,13 @@ class ScanDataFitter(DeadChannelFinder):
                                     )
 
                     # Fit
-                    fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
-                    print 'fitResult: ', fitResult
+                    fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ') 
                     fitEmpty = fitResult.IsEmpty()
                     if fitEmpty:
                         fitTF1.SetLineColor(kOrange-2)
                         # Don't try to fit empty data again
                         break
                     fitValid = fitResult.IsValid()
-                    print 'fitValid? ', fitValid
                     if not fitValid:
                         continue
                     fitChi2 = fitTF1.GetChisquare()
