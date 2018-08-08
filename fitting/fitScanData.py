@@ -276,11 +276,11 @@ class ScanDataFitter(DeadChannelFinder):
                     #if (self.calDAC2Q_m[vfat]*(rand)+self.calDAC2Q_b[vfat]) < 0: continue
 
                     # Provide an initial guess
-                    init_guess_p0 = self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat]
+                    init_guess_p0 = self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] 
                     if self.isVFAT3:
                         init_guess_p1 = self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]+abs(self.calDAC2Q_m[vfat]*rand)  #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
-		    else:
-			init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand)
+                    else:
+                        init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand)
                     init_guess_p2 = 0.
                     init_guess_p3 = self.Nev[vfat][ch]/2.
 
@@ -338,12 +338,14 @@ class ScanDataFitter(DeadChannelFinder):
 
                     # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
+                    print 'fitResult: ', fitResult
                     fitEmpty = fitResult.IsEmpty()
                     if fitEmpty:
                         fitTF1.SetLineColor(kOrange-2)
                         # Don't try to fit empty data again
                         break
                     fitValid = fitResult.IsValid()
+                    print 'fitValid? ', fitValid
                     if not fitValid:
                         continue
                     fitChi2 = fitTF1.GetChisquare()
