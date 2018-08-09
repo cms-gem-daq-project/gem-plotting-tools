@@ -337,7 +337,7 @@ class ScanDataFitter(DeadChannelFinder):
                                     )
 
                     # Fit
-                    fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ') 
+                    fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
                     if fitEmpty:
                         fitTF1.SetLineColor(kOrange-2)
