@@ -23,8 +23,13 @@ cat INSTALLED_FILES.backup|egrep -v 'gempython/__init__.py*' > INSTALLED_FILES
 # set permissions
 cat <<EOF >>INSTALLED_FILES
 %attr(0755,root,root) /opt/cmsgemos/bin/*.py
+# %attr(0755,root,root) %{python2_sitelib}/gempython/scripts/*.py
+# %attr(0755,root,root) %{python2_sitelib}/gempython/gemplotting/macros/*.py
+# %config(noreplace) %attr(0755,root,root) %{python2_sitelib}/gempython/gemplotting/mapping/chamberInfo.py
+%attr(0755,root,root) /usr/lib/python*/site-packages/gempython/scripts/*.py
 %attr(0755,root,root) /usr/lib/python*/site-packages/gempython/scripts/*.py
 %attr(0755,root,root) /usr/lib/python*/site-packages/gempython/gemplotting/macros/*.py
+%config(noreplace) %attr(0755,root,root) /usr/lib/python*/site-packages/gempython/gemplotting/mapping/chamberInfo.py
 EOF
 echo "Modified INSTALLED_FILES"
 cat INSTALLED_FILES
