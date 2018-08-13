@@ -19,6 +19,8 @@ if __name__ == '__main__':
 
     parser.add_option("--fileScurveFitTree", type="string", dest="fileScurveFitTree", default="SCurveFitData.root",
                       help="TFile containing scurveFitTree", metavar="fileScurveFitTree")
+    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3", default=False,
+                      help="Provide this argument if input data was acquired from vfat3", metavar="isVFAT3")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
                       help="Z-Score for Outlier Identification in MAD Algo", metavar="zscore")
     parser.add_option("--pervfat", action="store_true", dest="pervfat",
@@ -189,14 +191,19 @@ if __name__ == '__main__':
             list_bNames.append("panPin")
             pass
         list_bNames.append("mask")
+        list_bNames.append("maskReason")
         list_bNames.append("trimDAC")
+        if options.isVFAT3:
+            list_bNames.append("trimPolarity")
 
         try:
             array_VFATSCurveData = rp.root2array(options.fileScurveFitTree,treename="scurveFitTree",branches=list_bNames)
             dict_vfatTrimMaskData = dict((idx,initVFATArray(array_VFATSCurveData.dtype)) for idx in np.unique(array_VFATSCurveData[list_bNames[0]]))
             for dataPt in array_VFATSCurveData:
                 dict_vfatTrimMaskData[dataPt['vfatN']][dataPt[list_bNames[1]]]['mask'] =  dataPt['mask']
+                dict_vfatTrimMaskData[dataPt['vfatN']][dataPt[list_bNames[1]]]['maskReason'] =  dataPt['maskReason']
                 dict_vfatTrimMaskData[dataPt['vfatN']][dataPt[list_bNames[1]]]['trimDAC'] =  dataPt['trimDAC']
+                dict_vfatTrimMaskData[dataPt['vfatN']][dataPt[list_bNames[1]]]['trimPolarity'] =  dataPt['trimPolarity']
                 pass
             pass
         except Exception as e:
@@ -292,22 +299,40 @@ if __name__ == '__main__':
     #Update channel registers configuration file
     if options.chConfigKnown:
         confF = open(filename+'/chConfig_MasksUpdated.txt','w')
-        confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
-
-        if options.debug:
-            print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
-            pass
-
-        for vfat in range (0,24):
-            for j in range (0, 128):
-                chan = vfatCh_lookup[vfat][j]
-                if options.debug:
-                    print '%i\t%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask']))
-                    pass
-
-                confF.write('%i\t%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask'])))
-                pass
-            pass
+        if options.isVFAT3:
+            confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:trimPolarity/I:mask/I:maskReason/I\n')
+            if options.debug:
+                print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
+            for vfat in range (0,24):
+                for j in range(0,128):
+                    chan = vfatCh_lookup[vfat][j]
+                    if options.debug:
+                        print('%i\t%i\t%i\t%i\t%i\t%i\t%i\n'%(
+                            vfat,
+                            dict_vfatID[vfat],
+                            chan,
+                            dict_vfatTrimMaskData[vfat][j]['trimDAC'],
+                            dict_vfatTrimMaskData[vfat][j]['trimPolarity'],
+                            int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask']),
+                            dict_vfatTrimMaskData[vfat][j]['maskReason']))
+                    confF.write('%i\t%i\t%i\t%i\t%i\t%i\t%i\n'%(
+                        vfat,
+                        dict_vfatID[vfat],
+                        chan,
+                        dict_vfatTrimMaskData[vfat][j]['trimDAC'],
+                        dict_vfatTrimMaskData[vfat][j]['trimPolarity'],
+                        int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask']),
+                        dict_vfatTrimMaskData[vfat][j]['maskReason']))
+        else:
+            confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
+            if options.debug:
+                print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
+            for vfat in range (0,24):
+                for j in range (0, 128):
+                    chan = vfatCh_lookup[vfat][j]
+                    if options.debug:
+                        print '%i\t%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask']))
+                    confF.write('%i\t%i\t%i\t%i\t%i\n'%(vfat,dict_vfatID[vfat],chan,dict_vfatTrimMaskData[vfat][j]['trimDAC'],int(hot_channels[vfat][j] or dict_vfatTrimMaskData[vfat][j]['mask'])))
 
         confF.close()
         pass
