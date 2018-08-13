@@ -825,7 +825,7 @@ if __name__ == '__main__':
                         chan,
                         trim_list[vfat][chan],
                         trimPolarity_list[vfat][chan],
-                        mask[vfat][chan],
+                        masks[vfat][chan],
                         maskReasons[vfat][chan]))
         else:
             confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I:maskReason/I\n')
