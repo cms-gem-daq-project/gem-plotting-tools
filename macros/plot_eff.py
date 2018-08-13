@@ -87,6 +87,19 @@ To calculate the efficiency using VFAT4 using background subtraction first call
 
     plot_eff.py --infilename=listOfScanDates.txt -v4 --bkgSub --print
 
+Here --infilename should be a tab delimited file the first row of this file
+should be column headings, the subsequent rows of this file should be data
+lines. Example::
+
+    ChamberName scandate    EffGain
+    GEMINIm27L1 2017.08.29.18.11    5000
+    GEMINIm27L1 2017.08.29.18.19    7500
+    GEMINIm27L1 2017.08.29.18.33    10000
+    GEMINIm27L1 2017.08.29.18.06    15000
+    GEMINIm27L1 2017.08.30.08.22    20000
+
+Then this will make a plot of Eff vs. EffGain from the data supplied
+
 Internals
 ---------
 """
