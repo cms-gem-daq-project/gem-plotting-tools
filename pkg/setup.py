@@ -60,11 +60,11 @@ def getdatafiles():
     # Man files
     man_sections = {}
     for file in listdir(mandir):
-        print('Found man page: {}'.format(file))
+        print('Found man page: %s' % file)
         section = file.split('.')[-2]
         man_sections[section] = man_sections.get(section, []) + [join(mandir, file)]
     for section in man_sections:
-        data_files.append(('share/man/man{}'.format(section), man_sections[section]))
+        data_files.append(('share/man/man%s' % section, man_sections[section]))
 
     return data_files
 
