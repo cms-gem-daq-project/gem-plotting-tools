@@ -1,5 +1,7 @@
 importlib
 setuptools>25,<=38
 pip>8,<10.1
-sphinx
+sphinx<1.5; python_version == '2.6'
+babel<2.6; python_version == '2.6' # It's a sphinx dep that gets updated otherwise
+sphinx; python_version >= '2.7'
 sphinxcontrib-napoleon
