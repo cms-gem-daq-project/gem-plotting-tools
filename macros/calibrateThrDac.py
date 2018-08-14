@@ -112,7 +112,7 @@ if __name__ == '__main__':
     elogPath = os.getenv('ELOG_PATH')
 
     # Get info from input file
-    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make3x8Canvas, parseListOfScanDatesFile
     parsedTuple = parseListOfScanDatesFile(args.filename)
     listChamberAndScanDate = parsedTuple[0]
     thrDacName = parsedTuple[1]
@@ -193,7 +193,7 @@ if __name__ == '__main__':
                 else:
                     if len(array_vfatData[array_vfatData['vfatN'] == vfat]) > 0:
                         mapVFATPos2VFATSN[vfat]['vfatN'] = vfat
-                        mapVFATPos2VFATSN[vfat]['serialNum'] = array_vfatData[array_vfatData['vfatN'] == vfat]
+                        mapVFATPos2VFATSN[vfat]['serialNum'] = array_vfatData[array_vfatData['vfatN'] == vfat]['vfatID']
                     else:
                         mapVFATPos2VFATSN[vfat]['vfatN'] = vfat
                         mapVFATPos2VFATSN[vfat]['serialNum'] = 0
@@ -448,10 +448,38 @@ if __name__ == '__main__':
             dict_canvScurveMeanVsThrDac[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveMeanVsThrDac[vfat].GetName()))
             dict_canvScurveSigmaVsThrDac[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveSigmaVsThrDac[vfat].GetName()))
     
+    # Make summary canvases, always save these
+    canvScurveMeanByThrDac_Summary = make3x8Canvas("canvScurveMeanByThrDac_Summary",dict_mGraphScurveMean,"APE1")
+    canvScurveSigmaByThrDac_Summary = make3x8Canvas("canvScurveSigmaByThrDac_Summary",dict_mGraphScurveSigma,"APE1")
+    canvScurveMeanVsThrDac_Summary = make3x8Canvas("canvScurveMeanVsThrDac_Summary",dict_ScurveMeanVsThrDac,"APE1")
+    canvScurveSigmaVsThrDac_Summary = make3x8Canvas("canvScurveSigmaVsThrDac_Summary",dict_ScurveSigmaVsThrDac,"APE1")
+
+    # Draw Legend?
+    if not args.noLeg:
+        canvScurveMeanByThrDac_Summary.cd(0)
+        legArmDacValues.Draw("same")
+
+        canvScurveSigmaByThrDac_Summary.cd(0)
+        legArmDacValues.Draw("same")
+
+        canvScurveMeanVsThrDac_Summary.cd(0)
+        legArmDacValues.Draw("same")
+
+        canvScurveSigmaVsThrDac_Summary.cd(0)
+        legArmDacValues.Draw("same")
+
+    # Save summary canvases (alwasys)
+    print("\nSaving Summary TCanvas Objects")
+    canvScurveMeanByThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMeanByThrDac_Summary.GetName()))
+    canvScurveSigmaByThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigmaByThrDac_Summary.GetName()))
+    canvScurveMeanVsThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMeanVsThrDac_Summary.GetName()))
+    canvScurveSigmaVsThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigmaVsThrDac_Summary.GetName()))
+
+    # Close output files
     outFile.Close()
     calThrDacFile.close()
 
-    print("Your calibration file is located in:")
+    print("\nYour calibration file is located in:")
     print("\n\t{0}/calFile_{2}_{1}.txt\n".format(elogPath,chamberName,thrDacName))
 
     print("You can find all ROOT objects in:")
