@@ -1,5 +1,13 @@
-"""
-Tools to analyze the time evolution of detectors.
+r"""
+``anahistory`` --- Tools to analyze the time evolution of detectors
+===================================================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.utils.anahistory
+
+Documentation
+-------------
 """
 
 import numpy as _np

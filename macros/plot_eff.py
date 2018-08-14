@@ -1,31 +1,139 @@
 #!/bin/env python
 
-"""
-plot\_eff
-=========
+r"""
+``plot_eff.py`` --- Perform an efficiency analysis
+==================================================
+
+Synopsis
+--------
+
+**plot_eff.py** :token:`--latSig` <*LATENCY BIN*> :token:`-i` <*INPUT FILE*> :token:`-v` <*VFAT*> [*OPTIONS*]
+
+Description
+-----------
+
+For some test stands where you have configured the input L1A to pass only
+through a specific point of a detector you can use the data taken by
+:program:`ultraLatency.py` to calculate the efficiency of the detector. To help
+you perform this analysis the :program:`plot_eff.py` tool has been created.
+
+Arguments
+---------
+
+Mandatory arguments
+...................
+
+The following list shows the mandatory inputs that must be supplied to execute
+the script:
+
+.. program:: plot_eff.py
+
+.. option:: --latSig <LATENCY BIN>
+
+    Latency bin for which efficiency should be determined from.
+
+.. option:: -i, --infilename <FILE>
+
+    Physical filename of the input file to be passed to :program:`plot_eff.py`.
+    The format of this input file should follow the :doc:`Three Column Format
+    </scandate-list-formats>`.
+
+.. option:: -v, --vfat <VFAT>
+
+    Specify VFAT to use when calculating the efficiency.
+
+Optional arguments
+..................
+
+The following list shows the optional inputs that can be supplied when
+executing the script:
+
+.. option::  --bkgSub
+
+    Background subtraction is used to determine the efficiency instead of a
+    single latency bin. May be used instead of the :token:`--latSig` option.
+
+.. option:: -p, --print
+
+    Prints a comma-separated table of the plot's data to the terminal. The
+    format of this table will be compatible with the
+    :program:`genericPlotter.py` executable of the `CMS GEM Analysis Framework
+    <https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#3b-genericplotter>`_.
+
+.. option:: --vfatList <COMMA SEPARATED LIST OF INT'S>
+
+    List of VFATs to use when calculating the efficiency. May be used instead of
+    the :token:`--vfat` option.
+
+Note if the :option:`--bkgSub` option is used then you **must** first call
+:program:`anaUltraLatency.py` for each of the scandates given in the
+:option:`--infilename`.
+
+Example
+-------
+
+To calculate the efficiency using VFATs 12 & 13 in latency bin 39 for a list of
+scandates defined in ``listOfScanDates.txt`` call:
+
+.. code-block:: bash
+
+    plot_eff.py --infilename=listOfScanDates.txt --vfatList=12,13 --latSig=39 --print
+
+To calculate the efficiency using VFAT4 using background subtraction first call
+:program:`anaUltraLatency.py` on each of the scandates given in
+``listOfScanDates.txt`` and then call:
+
+.. code-block:: bash
+
+    plot_eff.py --infilename=listOfScanDates.txt -v4 --bkgSub --print
+
+Here --infilename should be a tab delimited file the first row of this file
+should be column headings, the subsequent rows of this file should be data
+lines. Example::
+
+    ChamberName scandate    EffGain
+    GEMINIm27L1 2017.08.29.18.11    5000
+    GEMINIm27L1 2017.08.29.18.19    7500
+    GEMINIm27L1 2017.08.29.18.33    10000
+    GEMINIm27L1 2017.08.29.18.06    15000
+    GEMINIm27L1 2017.08.30.08.22    20000
+
+Then this will make a plot of Eff vs. EffGain from the data supplied
+
+Internals
+---------
 """
 
 def calcEffErr(eff, nTriggers):
     """
     Returns the binomial error on the input efficiency
 
-    eff - input efficency value (from 0.0 to 1.0)
-    nTriggers - the number of triggers used when obtaining eff
+    Arguments:
+        eff(float): Input efficency value (from 0.0 to 1.0)
+
+        nTriggers(int): The number of triggers used when obtaining eff
     """
 
     import math
     return math.sqrt( (eff * ( 1. - eff) ) / nTriggers )
 
-# Returns a tuple of (eff, sigma_eff)
 def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     """
     Returns a tuple of (eff, sigma_eff)
     
-    cName - chamber name, i.e. the value of a given key of the chamber_config dict
-    scandate - scandate of the ultraLatency.py measurement
-    vfatList - list of vfats to use for calculating the efficiency
-    latBin - latency bin to determine the eff for
-    bkgSub - Perform background subtraction
+    Arguments:
+        cName(str): Chamber name, i.e. the value of a given key of the
+            :py:data:`chamber_config
+            <gempython.gemplotting.mapping.chamberInfo.chamber_config>` dict
+
+        scandate(str): Scandate of the :program:`ultraLatency.py` measurement
+
+        vfatList(list of int): List of vfats to use for calculating the
+            efficiency
+
+        latBin(int): Latency bin to determine the eff for
+
+        bkgSub(bool): Perform background subtraction
     """
     
     from gempython.gemplotting.utils.anautilities import getDirByAnaType
@@ -83,22 +191,6 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     return (nHits / nTriggers, calcEffErr(nHits / nTriggers, nTriggers) )
 
 if __name__ == '__main__':
-    """
-    Here --infilename should be a tab delimited file
-    the first row of this file should be column headings
-    the subsequent rows of this file should be data lines
-    
-    Example:
-          ChamberName scandate    EffGain
-          GEMINIm27L1 2017.08.29.18.11    5000
-          GEMINIm27L1 2017.08.29.18.19    7500
-          GEMINIm27L1 2017.08.29.18.33    10000
-          GEMINIm27L1 2017.08.29.18.06    15000
-          GEMINIm27L1 2017.08.30.08.22    20000
-    
-    Then this will make a plot of Eff vs. EffGain from the data supplied
-    """
-
     from gempython.gemplotting.utils.anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.macros.plotoptions import parser

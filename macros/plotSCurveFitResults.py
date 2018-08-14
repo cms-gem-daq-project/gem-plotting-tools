@@ -1,8 +1,113 @@
 #!/bin/env python
 
 """
-plotSCurveFitResults
-====================
+``plotSCurveFitResults.py`` --- Compare S-curves results across scandates
+=========================================================================
+
+Synopsis
+--------
+
+**plotSCurveFitResults.py** :token:`--anaType` <*ANALYSIS NAME*> :token:`-i`
+<*LIST OF SCAN DATES FILE*> [*OPTIONS*]
+
+Description
+-----------
+
+While :program:`gemTreeDrawWrapper.py` and :program:`gemPlotter.py` allow you to
+plot observables from multiple runs sometimes you are interested in seeing the
+results made from :program:`anaUltraScurve.py`, from multiple scandates, on the
+same set of ``TCanvas``.  The tool :program:`plotSCurveFitResults.py` allows you
+to do this.  The tool will create five output ``*.png`` files and one ``TFile``
+which stores relevant plots for each VFAT from each of the input scandates.
+These five ``*.png`` files are:
+
+* ``scurveFitSummaryGridAllScandates.png``, shows the ``fitSummary`` curves from
+  all input scandates on one ``TCanvas`` in a 3-by-8 grid,
+* ``scurveMeanGridAllScandates.png``, shows the distribution of s-curve mean
+  positions from each VFAT from all input scandates on one `TCanvas` in a 3-by-8
+  grid,
+* ``scurveSigmaGridAllScandates.png``, as ``scurveMeanGridAllScandates.png`` but
+  for S-curve sigma,
+* ``canvSCurveSigmaDetSumAllScandates.png``, shows a summary distribution of
+  S-curve sigma positions from all VFATs of the detector from all scandates on
+  one ``TCanvas``, and
+* ``canvSCurveMeanDetSumAllScandates.png``, as
+  ``canvSCurveSigmaDetSumAllScandates.png`` but for S-curve mean.
+
+The files will be found in :envvar:`ELOG_PATH` along with the output ``TFile``,
+named ``scurveFitResultPlots.root``.
+
+Arguments
+---------
+
+.. program:: plotSCurveFitResults.py
+
+.. option:: -i, --infilename <FILE>
+
+    Physical filename of the input file to be passed to
+    :program:`plotSCurveFitResults.py`. The format of this input file should
+    follow the :doc:`Three Column Format </scandate-list-formats>`.
+
+.. option:: --alphaLabels
+
+    When providing this flag :program:`plotSCurveFitResults.py` will interpret
+    the **Indep. Variable** as a string.
+
+.. option:: --anaType <ANALYSIS TYPE>
+
+    Analysis type to be executed, one of ``scurveAna`` or ``trimAna``.
+
+.. option:: --drawLeg
+
+    Draws a ``TLegend`` on the output plots. For those 3x8 grid plots the legend
+    will only be drawn on the plot for VFAT0.
+
+.. option:: --rootName <FILE NAME>
+
+    Name of output ``TFile``.  This file will be found in :envvar:`ELOG_PATH`.
+
+.. option:: --rootOpt <STRING>
+
+    Option for creating the output ``TFile``, e.g. ``RECREATE`` or ``UPDATE``.
+
+.. option:: --ztrim <NUMBER>
+
+    The ztrim value that was used when running the scans listed in
+    :token:`--infilename`.
+
+Input File
+----------
+
+The format of this input file should follow the :doc:`Three Column Format
+</scandate-list-formats>`.  Note that here the **Indep. Variable** for each row
+will be used as the ``TLegend`` entry if the :option:`--drawLeg` argument is
+supplied.
+
+Example
+-------
+
+To plot results from a set of scandates defined in
+``listOfScanDates_Scurve.txt`` taken by either :program:`ultraScurve.py` or
+:program:`trimChamber.py` and analyzed with :program:`anaUltraScurve.py` you
+would call:
+
+.. code-block:: bash
+
+    plotSCurveFitResults.py --anaType=scurveAna --drawLeg -i listOfScanDates_Scurve.txt --alphaLabels
+
+This will produce the five ``*.png`` files mentioned above along with the output
+``TFile``.
+
+Environment
+-----------
+
+.. glossary::
+
+    :envvar:`DATA_PATH`
+        The location of input data
+
+    :envvar:`ELOG_PATH`
+        Results are written in the directory pointed to by this variable
 """
 
 if __name__ == '__main__':

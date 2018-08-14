@@ -45,8 +45,8 @@ the script.
 .. option:: -i, --infilename <FILE NAME>
 
     Physical filename of the input file to be passed to
-    :program:`gemPlotter.py`. See :any:`Three Column Format` for details on the
-    format and contents of this file.
+    :program:`gemPlotter.py`, in the
+    :doc:`Three Column Format </scandate-list-formats>`.
 
 .. option:: -v, --vfat <NUMBER>
 
