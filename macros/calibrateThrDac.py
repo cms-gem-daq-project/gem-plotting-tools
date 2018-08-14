@@ -456,10 +456,10 @@ if __name__ == '__main__':
 
     # Draw Legend?
     if not args.noLeg:
-        canvScurveMeanByThrDac_Summary.cd(0)
+        canvScurveMeanByThrDac_Summary.cd(1)
         legArmDacValues.Draw("same")
 
-        canvScurveSigmaByThrDac_Summary.cd(0)
+        canvScurveSigmaByThrDac_Summary.cd(1)
         legArmDacValues.Draw("same")
 
     # Save summary canvases (alwasys)
