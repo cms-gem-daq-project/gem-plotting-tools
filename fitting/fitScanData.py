@@ -277,10 +277,7 @@ class ScanDataFitter(DeadChannelFinder):
 
                     # Provide an initial guess
                     init_guess_p0 = self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] 
-                    if self.isVFAT3:
-                        init_guess_p1 = self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]+abs(self.calDAC2Q_m[vfat]*rand)  #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
-                    else:
-                        init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand)
+                    init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand) #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
                     init_guess_p2 = 0.
                     init_guess_p3 = self.Nev[vfat][ch]/2.
 
@@ -292,7 +289,7 @@ class ScanDataFitter(DeadChannelFinder):
                     # Set Parameter Limits
                     if self.isVFAT3:
                         fitTF1.SetParLimits(0, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
-                        fitTF1.SetParLimits(1, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(1, 0.0, self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
                         fitTF1.SetParLimits(2, -0.01, self.Nev[vfat][ch])
                     else:
                         fitTF1.SetParLimits(0, -0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])
