@@ -1,8 +1,96 @@
 #!/bin/env python
 
 """
-gemSCurveAnaToolkit
-===================
+``gemSCurveAnaToolkit.py`` --- Plot scan results vs time
+========================================================
+
+Synopsis
+--------
+
+**gemSCurveAnaToolkit.py** :token:`-i` <*LIST OF SCAN DATES FILE*> :token:`--anaType` <*ANALYSIS TYPE*> :token:`-v` <*VFAT*> :token:`-s` <*STRIP OR CHANNEL*> [*OPTIONS*]
+
+Description
+-----------
+
+The :program:`gemSCurveAnaToolkit.py` tool is for plotting scurves and their
+fits from a given (vfat, vfatCH/ROBstr) from a list of scandates that correspond
+to ``TFile`` objects which contain the ``scurveFitTree`` ``TTree`` (e.g. files
+produced by :program:`anaUltraScurve.py`). Each plot produced will be stored as
+an output ``*.png`` file. Additionally an output ``TFile`` will be produced
+which will contain each of the scurves and their fits.
+
+Arguments
+---------
+
+.. program:: gemSCurveAnaToolkit.py
+
+.. option:: -c, --channels
+
+    Make plots vs VFAT channels instead of ROB strips.
+
+.. option:: -i, --infilename <FILE>
+
+    Physical filename of the input file. The format of this input file should
+    follow the :doc:`Two Column Format </scandate-list-formats>`.
+
+.. option:: -s, --strip <STRIP>
+
+    If the :option:`-c` option is (not) supplied this will be the VFAT channel
+    (ROB strip) the plot will be made for.
+
+.. option:: -v, --vfat <VFAT>
+
+    The VFAT to plot.
+
+.. option:: --anaType <ANALYSIS TYPE>
+
+    Analysis type to be executed. Possible values: ``scurveAna``, ``trimAna``.
+
+.. option:: --drawLeg
+
+    When used with :option:`--summary` option draws a ``TLegend`` on the output
+    plot.
+
+.. option:: --rootOpt <STRING>
+
+    Option for creating the output ``TFile``, e.g. ``RECREATE`` or ``UPDATE``
+
+.. option:: --summary
+
+    Make a summary canvas with all created plots drawn on it.
+
+.. option:: --ztrim <NUMBER>
+
+    The ztrim value that was used when running the scans listed in
+    :option:`--infilename`
+
+Example: Making a plot
+----------------------
+
+To plot the scurves, and their fits, for VFAT0 channel 29 from a set of
+scandates defined in ``listOfScanDates_Scurve.txt`` taken by
+:program:`ultraScurve.py` and analyzed with :program:`anaUltraScurve.py` you
+would call:
+
+.. code-block:: bash
+
+    gemSCurveAnaToolkit.py -ilistOfScanDates_Scurve.txt -v0 -s29 --anaType=scurveAna -c --summary --drawLeg
+
+This will produce a ``*.png`` file for each of the scandates defined in
+``listOfScanDates_Scurve.txt`` and one ``*.png`` file showing all the scurves
+with their fits drawn on it as a summary.  Additionally an output ``TFile`` will
+be produced containing each of the scurves and their fits.
+
+Environment
+-----------
+
+.. glossary::
+
+    :envvar:`DATA_PATH`
+        The location of input data
+
+    :envvar:`ELOG_PATH`
+        Results are written in the directory pointed to by this variable
 """
 
 if __name__ == '__main__':

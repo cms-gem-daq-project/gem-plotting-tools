@@ -1,12 +1,19 @@
-"""
+r"""
 ``PanChannelMaps`` --- Mappings between strips and Panasonic pins
------------------------------------------------------------------
+=================================================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.mapping.PanChannelMaps
 
 .. moduleauthor:: Cameron Bravo <c.bravo@cern.ch>
 
 Functions providing the mappings between strips and channels in the V2b
 electronics. All directions are in the frame with the narrow end of the detector
 to the left.
+
+Documentation
+-------------
 """
 
 from array import array

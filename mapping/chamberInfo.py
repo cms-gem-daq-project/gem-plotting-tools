@@ -1,6 +1,13 @@
-"""
+r"""
 ``chamberInfo`` --- Information about installed chambers
---------------------------------------------------------
+========================================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.mapping.chamberInfo
+
+Documentation
+-------------
 """
 
 #: Available chambers

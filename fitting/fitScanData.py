@@ -1,3 +1,15 @@
+r"""
+``fitScanData`` --- S-curve fitting tools
+=========================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.fitting.fitScanData
+
+Documentation
+-------------
+"""
+
 import numpy as np
 import ROOT as r
 from gempython.gemplotting.utils.anaInfo import dict_calSF
@@ -93,7 +105,7 @@ class ScanDataFitter(DeadChannelFinder):
             3. :math:`\chi^2` of the fit
             4. Same as ``self.scanCount[vfat][channel]``
             5. Number of degrees of freedom (NDF) of the fit
-            6. Value of ROOT::Fit::FitResult::IsValid()  
+            6. Value of ROOT::Fit::FitResult::IsValid()
 
         calDAC2Q_m (numpy.ndarray): Calibration of ``calDAC`` to charge for each
             VFAT. This corresponds to :math:`m` in
@@ -277,10 +289,7 @@ class ScanDataFitter(DeadChannelFinder):
 
                     # Provide an initial guess
                     init_guess_p0 = self.calDAC2Q_m[vfat]*(8+stepN*8)+self.calDAC2Q_b[vfat] 
-                    if self.isVFAT3:
-                        init_guess_p1 = self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat]+abs(self.calDAC2Q_m[vfat]*rand)  #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
-                    else:
-                        init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand)
+                    init_guess_p1 = abs(self.calDAC2Q_m[vfat]*rand) #self.calDAC2Q_m[vfat] might be negative (e.g. VFAT3 case)
                     init_guess_p2 = 0.
                     init_guess_p3 = self.Nev[vfat][ch]/2.
 
@@ -292,7 +301,7 @@ class ScanDataFitter(DeadChannelFinder):
                     # Set Parameter Limits
                     if self.isVFAT3:
                         fitTF1.SetParLimits(0, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(1)+self.calDAC2Q_b[vfat])
-                        fitTF1.SetParLimits(1, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat], self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
+                        fitTF1.SetParLimits(1, 0.0, self.calDAC2Q_m[vfat]*(128)+self.calDAC2Q_b[vfat])
                         fitTF1.SetParLimits(2, -0.01, self.Nev[vfat][ch])
                     else:
                         fitTF1.SetParLimits(0, -0.01, self.calDAC2Q_m[vfat]*(256)+self.calDAC2Q_b[vfat])

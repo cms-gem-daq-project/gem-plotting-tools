@@ -1,10 +1,17 @@
-"""
+r"""
 ``anautilities`` --- Various other utilities
---------------------------------------------
+============================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.utils.anautilities
 
 .. moduleauthor:: Brian Dorney <brian.l.dorney@cern.ch>
 
 Utilities for vfatqc scans
+
+Documentation
+-------------
 """
 
 def filePathExists(searchPath, subPath=None, debug=False):

@@ -10,10 +10,12 @@ Table of contents
    setup
    coding
    virtualenv-p5
-   macros
-   fitting
-   mapping
-   utils
+   scandate-list-formats
+   masking
+   analyzing-scans
+   scurve-plotting-tools
+   man-index
+   modules-index
 
 Indices and tables
 ------------------
