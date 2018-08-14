@@ -462,12 +462,6 @@ if __name__ == '__main__':
         canvScurveSigmaByThrDac_Summary.cd(0)
         legArmDacValues.Draw("same")
 
-        canvScurveMeanVsThrDac_Summary.cd(0)
-        legArmDacValues.Draw("same")
-
-        canvScurveSigmaVsThrDac_Summary.cd(0)
-        legArmDacValues.Draw("same")
-
     # Save summary canvases (alwasys)
     print("\nSaving Summary TCanvas Objects")
     canvScurveMeanByThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMeanByThrDac_Summary.GetName()))
