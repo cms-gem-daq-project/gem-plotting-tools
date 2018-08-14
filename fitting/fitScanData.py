@@ -1,3 +1,15 @@
+r"""
+``fitScanData`` --- S-curve fitting tools
+=========================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.fitting.fitScanData
+
+Documentation
+-------------
+"""
+
 import numpy as np
 import ROOT as r
 from gempython.gemplotting.utils.anaInfo import dict_calSF
@@ -93,7 +105,7 @@ class ScanDataFitter(DeadChannelFinder):
             3. :math:`\chi^2` of the fit
             4. Same as ``self.scanCount[vfat][channel]``
             5. Number of degrees of freedom (NDF) of the fit
-            6. Value of ROOT::Fit::FitResult::IsValid()  
+            6. Value of ROOT::Fit::FitResult::IsValid()
 
         calDAC2Q_m (numpy.ndarray): Calibration of ``calDAC`` to charge for each
             VFAT. This corresponds to :math:`m` in

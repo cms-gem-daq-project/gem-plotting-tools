@@ -50,8 +50,8 @@ the script.
 .. option:: -i, --infilename <FILE NAME>
 
     Physical filename of the input file to be passed to
-    :program:`gemPlotter.py`. See :any:`Two Column Format` for details on the
-    format and contents of this file.
+    :program:`gemPlotter.py`, in the :doc:`Two Column Format
+    </scandate-list-formats>`.
 
 Note for those :option:`--anaType` values which have the substring ``Ana`` in
 their names it is expected that the user has already run :program:`ana_scans.py`

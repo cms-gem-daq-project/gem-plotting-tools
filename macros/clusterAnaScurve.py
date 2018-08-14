@@ -14,8 +14,8 @@ Description
 
 This tool will allow you to re-analyze the scurve data in a straightforward way
 without the time consuming process of launching it by hand. Takes a list of
-scandates file in the :any:`Two Columns Format`, and launches a job for each
-``(chamberName, scandate)`` pair. Each job will launch
+scandates file in the :doc:`Two Column Format </scandate-list-formats>`, and
+launches a job for each ``(chamberName, scandate)`` pair. Each job will launch
 :program:`anaUltraScurve.py`.
 
 Mandatory arguments
@@ -39,8 +39,8 @@ the script.
 .. option:: -i, --infilename <FILE>
 
     Physical file name of the input file. The format of this input file should
-    follow the :any:`Two Column Format`. Either this option or
-    :option:`--chamberName` must be supplied.
+    follow the :doc:`Two Column Format </scandate-list-formats>`. Either this
+    option or :option:`--chamberName` must be supplied.
 
 .. option:: -q, --queue <QUEUE>
 
