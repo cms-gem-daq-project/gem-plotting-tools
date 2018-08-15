@@ -7,7 +7,6 @@ anaSBitThresh
 
 if __name__ == '__main__':
     import os
-    import sys
     from gempython.utils.nesteddict import nesteddict as ndict
 
     from gempython.gemplotting.utils.anaoptions import parser
