@@ -44,6 +44,17 @@ def first_index_gt(data_list, value):
     except StopIteration: 
         return len(data_list)
 
+def formatSciNotation(value, digits=2):
+    """
+    Returns a string formated in scientific notation with a number of digits to the
+    right of the decimal place equal to the digits value
+    """
+    from decimal import Decimal
+
+    sciNotation = '%.{0}E'.format(digits)
+
+    return sciNotation % Decimal(value)
+
 def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
     """
     Generates a 2D map of the detector as a TH2D. Y-axis will be ieta. X-axis will be ROBstr (strip),
