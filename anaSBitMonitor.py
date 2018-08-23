@@ -10,8 +10,6 @@ if __name__ == '__main__':
     import sys
     
     from gempython.gemplotting.utils.anaoptions import parser
-    #parser.add_option("--badPolThresh",type="int",dest="badPolThresh",default=128,
-    #        help="the mininum number of channels an sbit should be observed for to assume it's polarity is wrong", metavar="badPolThresh")
     parser.add_option("--checkInvalid",action="store_true", dest="checkInvalid",
             help="If provided invalid sbits will be considered", metavar="checkInvalid")
     
@@ -161,7 +159,8 @@ if __name__ == '__main__':
     print("Looping over events and filling histograms")
     dict_validSbitsPerEvt = ndict()
     dict_listSbitSizesPerEvt = ndict()
-    dict_wrongPolarity = ndict() # Keys [vfatN][vfatSBIT] = [ list of vfatCH values ]
+    dict_wrongSbit2ChanMapping = ndict() # Keys [vfatN][vfatSBIT][sbitSize] = number of occurrences
+    dict_wrongVfatObs2VfatPulsedMapping = ndict() # Key [(vfatN,vfatObs)] = number of occurrences
     from math import floor, sqrt
     lastPrintedEvt = 0
     for entry in inF.sbitDataTree:
@@ -187,73 +186,79 @@ if __name__ == '__main__':
         if not isValid and not options.checkInvalid:
             continue
 
-        # Track if sbit is mismatched
-        if (vfatSBIT != floor(vfatCH/2)):
-            if (len(dict_wrongPolarity[vfatN][vfatSBIT]) > 0): 
-                dict_wrongPolarity[vfatN][vfatSBIT].append(vfatCH)
-            else:
-                dict_wrongPolarity[vfatN][vfatSBIT] = [ vfatCH ]
-
         # Summary Plots
         dict_h_vfatObsVsVfatPulsed[isValid][calEnable][rate].Fill(vfatN,vfatObs)
 
-        # Track sbit multiplicity
-        if evtNum in dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN].keys():
-            if isValid:
-                dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN][evtNum]+=1
-        else:                                                                 
-            if isValid:                                                       
-                dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN][evtNum]=1
-            else:                                                             
-                dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN][evtNum]=0
+        if(vfatN == vfatObs): # Fill the following plots only when isVFATMappingCorrect is true
+            # Track if sbit is mismatched
+            if (vfatSBIT != floor(vfatCH/2)):
+                if (sbitSize in dict_wrongSbit2ChanMapping[vfatN][vfatSBIT].keys()):
+                    dict_wrongSbit2ChanMapping[vfatN][vfatSBIT][sbitSize] += 1
+                else:
+                    dict_wrongSbit2ChanMapping[vfatN][vfatSBIT][sbitSize] = 1
 
-        # Store sbit size
-        if evtNum in dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN].keys():
-            if isValid:
-                dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN][evtNum].append(sbitSize)
-        else:                                                                    
-            if isValid:                                                          
-                dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN][evtNum] = [sbitSize]
-            else:                                                                
-                dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN][evtNum] = []
+            # Track sbit multiplicity
+            if evtNum in dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN].keys():
+                if isValid:
+                    dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN][evtNum]+=1
+            else:
+                if isValid:
+                    dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN][evtNum]=1
+                else:
+                    dict_validSbitsPerEvt[isValid][calEnable][rate][vfatN][evtNum]=0
 
-        # VFAT lvl plots - 1D
-        dict_h_sbitSize[isValid][calEnable][rate][vfatN].Fill(sbitSize)
+            # Store sbit size
+            if evtNum in dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN].keys():
+                if isValid:
+                    dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN][evtNum].append(sbitSize)
+            else:
+                if isValid:
+                    dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN][evtNum] = [sbitSize]
+                else:
+                    dict_listSbitSizesPerEvt[isValid][calEnable][rate][vfatN][evtNum] = []
 
-        # VFAT lvl plots - 2D
-        newPt = dict_g_rateObsCTP7VsRatePulsed[isValid][vfatN].GetN()
-        dict_g_rateObsCTP7VsRatePulsed[isValid][vfatN].SetPoint(
-                newPt,
-                rate,
-                rateObsCTP7)
-        dict_g_rateObsCTP7VsRatePulsed[isValid][vfatN].SetPointError(
-                newPt,
-                0,
-                sqrt(rateObsCTP7))
+            # VFAT lvl plots - 1D
+            dict_h_sbitSize[isValid][calEnable][rate][vfatN].Fill(sbitSize)
 
-        newPt = dict_g_rateObsFPGAVsRatePulsed[isValid][vfatN].GetN()
-        dict_g_rateObsFPGAVsRatePulsed[isValid][vfatN].SetPoint(
-                newPt,
-                rate,
-                rateObsFPGA)
-        dict_g_rateObsFPGAVsRatePulsed[isValid][vfatN].SetPointError(
-                newPt,
-                0,
-                sqrt(rateObsFPGA))
+            # VFAT lvl plots - 2D
+            newPt = dict_g_rateObsCTP7VsRatePulsed[isValid][vfatN].GetN()
+            dict_g_rateObsCTP7VsRatePulsed[isValid][vfatN].SetPoint(
+                    newPt,
+                    rate,
+                    rateObsCTP7)
+            dict_g_rateObsCTP7VsRatePulsed[isValid][vfatN].SetPointError(
+                    newPt,
+                    0,
+                    sqrt(rateObsCTP7))
 
-        newPt = dict_g_rateObsVFATVsRatePulsed[isValid][vfatN].GetN()
-        dict_g_rateObsVFATVsRatePulsed[isValid][vfatN].SetPoint(
-                newPt,
-                rate,
-                rateObsVFAT)
-        dict_g_rateObsVFATVsRatePulsed[isValid][vfatN].SetPointError(
-                newPt,
-                0,
-                sqrt(rateObsVFAT))
+            newPt = dict_g_rateObsFPGAVsRatePulsed[isValid][vfatN].GetN()
+            dict_g_rateObsFPGAVsRatePulsed[isValid][vfatN].SetPoint(
+                    newPt,
+                    rate,
+                    rateObsFPGA)
+            dict_g_rateObsFPGAVsRatePulsed[isValid][vfatN].SetPointError(
+                    newPt,
+                    0,
+                    sqrt(rateObsFPGA))
 
-        #dict_h_chanVsRatePulsed_ZRateObs
+            newPt = dict_g_rateObsVFATVsRatePulsed[isValid][vfatN].GetN()
+            dict_g_rateObsVFATVsRatePulsed[isValid][vfatN].SetPoint(
+                    newPt,
+                    rate,
+                    rateObsVFAT)
+            dict_g_rateObsVFATVsRatePulsed[isValid][vfatN].SetPointError(
+                    newPt,
+                    0,
+                    sqrt(rateObsVFAT))
 
-        dict_h_sbitObsVsChanPulsed[isValid][calEnable][rate][vfatN].Fill(vfatCH,vfatSBIT)
+            #dict_h_chanVsRatePulsed_ZRateObs
+
+            dict_h_sbitObsVsChanPulsed[isValid][calEnable][rate][vfatN].Fill(vfatCH,vfatSBIT)
+        else: #VFAT Mapping is incorrect?
+            if( (vfatN,vfatObs) in dict_wrongVfatObs2VfatPulsedMapping.keys()):
+                dict_wrongVfatObs2VfatPulsedMapping[(vfatN,vfatObs)] += 1
+            else:
+                dict_wrongVfatObs2VfatPulsedMapping[(vfatN,vfatObs)] = 1
 
     print("Filling multiplicity distributions")
     for isValid in isValidValues:
@@ -449,15 +454,63 @@ if __name__ == '__main__':
     
     # Close output TFile
     outF.Close()
-                
+
+    arrayPos=0
+    list_nameNtype = [('vfatN','i4'),('vfatSBIT','i4'),('sbitSize','i4'),('N_Mismatches','i4')]
+    wrongSBITMapping = np.zeros(len(dict_wrongSbit2ChanMapping), dtype=list_nameNtype)
+    for vfat,dictBadSBits in dict_wrongSbit2ChanMapping.iteritems():
+        for sbit,dictSizeCounts in dictBadSBits.iteritems():
+            for size,nTimes in dictSizeCounts.iteritems():
+                wrongSBITMapping[arrayPos]['vfatN'] = vfat
+                wrongSBITMapping[arrayPos]['vfatSBIT'] = sbit
+                wrongSBITMapping[arrayPos]['sbitSize'] = size
+                wrongSBITMapping[arrayPos]['N_Mismatches'] = nTimes
+    wrongSBITMapping.sort(order=['vfatN','vfatSBIT','sbitSize','N_Mismatches'])
+
+    fileMisMappedSbits = open("{0}/MisMappedSbits.txt".format(filename),"w")
     print("List Of Mis-mapped Sbits")
-    print("| vfatN | vfatSBIT | N_Mismatches |")
-    print("| :---: | :------: | :----------: |")
-    for vfat,dictBadSBits in dict_wrongPolarity.iteritems():
-        for sbit,chanList in dictBadSBits.iteritems():
-            print("| {0} | {1} | {2} |".format(
-                vfat,
-                sbit,
-                len(chanList)))
+    fileMisMappedSbits.write("List Of Mis-mapped Sbits\n")
+    print("| vfatN | vfatSBIT | SBIT_Size | N_Mismatches |")
+    fileMisMappedSbits.write("| vfatN | vfatSBIT | SBIT_Size | N_Mismatches |\n")
+    print("| :---: | :------: | :-------: | :----------: |")
+    fileMisMappedSbits.write("| :---: | :------: | :-------: | :----------: |\n")
+    for idx in range(0,len(wrongSBITMapping)):
+        print("| {0} | {1} | {2} | {3} | {4} |".format(
+            wrongSBITMapping[idx]['vfatN'],
+            wrongSBITMapping[idx]['vfatSBIT'],
+            wrongSBITMapping[idx]['sbitSize'],
+            wrongSBITMapping[idx]['N_Mismatches']))
+        fileMisMappedSbits.write("| {0} | {1} | {2} | {3} | {4} |\n".format(
+            wrongSBITMapping[idx]['vfatN'],
+            wrongSBITMapping[idx]['vfatSBIT'],
+            wrongSBITMapping[idx]['sbitSize'],
+            wrongSBITMapping[idx]['N_Mismatches']))
+    fileMisMappedSbits.close()
+
+    list_nameNtype = [('vfatN','i4'),('vfatObs','i4'),('N_Mismatches','i4')]
+    wrongVFATMapping = np.zeros(len(dict_wrongVfatObs2VfatPulsedMapping), dtype=list_nameNtype)
+    for idx,vfatTuple in enumerate(dict_wrongVfatObs2VfatPulsedMapping.keys()):
+        wrongVFATMapping[idx]['vfatN']=vfatTuple[0]
+        wrongVFATMapping[idx]['vfatObs']=vfatTuple[1]
+        wrongVFATMapping[idx]['N_Mismatches']=dict_wrongVfatObs2VfatPulsedMapping[vfatTuple]
+    wrongVFATMapping.sort(order='vfatN')
+
+    fileMisMappedVFATs = open("{0}/MisMappedVFATs.txt".format(filename),"w")
+    print("List of Mis-mapped VFATs")
+    fileMisMappedVFATs.write("List of Mis-mapped VFATs\n")
+    print("| vfatPulsed | vfatObserved | N_Mismatches |")
+    fileMisMappedVFATs.write("| vfatPulsed | vfatObserved | N_Mismatches |\n")
+    print("| :--------: | :----------: | :----------: |")
+    fileMisMappedVFATs.write("| :--------: | :----------: | :----------: |\n")
+    for idx in range(0,len(wrongVFATMapping)):
+        print("| {0} | {1} | {2} |".format(
+            wrongVFATMapping[idx]['vfatN'],
+            wrongVFATMapping[idx]['vfatObs'],
+            wrongVFATMapping[idx]['N_Mismatches']))
+        fileMisMappedVFATs.write("| {0} | {1} | {2} |".format(
+            wrongVFATMapping[idx]['vfatN'],
+            wrongVFATMapping[idx]['vfatObs'],
+            wrongVFATMapping[idx]['N_Mismatches']))
+    fileMisMappedVFATs.close()
 
     print("\nDone")
