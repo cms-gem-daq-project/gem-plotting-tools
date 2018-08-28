@@ -39,7 +39,7 @@ if __name__ == '__main__':
     ratesUsed = np.unique(initInfo['ratePulsed'])
 
     print('Initializing histograms')
-    from gempython.utils.nesteddict import nesteddict as ndict
+    from gempython.utils.nesteddict import nesteddict as ndict, flatten
 
     # Summary plots - 2D
     dict_h_vfatObsVsVfatPulsed = ndict() #Keys as: [isValid][calEnable][rate]
@@ -70,8 +70,10 @@ if __name__ == '__main__':
         for calEnable in calEnableValues:
             if calEnable:
                 strCalStatus="calEnabled"
+                strPulsedOrUnmasked="Pulsed"
             else:
                 strCalStatus="calDisabled"
+                strPulsedOrUnmasked="Unmasked"
 
             postScript = "{0}_{1}".format(strValidity,strCalStatus)
 
@@ -83,7 +85,7 @@ if __name__ == '__main__':
                 # 2D Observables
                 dict_h_vfatObsVsVfatPulsed[isValid][calEnable][rate] = r.TH2F(
                         "h_vfatObservedVsVfatPulsed_{0}_{1}Hz".format(postScript,int(rate)),
-                        "Summmary - Rate {0} Hz;VFAT Pulsed;VFAT Observed".format(int(rate)),
+                        "Summmary - Rate {0} Hz;VFAT {1};VFAT Observed".format(int(rate),strPulsedOrUnmasked),
                         24,-0.5,23.5,24,-0.5,23.5)
                 dict_h_vfatObsVsVfatPulsed[isValid][calEnable][rate].Sumw2()
 
@@ -99,6 +101,8 @@ if __name__ == '__main__':
                     dict_g_rateObsCTP7VsRatePulsed[isValid][vfat] = r.TGraphErrors()
                     dict_g_rateObsCTP7VsRatePulsed[isValid][vfat].SetName(
                             "g_rateObsCTP7VsRatePulsed_vfat{0}_{1}".format(vfat,strValidity))
+                    dict_g_rateObsCTP7VsRatePulsed[isValid][vfat].SetTitle(
+                            "VFAT {0};Rate Pulsed #left(Hz#right);Rate Observed #left(Hz#right)".format(vfat))
                     dict_g_rateObsCTP7VsRatePulsed[isValid][vfat].SetLineColor(r.kBlue)
                     dict_g_rateObsCTP7VsRatePulsed[isValid][vfat].SetLineWidth(2)
                     dict_g_rateObsCTP7VsRatePulsed[isValid][vfat].SetMarkerColor(r.kBlue)
@@ -108,6 +112,8 @@ if __name__ == '__main__':
                     dict_g_rateObsFPGAVsRatePulsed[isValid][vfat] = r.TGraphErrors()
                     dict_g_rateObsFPGAVsRatePulsed[isValid][vfat].SetName(
                             "g_rateObsFPGAVsRatePulsed_vfat{0}_{1}".format(vfat,strValidity))
+                    dict_g_rateObsFPGAVsRatePulsed[isValid][vfat].SetTitle(
+                            "VFAT {0};Rate Pulsed #left(Hz#right);Rate Observed #left(Hz#right)".format(vfat))
                     dict_g_rateObsFPGAVsRatePulsed[isValid][vfat].SetLineColor(r.kRed)
                     dict_g_rateObsFPGAVsRatePulsed[isValid][vfat].SetLineWidth(2)
                     dict_g_rateObsFPGAVsRatePulsed[isValid][vfat].SetMarkerColor(r.kRed)
@@ -117,6 +123,8 @@ if __name__ == '__main__':
                     dict_g_rateObsVFATVsRatePulsed[isValid][vfat] = r.TGraphErrors()
                     dict_g_rateObsVFATVsRatePulsed[isValid][vfat].SetName(
                             "g_rateObsVFATVsRatePulsed_vfat{0}_{1}".format(vfat,strValidity))
+                    dict_g_rateObsVFATVsRatePulsed[isValid][vfat].SetTitle(
+                            "VFAT {0};Rate Pulsed #left(Hz#right);Rate Observed #left(Hz#right)".format(vfat))
                     dict_g_rateObsVFATVsRatePulsed[isValid][vfat].SetLineColor(r.kGreen)
                     dict_g_rateObsVFATVsRatePulsed[isValid][vfat].SetLineWidth(2)
                     dict_g_rateObsVFATVsRatePulsed[isValid][vfat].SetMarkerColor(r.kGreen)
@@ -146,7 +154,7 @@ if __name__ == '__main__':
                         # 2D Obs
                         dict_h_sbitObsVsChanPulsed[isValid][calEnable][rate][vfat] = r.TH2F(
                                 "h_sbitObsVsChanPulsed_vfat{0}_{1}_{2}Hz".format(vfat,postScript,int(rate)),
-                                "VFAT{0} - Rate {1} Hz;Channel Pulsed;SBIT Observed".format(vfat,int(rate)),
+                                "VFAT{0} - Rate {1} Hz;Channel {2};SBIT Observed".format(vfat,int(rate),strPulsedOrUnmasked),
                                 128,-0.5,127.5,64,-0.5,63.5)
                         dict_h_sbitObsVsChanPulsed[isValid][calEnable][rate][vfat].Sumw2()
 
@@ -177,7 +185,7 @@ if __name__ == '__main__':
         vfatSBIT = entry.vfatSBIT
         vfatN = entry.vfatN
         vfatObs = entry.vfatObserved
-        
+
         if( (evtNum % 1000) == 0 and lastPrintedEvt != evtNum):
             lastPrintedEvt = evtNum
             print("processed {0} events so far".format(entry.evtNum))
@@ -323,7 +331,7 @@ if __name__ == '__main__':
         saveSummary(dict_h_sbitMulti[isValid][0][0], name="{0}/sbitMulti_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="")
         saveSummary(dict_h_sbitSize[isValid][0][0], name="{0}/sbitSize_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="")
 
-        saveSummary(dict_h_sbitObsVsChanPulsed[isValid][0][0], name="{0}/sbitObsVsChanPulsed_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ")
+        saveSummary(dict_h_sbitObsVsChanPulsed[isValid][0][0], name="{0}/sbitObsVsChanUnmasked_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ")
         saveSummary(dict_h_sbitMultiVsSbitSize[isValid][0][0], name="{0}/sbitMultiVsSbitSize_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ")
         
         for idx,rate in enumerate(ratesUsed):
@@ -457,7 +465,7 @@ if __name__ == '__main__':
 
     arrayPos=0
     list_nameNtype = [('vfatN','i4'),('vfatSBIT','i4'),('sbitSize','i4'),('N_Mismatches','i4')]
-    wrongSBITMapping = np.zeros(len(dict_wrongSbit2ChanMapping), dtype=list_nameNtype)
+    wrongSBITMapping = np.zeros(len(flatten(dict_wrongSbit2ChanMapping)), dtype=list_nameNtype)
     for vfat,dictBadSBits in dict_wrongSbit2ChanMapping.iteritems():
         for sbit,dictSizeCounts in dictBadSBits.iteritems():
             for size,nTimes in dictSizeCounts.iteritems():
@@ -465,6 +473,7 @@ if __name__ == '__main__':
                 wrongSBITMapping[arrayPos]['vfatSBIT'] = sbit
                 wrongSBITMapping[arrayPos]['sbitSize'] = size
                 wrongSBITMapping[arrayPos]['N_Mismatches'] = nTimes
+                arrayPos+=1
     wrongSBITMapping.sort(order=['vfatN','vfatSBIT','sbitSize','N_Mismatches'])
 
     fileMisMappedSbits = open("{0}/MisMappedSbits.txt".format(filename),"w")
@@ -475,12 +484,12 @@ if __name__ == '__main__':
     print("| :---: | :------: | :-------: | :----------: |")
     fileMisMappedSbits.write("| :---: | :------: | :-------: | :----------: |\n")
     for idx in range(0,len(wrongSBITMapping)):
-        print("| {0} | {1} | {2} | {3} | {4} |".format(
+        print("| {0} | {1} | {2} | {3} |".format(
             wrongSBITMapping[idx]['vfatN'],
             wrongSBITMapping[idx]['vfatSBIT'],
             wrongSBITMapping[idx]['sbitSize'],
             wrongSBITMapping[idx]['N_Mismatches']))
-        fileMisMappedSbits.write("| {0} | {1} | {2} | {3} | {4} |\n".format(
+        fileMisMappedSbits.write("| {0} | {1} | {2} | {3} |\n".format(
             wrongSBITMapping[idx]['vfatN'],
             wrongSBITMapping[idx]['vfatSBIT'],
             wrongSBITMapping[idx]['sbitSize'],
