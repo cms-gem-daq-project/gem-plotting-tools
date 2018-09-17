@@ -211,8 +211,9 @@ if __name__ == '__main__':
     vSummaryPlotsNoMaskedChanPanPin2 = ndict()
     vthr_list = getEmptyPerVFATList() 
     trim_list = getEmptyPerVFATList() 
-    trimrange_list = getEmptyPerVFATList()
-    
+    trimRange_list = getEmptyPerVFATList()
+    trimPolarity_list = getEmptyPerVFATList()
+
     # Set default histogram behavior
     r.TH1.SetDefaultSumw2(False)
     r.gROOT.SetBatch(True)
@@ -272,7 +273,10 @@ if __name__ == '__main__':
         for chan in range (0,128):
             vthr_list[vfat].append(0)
             trim_list[vfat].append(0)
-            trimrange_list[vfat].append(0)
+            if options.isVFAT3:
+                trimPolarity_list[vfat].append(0)
+            else:
+                trimRange_list[vfat].append(0)
             pass
         pass
     
@@ -319,7 +323,11 @@ if __name__ == '__main__':
             vthr_list[event.vfatN][event.vfatCH] = abs(event.vth2 - event.vth1)
             pass
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
-        trimrange_list[event.vfatN][event.vfatCH] = event.trimRange
+        if options.isVFAT3:
+            #placegolder
+            trimPolarity_list[event.vfatN][event.vfatCH] = event.trimPolarity
+        else:
+            trimRange_list[event.vfatN][event.vfatCH] = event.trimRange
         
         # store event count
         if nPulses < 0:
@@ -469,8 +477,12 @@ if __name__ == '__main__':
         myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
         threshold = array( 'f', [ 0 ] )
         myT.Branch( 'threshold', threshold, 'threshold/F')
-        trimRange = array( 'i', [ 0 ] )
-        myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
+        if options.isVFAT3:
+            trimPolarity = array( 'i', [ 0 ] )
+            myT.Branch('trimPolarity', trimPolarity, 'trimPolarity/I' )
+        else:
+            trimRange = array( 'i', [ 0 ] )
+            myT.Branch( 'trimRange', trimRange, 'trimRange/I' )
         vfatCH = array( 'i', [ 0 ] )
         myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
         vfatID = array( 'i', [-1] )
@@ -496,6 +508,7 @@ if __name__ == '__main__':
         threshSummaryPlots = {}
         threshSummaryPlotsByiEta = {}
         allENC = np.zeros(3072)
+        h2DetENC_All = r.TH2F("ScurveSigma_All","ScurveSigma_All",24,-0.5,23.5,25,0,5)
 
         allENCByiEta    = dict( (ieta,np.zeros(3*128)) for ieta in range(1,9) )
         allEffPedByiEta = dict( (ieta,(-1.*np.ones(3*128))) for ieta in range(1,9) )
@@ -535,13 +548,16 @@ if __name__ == '__main__':
                 ndf[0] = int(scanFitResults[5][vfat][chan])
                 Nhigh[0] = int(scanFitResults[4][vfat][chan])
                 noise[0] = scanFitResults[1][vfat][chan]
-                panPin[0] = dict_vfatChanLUT[vfat]["PanPin"][chan] 
+                panPin[0] = dict_vfatChanLUT[vfat]["PanPin"][chan]
                 ped_eff[0] = effectivePedestals[vfat][chan]
                 pedestal[0] = scanFitResults[2][vfat][chan]
                 ROBstr[0] = dict_vfatChanLUT[vfat]["Strip"][chan]
                 threshold[0] = scanFitResults[0][vfat][chan]
                 trimDAC[0] = trim_list[vfat][chan]
-                trimRange[0] = trimrange_list[vfat][chan] 
+                if options.isVFAT3:
+                    trimPolarity[0] = trimPolarity_list[vfat][chan]
+                else:
+                    trimRange[0] = trimRange_list[vfat][chan]
                 vfatCH[0] = chan
                 vfatID[0] = dict_vfatID[vfat]
                 vfatN[0] = vfat
@@ -636,6 +652,7 @@ if __name__ == '__main__':
                     if enc == 0: # Skip the case where it still equals the inital value
                         continue
                     histENC.Fill(enc)
+                    h2DetENC_All.Fill(vfat,enc)
                     pass
                 pass
             gENC = r.TGraphErrors(histENC)
@@ -795,25 +812,46 @@ if __name__ == '__main__':
         saveSummary(effPedSummaryPlots, None, '%s/ScurveEffPedSummary.png'%filename, None, drawOpt="E1")
         saveSummary(encSummaryPlots, None, '%s/ScurveSigmaSummary.png'%filename, None, drawOpt="AP")
 
+        #BoxPlot
+        canvasBoxPlot = r.TCanvas("h2ENC","h2ENC",0,0,1200,1000)
+        h2DetENC_All.SetStats(0)
+        h2DetENC_All.GetXaxis().SetTitle("VFAT position")
+        h2DetENC_All.GetYaxis().SetTitle("Noise (fC)")
+        h2DetENC_All.SetFillColor(400)
+        h2DetENC_All.Draw("candle1")
+        canvasBoxPlot.Update()
+        canvasBoxPlot.SaveAs("%s/h2ScurveSigmaDist_All.png"%(filename))
+        canvasBoxPlot.Close()
+
         saveSummaryByiEta(threshSummaryPlotsByiEta, '%s/ScurveMeanSummaryByiEta.png'%filename, None, drawOpt="AP")
         saveSummaryByiEta(effPedSummaryPlotsByiEta, '%s/ScurveEffPedSummaryByiEta.png'%filename, None, drawOpt="E1")
         saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
-        confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I:maskReason/I\n')
-        for vfat in range(0,24):
-            for chan in range (0, 128):
-                confF.write('%i\t%i\t%i\t%i\t%i\t%i\n'%(
-                    vfat,
-                    dict_vfatID[vfat],
-                    chan,
-                    trim_list[vfat][chan],
-                    masks[vfat][chan],
-                    maskReasons[vfat][chan]))
-                pass
-            pass
+        if options.isVFAT3:
+            confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:trimPolarity/I:mask/I:maskReason/I\n')
+            for vfat in range(0,24):
+                for chan in range(0, 128):
+                    confF.write('%i\t%i\t%i\t%i\t%i\t%i\t%i\n'%(
+                        vfat,
+                        dict_vfatID[vfat],
+                        chan,
+                        trim_list[vfat][chan],
+                        trimPolarity_list[vfat][chan],
+                        masks[vfat][chan],
+                        maskReasons[vfat][chan]))
+        else:
+            confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I:maskReason/I\n')
+            for vfat in range(0,24):
+                for chan in range (0, 128):
+                    confF.write('%i\t%i\t%i\t%i\t%i\t%i\n'%(
+                        vfat,
+                        dict_vfatID[vfat],
+                        chan,
+                        trim_list[vfat][chan],
+                        masks[vfat][chan],
+                        maskReasons[vfat][chan]))
         confF.close()
-        pass
 
     # Make 1D Plot for each VFAT showing all scurves
     # Don't use the ones stored in fitter since this may not exist (e.g. options.performFit = false)
@@ -874,6 +912,7 @@ if __name__ == '__main__':
         hDetEffPed_All.Write()
         gDetEffPed_All.Write()
         hDetENC_All.Write()
+        h2DetENC_All.Write()
         gDetENC_All.Write()
         hDetMapENC.Write()
    
