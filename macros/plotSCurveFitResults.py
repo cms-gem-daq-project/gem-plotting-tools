@@ -297,7 +297,6 @@ if __name__ == '__main__':
     dict_mGraph_fitSum = ndict()        # key: (0,23) follows vfat #
     dict_mGraph_ScurveMean = ndict()    # key: (0,23) follows vfat #, -1 is summary over all det
     dict_mGraph_ScurveSigma = ndict()   # key: (0,23) follows vfat #, -1 is summary over all det
-       
 
     dict_mGraph_ScurveMean[-1] = r.TMultiGraph("mGraph_ScurveMeanDist_All","")
     dict_mGraph_ScurveMean[-1].GetXaxis().SetTitle("scurve mean #left(fC#right)")
