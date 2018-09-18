@@ -494,6 +494,7 @@ if __name__ == '__main__':
         threshSummaryPlots = {}
         threshSummaryPlotsByiEta = {}
         allENC = np.zeros(3072)
+        h2DetENC_All = r.TH2F("ScurveSigma_All","ScurveSigma_All",24,-0.5,23.5,25,0,5)
 
         allENCByiEta    = dict( (ieta,np.zeros(3*128)) for ieta in range(1,9) )
         allEffPedByiEta = dict( (ieta,(-1.*np.ones(3*128))) for ieta in range(1,9) )
@@ -634,6 +635,7 @@ if __name__ == '__main__':
                     if enc == 0: # Skip the case where it still equals the inital value
                         continue
                     histENC.Fill(enc)
+                    h2DetENC_All.Fill(vfat,enc)
                     pass
                 pass
             gENC = r.TGraphErrors(histENC)
@@ -793,6 +795,17 @@ if __name__ == '__main__':
         saveSummary(effPedSummaryPlots, None, '%s/ScurveEffPedSummary.png'%filename, None, drawOpt="E1")
         saveSummary(encSummaryPlots, None, '%s/ScurveSigmaSummary.png'%filename, None, drawOpt="AP")
 
+        #BoxPlot
+        canvasBoxPlot = r.TCanvas("h2ENC","h2ENC",0,0,1200,1000)
+        h2DetENC_All.SetStats(0)
+        h2DetENC_All.GetXaxis().SetTitle("VFAT position")
+        h2DetENC_All.GetYaxis().SetTitle("Noise (fC)")
+        h2DetENC_All.SetFillColor(400)
+        h2DetENC_All.Draw("candle1")
+        canvasBoxPlot.Update()
+        canvasBoxPlot.SaveAs("%s/h2ScurveSigmaDist_All.png"%(filename))
+        canvasBoxPlot.Close()
+    
         saveSummaryByiEta(threshSummaryPlotsByiEta, '%s/ScurveMeanSummaryByiEta.png'%filename, None, drawOpt="AP")
         saveSummaryByiEta(effPedSummaryPlotsByiEta, '%s/ScurveEffPedSummaryByiEta.png'%filename, None, drawOpt="E1")
         saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
@@ -872,6 +885,7 @@ if __name__ == '__main__':
         hDetEffPed_All.Write()
         gDetEffPed_All.Write()
         hDetENC_All.Write()
+        h2DetENC_All.Write()
         gDetENC_All.Write()
         hDetMapENC.Write()
    
