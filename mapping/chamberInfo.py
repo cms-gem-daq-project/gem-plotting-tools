@@ -101,12 +101,18 @@ chamber_vfatDACSettings = {
     #        #Set the Latency - 10x10 PMT on R&D Setup
     #        "CFG_LATENCY":98,
     #        #Correct the bug in the shaper
-    #        "CFG_PT":7,
-    #        #Updated DAC settings from Flavio
-    #        "CFG_BIAS_SH_I_BDIFF":150,
-    #        "CFG_BIAS_SH_I_BFCAS":250,
-    #        "CFG_BIAS_SD_I_BDIFF":255,
-    #        "CFG_BIAS_SD_I_BFCAS":255,
+    #        #"CFG_PT":0xf,
+    #        "CFG_PT":3,
+    #        #VFAT3a DAC settings
+    #        #"CFG_BIAS_SH_I_BDIFF":150,
+    #        #"CFG_BIAS_SH_I_BFCAS":250,
+    #        #"CFG_BIAS_SD_I_BDIFF":255,
+    #        #"CFG_BIAS_SD_I_BFCAS":255,
+    #        #VFAT3b DAC settings
+    #        "CFG_BIAS_SH_I_BDIFF":80,
+    #        "CFG_BIAS_SH_I_BFCAS":130,
+    #        "CFG_BIAS_SD_I_BDIFF":140,
+    #        "CFG_BIAS_SD_I_BFCAS":135,
     #        #Provide a slight offset to the ZCC comparator baseline voltage
     #        "CFG_THR_ZCC_DAC":10,
     #        #High VFAT3 preamp gain
@@ -136,7 +142,8 @@ chamber_vfatDACSettings = {
     #        #Set the Latency - 10x10 PMT on R&D Setup
     #        "CFG_LATENCY":98,
     #        #Correct the bug in the shaper
-    #        "CFG_PT":7,
+    #        #"CFG_PT":0xf,
+    #        "CFG_PT":3,
     #        #Updated DAC settings from Flavio
     #        "CFG_BIAS_SH_I_BDIFF":150,
     #        "CFG_BIAS_SH_I_BFCAS":250,
