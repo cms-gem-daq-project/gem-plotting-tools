@@ -166,7 +166,8 @@ if __name__ == '__main__':
     dict_ScurveEffPed = ndict()
 
     dict_ScurveMeanByiEta = ndict()
-    dict_ScurveSigmaByiEta = ndict() 
+    dict_ScurveSigmaByiEta = ndict()
+    dict_ScurveSigma_boxPlot = {}  # key: (chamberName,scandate)
 
     # Get the plots from all files
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
@@ -282,13 +283,22 @@ if __name__ == '__main__':
         dict_ScurveEffPed[chamberAndScanDatePair][-1].SetLineColor(getCyclicColor(idx))
         dict_ScurveEffPed[chamberAndScanDatePair][-1].SetMarkerColor(getCyclicColor(idx))
         dict_ScurveEffPed[chamberAndScanDatePair][-1].SetMarkerStyle(20+idx)
+
+        dict_ScurveSigma_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveSigma_All")
+        dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetName(
+                    "%s_%s_%s"%(
+                        dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetName(),
+                        chamberAndScanDatePair[0],
+                        chamberAndScanDatePair[1])
+                )
         pass
 
     # Define the TMultiGraph dictionaries
     dict_mGraph_fitSum = ndict()        # key: (0,23) follows vfat #
     dict_mGraph_ScurveMean = ndict()    # key: (0,23) follows vfat #, -1 is summary over all det
     dict_mGraph_ScurveSigma = ndict()   # key: (0,23) follows vfat #, -1 is summary over all det
-   
+       
+
     dict_mGraph_ScurveMean[-1] = r.TMultiGraph("mGraph_ScurveMeanDist_All","")
     dict_mGraph_ScurveMean[-1].GetXaxis().SetTitle("scurve mean #left(fC#right)")
 
@@ -304,11 +314,12 @@ if __name__ == '__main__':
     dict_canvSCurveMeanByiEta = ndict()
     dict_canvSCurveSigma = ndict()
     dict_canvSCurveSigmaByiEta = ndict()
-    
+
     # Make the summary canvases
     canvScurveMean_DetSum = r.TCanvas("canvSCurveMeanDetSumAllScandates","Scurve Mean - Detector Summary",600,600)
     canvScurveSigma_DetSum = r.TCanvas("canvSCurveSigmaDetSumAllScandates","Scurve Sigma - Detector Summary",600,600)
     canvScurveEffPed_DetSum = r.TCanvas("canvSCurveEffPedDetSumAllScandates","Scurve EffPed - Detector Summary",600,600)
+    canvScurveSigma_boxPlot = r.TCanvas("canvSCurveSigma_boxPlot","Scurve Sigma - Detector Summary boxPlot",600,600)
     plotLeg = r.TLegend(0.1,0.65,0.45,0.9)
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
         drawOpt="APE1"
@@ -386,6 +397,16 @@ if __name__ == '__main__':
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("E1")
         else:
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("sameE1")
+	
+	canvScurveSigma_boxPlot.cd()
+	dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
+	dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
+	if idx == 0:
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetXaxis().SetTitle("VFAT position")
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetYaxis().SetTitle("Noise #left(fC#right)")
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1")
+	else:
+	    dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1 same")
 
         # Fill Legend - use VFAT0 of each
         plotLeg.AddEntry(dict_fitSum[chamberAndScanDatePair][0],chamberAndScanDatePair[2],"LPE")
@@ -463,6 +484,9 @@ if __name__ == '__main__':
         
         canvScurveEffPed_DetSum.cd()
         plotLeg.Draw("same")
+
+        canvScurveSigma_boxPlot.cd()
+        plotLeg.Draw("same")
         pass
 
     # Make output images
@@ -476,6 +500,7 @@ if __name__ == '__main__':
     canvScurveMean_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_DetSum.GetName()))
     canvScurveSigma_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_DetSum.GetName()))
     canvScurveEffPed_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveEffPed_DetSum.GetName()))
+    canvScurveSigma_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_boxPlot.GetName()))
 
     # Save summary canvas objects in output root file
     outF = r.TFile("%s/%s"%(elogPath,options.rootName),options.rootOpt)
@@ -517,6 +542,7 @@ if __name__ == '__main__':
     canvScurveSigma_DetSum.Write()
     dict_mGraph_ScurveSigma[-1].Write()
     canvScurveEffPed_DetSum.Write()
+    canvScurveSigma_boxPlot.Write()
 
     print "Your plots can be found in:"
     print ""
