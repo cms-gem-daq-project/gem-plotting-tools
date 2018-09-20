@@ -799,7 +799,7 @@ if __name__ == '__main__':
         canvasBoxPlot = r.TCanvas("h2ENC","h2ENC",0,0,1200,1000)
         h2DetENC_All.SetStats(0)
         h2DetENC_All.GetXaxis().SetTitle("VFAT position")
-        h2DetENC_All.GetYaxis().SetTitle("Noise (fC)")
+        h2DetENC_All.GetYaxis().SetTitle("Noise #left(fC#right)")
         h2DetENC_All.SetFillColor(400)
         h2DetENC_All.Draw("candle1")
         canvasBoxPlot.Update()

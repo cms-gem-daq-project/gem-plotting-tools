@@ -394,7 +394,7 @@ if __name__ == '__main__':
 
         canvScurveEffPed_DetSum.cd()
         if idx == 0:
-	    dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("E1")
+            dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("E1")
         else:
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("sameE1")
 	
@@ -402,9 +402,9 @@ if __name__ == '__main__':
 	dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
 	dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
 	if idx == 0:
-	    dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetXaxis().SetTitle("VFAT position")
-            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetYaxis().SetTitle("Noise (fC)")
-	    dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1")
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetXaxis().SetTitle("VFAT position")
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetYaxis().SetTitle("Noise #left(fC#right)")
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1")
 	else:
 	    dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1 same")
 
