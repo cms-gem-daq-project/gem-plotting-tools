@@ -152,17 +152,17 @@ if __name__ == '__main__':
         binMin = min(listOfThrValues)-stepSize*0.5
         binMax = max(listOfThrValues)+stepSize*0.5
         nBins = len(listOfThrValues)
-    else:
-        from array import array
-        binEdges = []
-        for idx,val in enumerate(listOfThrValues):
-            if( idx < (len(listOfThrValues)-1)):
-                binEdges.append(val - 0.5*deltaBins[idx])
-            else:
-                binEdges.append(val - 0.5*deltaBins[idx-1])
-                binEdges.append(val + 0.5*deltaBins[idx-1])
-        binEdges = array('d',binEdges)
-        nBins = len(binEdges)-1
+    #else:
+    #    from array import array
+    #    binEdges = []
+    #    for idx,val in enumerate(listOfThrValues):
+    #        if( idx < (len(listOfThrValues)-1)):
+    #            binEdges.append(val - 0.5*deltaBins[idx])
+    #        else:
+    #            binEdges.append(val - 0.5*deltaBins[idx-1])
+    #            binEdges.append(val + 0.5*deltaBins[idx-1])
+    #    binEdges = array('d',binEdges)
+    #    nBins = len(binEdges)-1
     
     # Make containers
     # In each case where vfat position is used as a key, the value of -1 is the sum over the entire detector
@@ -248,7 +248,8 @@ if __name__ == '__main__':
                     #placeholder
                     dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binMin,binMax,1002,-0.1,100.1)
                 else:
-                    dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binEdges,1002,-0.1,100.1)
+                    #dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binEdges,1002,-0.1,100.1)
+                    dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,256,-0.5,255.5,1002,-0.1,100.1)
                 dict_ScurveMeanVsThrDac_BoxPlot[vfat].SetXTitle(thrDacName)
                 dict_ScurveMeanVsThrDac_BoxPlot[vfat].SetYTitle("Scurve Mean #left(fC#right)")
 
@@ -264,7 +265,8 @@ if __name__ == '__main__':
                     #placeholder
                     dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binMin,binMax,504,-0.1,25.1)
                 else:
-                    dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binEdges,504,-0.1,25.1)
+                    #dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binEdges,504,-0.1,25.1)
+                    dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,256,-0.5,255.5,504,-0.1,25.1)
                 dict_ScurveSigmaVsThrDac_BoxPlot[vfat].SetXTitle(thrDacName)
                 dict_ScurveSigmaVsThrDac_BoxPlot[vfat].SetYTitle("Scurve Sigma #left(fC#right)")
 
