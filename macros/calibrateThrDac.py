@@ -137,6 +137,33 @@ if __name__ == '__main__':
     else:
         mapVFATPos2VFATSN = np.zeros(24,dtype={'names':('vfatN', 'serialNum'),'formats':('i4', 'i4')})
 
+    # Get list of THR DAC values
+    listOfThrValues = []
+    for infoTuple in listChamberAndScanDate:
+        listOfThrValues.append(infoTuple[2])
+    listOfThrValues.sort()
+
+    # Determine step size in THR DAC values
+    # This is for making box plots
+    deltaBins = np.diff(listOfThrValues)
+    uniqueDeltas = np.unique(deltaBins)
+    if len(uniqueDeltas) == 1:
+        stepSize = np.unique(deltaBins)
+        binMin = min(listOfThrValues)-stepSize*0.5
+        binMax = max(listOfThrValues)+stepSize*0.5
+        nBins = len(listOfThrValues)
+    #else:
+    #    from array import array
+    #    binEdges = []
+    #    for idx,val in enumerate(listOfThrValues):
+    #        if( idx < (len(listOfThrValues)-1)):
+    #            binEdges.append(val - 0.5*deltaBins[idx])
+    #        else:
+    #            binEdges.append(val - 0.5*deltaBins[idx-1])
+    #            binEdges.append(val + 0.5*deltaBins[idx-1])
+    #    binEdges = array('d',binEdges)
+    #    nBins = len(binEdges)-1
+    
     # Make containers
     # In each case where vfat position is used as a key, the value of -1 is the sum over the entire detector
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -148,7 +175,9 @@ if __name__ == '__main__':
     dict_mGraphScurveMean = {} # Key is VFAT position, stores the dict_gScurveMean[*][vfat] for a given vfat
     dict_mGraphScurveSigma = {}
     dict_ScurveMeanVsThrDac = {} # Key is VFAT position
+    dict_ScurveMeanVsThrDac_BoxPlot = {} # Key is VFAT position
     dict_ScurveSigmaVsThrDac = {}
+    dict_ScurveSigmaVsThrDac_BoxPlot = {}
 
     legArmDacValues = r.TLegend(0.5,0.5,0.9,0.9)
 
@@ -179,6 +208,10 @@ if __name__ == '__main__':
         array_vfatData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
         array_vfatData = np.unique(array_vfatData)
         
+        # Get scurve data for this arm dac value (used for boxplots)
+        list_bNames = ['noise', 'threshold', 'vfatN', 'vthr']
+        scurveFitData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
+
         ###################
         # Get and fit individual distributions
         ###################
@@ -203,18 +236,39 @@ if __name__ == '__main__':
 
             # Make the TMultiGraph Objects
             if idx == 0:
+                # Scurve Mean
                 dict_mGraphScurveMean[vfat] = r.TMultiGraph("mGraph_ScurveMeanByThrDac_{0}".format(suffix),suffix)
-                dict_mGraphScurveSigma[vfat] = r.TMultiGraph("mGraph_ScurveSigmaByThrDac_{0}".format(suffix),suffix)
 
                 dict_ScurveMeanVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
                 dict_ScurveMeanVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveMeanVsThrDac[vfat].SetName("gScurveMean_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveMeanVsThrDac[vfat].SetMarkerStyle(23)
+                
+                if len(uniqueDeltas) == 1:
+                    #placeholder
+                    dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binMin,binMax,1002,-0.1,100.1)
+                else:
+                    #dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binEdges,1002,-0.1,100.1)
+                    dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,256,-0.5,255.5,1002,-0.1,100.1)
+                dict_ScurveMeanVsThrDac_BoxPlot[vfat].SetXTitle(thrDacName)
+                dict_ScurveMeanVsThrDac_BoxPlot[vfat].SetYTitle("Scurve Mean #left(fC#right)")
+
+                # Scurve Sigma
+                dict_mGraphScurveSigma[vfat] = r.TMultiGraph("mGraph_ScurveSigmaByThrDac_{0}".format(suffix),suffix)
 
                 dict_ScurveSigmaVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
                 dict_ScurveSigmaVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveSigmaVsThrDac[vfat].SetName("gScurveSigma_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveSigmaVsThrDac[vfat].SetMarkerStyle(23)
+                
+                if len(uniqueDeltas) == 1:
+                    #placeholder
+                    dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binMin,binMax,504,-0.1,25.1)
+                else:
+                    #dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binEdges,504,-0.1,25.1)
+                    dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,256,-0.5,255.5,504,-0.1,25.1)
+                dict_ScurveSigmaVsThrDac_BoxPlot[vfat].SetXTitle(thrDacName)
+                dict_ScurveSigmaVsThrDac_BoxPlot[vfat].SetYTitle("Scurve Sigma #left(fC#right)")
 
             ###################
             ### Scurve Mean ###
@@ -314,6 +368,23 @@ if __name__ == '__main__':
                         "{0} = {1}".format(thrDacName, infoTuple[2]),
                         "LPE")
 
+        #####################
+        ### Fill Box Plots ##
+        #####################
+        for idx in range(0,len(scurveFitData)):
+            scurveMean = scurveFitData[idx]['threshold']
+            scurveSigma = scurveFitData[idx]['noise']
+            thrDacVal = scurveFitData[idx]['vthr']
+            vfatN = scurveFitData[idx]['vfatN']
+
+            # All VFATs
+            dict_ScurveMeanVsThrDac_BoxPlot[-1].Fill(thrDacVal,scurveMean)
+            dict_ScurveSigmaVsThrDac_BoxPlot[-1].Fill(thrDacVal,scurveSigma)
+
+            # Per VFAT
+            dict_ScurveMeanVsThrDac_BoxPlot[vfatN].Fill(thrDacVal,scurveMean)
+            dict_ScurveSigmaVsThrDac_BoxPlot[vfatN].Fill(thrDacVal,scurveSigma)
+
     ###################
     # Make output calibration file
     ###################
@@ -335,9 +406,13 @@ if __name__ == '__main__':
     # Plot Containers
     dict_canvScurveMeanByThrDac = {}
     dict_canvScurveSigmaByThrDac = {}
+
     dict_canvScurveMeanVsThrDac = {}
     dict_canvScurveSigmaVsThrDac = {}
 
+    dict_canvScurveMeanVsThrDac_BoxPlot = {}
+    dict_canvScurveSigmaVsThrDac_BoxPlot = {}
+    
     ###################
     # Now Make plots & Fit DAC Curves
     ###################
@@ -393,6 +468,12 @@ if __name__ == '__main__':
         dict_ScurveMeanVsThrDac[vfat].Write()
         func_ScurveMeanVsThrDac.Write()
 
+        # Mean vs CFG_THR_*_DAC - Box Plot
+        dict_canvScurveMeanVsThrDac_BoxPlot[vfat] = r.TCanvas("canvScurveMeanVsThrDac_BoxPlot_{0}".format(suffix),"Box Plot: Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
+        dict_canvScurveMeanVsThrDac_BoxPlot[vfat].cd()
+        dict_ScurveMeanVsThrDac_BoxPlot[vfat].Draw("candle1")
+        dict_ScurveMeanVsThrDac_BoxPlot[vfat].Write()
+
         # Sigma vs CFG_THR_*_DAC
         dict_canvScurveSigmaVsThrDac[vfat] = r.TCanvas("canvScurveSigmaVsThrDac_{0}".format(suffix),"Scurve Sigma vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveSigmaVsThrDac[vfat].cd()
@@ -404,6 +485,12 @@ if __name__ == '__main__':
         dict_ScurveSigmaVsThrDac[vfat].Fit(func_ScurveSigmaVsThrDac,"QR")
         dict_ScurveSigmaVsThrDac[vfat].Write()
         func_ScurveSigmaVsThrDac.Write()
+
+        # Sigma vs CFG_THR_*_DAC - Box Plot
+        dict_canvScurveSigmaVsThrDac_BoxPlot[vfat] = r.TCanvas("canvScurveSigmaVsThrDac_BoxPlot_{0}".format(suffix),"Box Plot: Scurve Sigma vs. THR DAC - {0}".format(suffix),700,700)
+        dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].cd()
+        dict_ScurveSigmaVsThrDac_BoxPlot[vfat].Draw("candle1")
+        dict_ScurveSigmaVsThrDac_BoxPlot[vfat].Write()
 
         # Write CFG_THR_*_DAC calibration file
         calThrDacFile.write("{0}\t{1}\t{2}\n".format(
@@ -426,6 +513,8 @@ if __name__ == '__main__':
         dict_canvScurveSigmaByThrDac[vfat].Write()
         dict_canvScurveMeanVsThrDac[vfat].Write()
         dict_canvScurveSigmaVsThrDac[vfat].Write()
+        dict_canvScurveMeanVsThrDac_BoxPlot[vfat].Write()
+        dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].Write()
 
         # Print info to user
         vfatOrAll = vfat
@@ -447,12 +536,16 @@ if __name__ == '__main__':
             dict_canvScurveSigmaByThrDac[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveSigmaByThrDac[vfat].GetName()))
             dict_canvScurveMeanVsThrDac[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveMeanVsThrDac[vfat].GetName()))
             dict_canvScurveSigmaVsThrDac[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveSigmaVsThrDac[vfat].GetName()))
+            dict_canvScurveMeanVsThrDac_BoxPlot[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveMeanVsThrDac_BoxPlot[vfat].GetName()))
+            dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].SaveAs("{0}/{1}.png".format(elogPath,dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].GetName()))
     
     # Make summary canvases, always save these
     canvScurveMeanByThrDac_Summary = make3x8Canvas("canvScurveMeanByThrDac_Summary",dict_mGraphScurveMean,"APE1")
     canvScurveSigmaByThrDac_Summary = make3x8Canvas("canvScurveSigmaByThrDac_Summary",dict_mGraphScurveSigma,"APE1")
     canvScurveMeanVsThrDac_Summary = make3x8Canvas("canvScurveMeanVsThrDac_Summary",dict_ScurveMeanVsThrDac,"APE1")
     canvScurveSigmaVsThrDac_Summary = make3x8Canvas("canvScurveSigmaVsThrDac_Summary",dict_ScurveSigmaVsThrDac,"APE1")
+    canvScurveMeanVsThrDac_BoxPlot_Summary = make3x8Canvas("canvScurveMeanVsThrDac_BoxPlot_Summary",dict_ScurveMeanVsThrDac_BoxPlot,"candle1")
+    canvScurveSigmaVsThrDac_BoxPlot_Summary = make3x8Canvas("canvScurveSigmaVsThrDac_BoxPlot_Summary",dict_ScurveSigmaVsThrDac_BoxPlot,"candle1")
 
     # Draw Legend?
     if not args.noLeg:
@@ -468,6 +561,8 @@ if __name__ == '__main__':
     canvScurveSigmaByThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigmaByThrDac_Summary.GetName()))
     canvScurveMeanVsThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMeanVsThrDac_Summary.GetName()))
     canvScurveSigmaVsThrDac_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigmaVsThrDac_Summary.GetName()))
+    canvScurveMeanVsThrDac_BoxPlot_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMeanVsThrDac_BoxPlot_Summary.GetName()))
+    canvScurveSigmaVsThrDac_BoxPlot_Summary.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigmaVsThrDac_BoxPlot_Summary.GetName()))
 
     # Close output files
     outFile.Close()
