@@ -191,13 +191,22 @@ if __name__ == '__main__':
         
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = {}
+    tree_dacVals = {}
     dict_dacVals = nesteddict()
     for oh in ohArray:
         graph_dacVals[oh] = r.TGraph()
+        tree_dacVals[oh] = r.TTree()
+        vfatN_branch = np.zeros(1, dtype=int)
+        dacVal_branch = np.zeros(1, dtype=int)
+        tree_dacVals[oh].Branch('vfatN',vfatN_branch,'vfatN/i')
+        tree_dacVals[oh].Branch('dacVal',dacVal_branch,'dacVal/i')
         for vfat in range(0,24):
              dict_dacVals[oh][vfat] = dict_dacScanResults[oh][vfat].Eval(nominal)
-             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat]) 
-
+             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
+             vfatN_branch[0] = vfat
+             dacVal_branch[0] = dict_dacVals[oh][vfat]
+             tree_dacVals[oh].Fill() 
+             
     # Write out the dacVal results to both a file and the terminal         
     print( "| OH | vfatN | dacVal |")
     print( "| -- | ----- | ------ |")        
@@ -205,6 +214,7 @@ if __name__ == '__main__':
     for oh in ohArray:
         outputFiles[oh].cd()
         graph_dacVals[oh].Write("dacValsOH"+str(oh))
+        tree_dacVals[oh].Write("dacValsOH"+str(oh))
         for vfat in range(0,24):
             print("| {0} | {1}  | {2} | ".format(
                 oh,
