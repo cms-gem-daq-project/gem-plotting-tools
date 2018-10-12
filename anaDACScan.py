@@ -17,7 +17,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
 
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
-    parser.add_argument("calFile", type=str, help="File specifying conversion between DAC to physical units per VFAT", metavar="calFile")
+    parser.add_argument("calFileFile", type=str, help="File specifying which calFile to use for each OH. Format: OH1 filenameOH1 <newline> OH2 filenameOH2 <newline> etc", metavar="calFileFile")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="Whether to assign errors for the X variable (which is actually plotted on the y-axis)")
 
@@ -53,11 +53,16 @@ if __name__ == '__main__':
     if nameY not in ['ADC0', 'ADC1']:
         print("Error: unexpected value of nameY: '%s'"%nameY)
         exit(1)
-    
-    tuple_calInfo = parseCalFile(args.calFile)
-    calDAC_Slope = tuple_calInfo[0]
-    calDAC_Intercept = tuple_calInfo[1]
 
+    calInfo = {}
+
+    for line in open(args.calFileFile):
+        line = line.strip(' ').strip('\n')
+        first = line.split(' ')[0].strip(' ')
+        second = line.split(' ')[1].strip(' ')
+        tuple_calInfo = parseCalFile(second)
+        calInfo[int(first)] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
+        
     # Initialize nested dictionaries
     dict_dacScanResults = nesteddict()
     dict_dacScanFuncs = nesteddict()
@@ -72,8 +77,12 @@ if __name__ == '__main__':
         link = event.link
         vfat = event.vfatN
 
-        calibrated_DAC_value=calDAC_Slope[vfat]*event.dacValX+calDAC_Intercept[vfat]
-        calibrated_DAC_error=calDAC_Slope[vfat]*event.dacValX_Err+calDAC_Intercept[vfat]
+        if link not in calInfo.keys():
+            print('Error: calibration file for link %i was not provided'%link)
+            exit(1)
+        
+        calibrated_DAC_value=calInfo[link]['slope'][vfat]*event.dacValX+calInfo[link]['intercept'][vfat]
+        calibrated_DAC_error=calInfo[link]['slope'][vfat]*event.dacValX_Err+calInfo[link]['intercept'][vfat]
         
         if args.assignXErrors:
             dict_dacScanResults[link][vfat].SetPoint(dict_dacScanResults[link][vfat].GetN(),event.dacValY,calibrated_DAC_value)
