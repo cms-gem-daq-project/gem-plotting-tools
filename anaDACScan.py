@@ -66,13 +66,15 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.anautilities import make3x8Canvas
     
     from gempython.gemplotting.mapping.chamberInfo import chamber_config
+
+    import os
     
     import argparse
     
     parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
 
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
-    parser.add_argument("calFileFile", type=str, help="File specifying which calFile to use for each OH. Format: OH1 filenameOH1 <newline> OH2 filenameOH2 <newline> etc", metavar="calFileFile")
+    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: OH1 filenameOH1 <newline> OH2 filenameOH2 <newline> etc", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="Whether to assign errors for the X variable (which is actually plotted on the y-axis)")
 
@@ -109,45 +111,61 @@ if __name__ == '__main__':
 
     calInfo = {}
 
-    for line in open(args.calFileFile):
-        line = line.strip(' ').strip('\n')
-        first = line.split(' ')[0].strip(' ')
-        second = line.split(' ')[1].strip(' ')
-        tuple_calInfo = parseCalFile(second)
-        calInfo[int(first)] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
-        
+    if args.calFileList != None:
+        for line in open(args.calFileList):
+            line = line.strip(' ').strip('\n')
+            first = line.split(' ')[0].strip(' ')
+            second = line.split(' ')[1].strip(' ')
+            tuple_calInfo = parseCalFile(second)
+            calInfo[int(first)] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
+
+    dataPath = os.getenv("DATA_PATH") 
+
+    #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
+    for oh in ohArray:
+        if oh not in calInfo.keys():
+            calDacCalFile = "{0}/{1}/calFile_calDac_{1}.txt".format(dataPath,chamber_config[oh])
+            calDacCalFileExists = os.path.isfile(calDacCalFile)
+            if not calDacCalFileExists:
+                print("Skipping OH{0}, detector {1}, missing CFG_CAL_DAC Calibration file:\n\t{2}".format(
+                    oh,
+                    chamber_config[oh],
+                    calDacCalFile))
+                ohArray = np.delete(ohArray,(oh))
+
+
+    if len(ohArray.keys()) == 0:
+        print('No OHs with a calFile, exiting.')
+        exit(1)
+           
     # Initialize nested dictionaries
     dict_dacScanResults = nesteddict()
     dict_dacScanFuncs = nesteddict()
 
     # Initialize a TGraphErrors for each vfat
-    for link in ohArray:
+    for oh in ohArray:
         for vfat in range(0,24):
-             dict_dacScanResults[link][vfat] = r.TGraphErrors()
+             dict_dacScanResults[oh][vfat] = r.TGraphErrors()
 
     outputFiles = {}         
              
-    for link in ohArray:         
-        outputFiles[link] = r.TFile("$DATA_PATH/"+chamber_config[link]+"/dacScans/scandate/"+args.outfilename,'recreate')
+    for oh in ohArray:         
+        outputFiles[oh] = r.TFile("$DATA_PATH/"+chamber_config[oh]+"/dacScans/scandate/"+args.outfilename,'recreate')
              
     # Loop over events in the tree and fill plots
     for event in dacScanFile.dacScanTree:
-        link = event.link
+        oh = event.link
         vfat = event.vfatN
 
-        if link not in calInfo.keys():
-            print('Error: calibration file for link %i was not provided'%link)
-            exit(1)
-        
-        calibrated_DAC_value=calInfo[link]['slope'][vfat]*event.dacValX+calInfo[link]['intercept'][vfat]
-        calibrated_DAC_error=calInfo[link]['slope'][vfat]*event.dacValX_Err+calInfo[link]['intercept'][vfat]
+        calibrated_DAC_value=calInfo[oh]['slope'][vfat]*event.dacValX+calInfo[oh]['intercept'][vfat]
+        calibrated_DAC_error=calInfo[oh]['slope'][vfat]*event.dacValX_Err+calInfo[oh]['intercept'][vfat]
         
         if args.assignXErrors:
-            dict_dacScanResults[link][vfat].SetPoint(dict_dacScanResults[link][vfat].GetN(),event.dacValY,calibrated_DAC_value)
-            dict_dacScanResults[link][vfat].SetPointError(dict_dacScanResults[link][vfat].GetN()-1,event.dacValY_Err,calibrated_DAC_error)
+            dict_dacScanResults[oh][vfat].SetPoint(dict_dacScanResults[oh][vfat].GetN(),event.dacValY,calibrated_DAC_value)
+            dict_dacScanResults[oh][vfat].SetPointError(dict_dacScanResults[oh][vfat].GetN()-1,event.dacValY_Err,calibrated_DAC_error)
         else:    
-            dict_dacScanResults[link][vfat].SetPoint(dict_dacScanResults[link][vfat].GetN(),event.dacValY,calibrated_DAC_value)
-            dict_dacScanResults[link][vfat].SetPointError(dict_dacScanResults[link][vfat].GetN()-1,event.dacValY_Err,0)
+            dict_dacScanResults[oh][vfat].SetPoint(dict_dacScanResults[oh][vfat].GetN(),event.dacValY,calibrated_DAC_value)
+            dict_dacScanResults[oh][vfat].SetPointError(dict_dacScanResults[oh][vfat].GetN()-1,event.dacValY_Err,0)
 
     # Fit the TGraphErrors objects    
     for oh in ohArray:
