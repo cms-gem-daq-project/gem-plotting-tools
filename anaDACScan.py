@@ -10,6 +10,8 @@ from gempython.gemplotting.utils.anautilities import parseCalFile
 from gempython.utils.nesteddict import nesteddict
 from gempython.gemplotting.utils.anautilities import make3x8Canvas
 
+from gempython.gemplotting.mapping.chamberInfo import chamber_config
+
 import argparse
 
 if __name__ == '__main__':
@@ -31,8 +33,6 @@ if __name__ == '__main__':
     r.gStyle.SetOptStat(1111111)
 
     dacScanFile = r.TFile(args.infilename)
-
-    outputFile = r.TFile(args.outfilename,'recreate')
 
     import numpy as np
     import root_numpy as rp
@@ -71,6 +71,11 @@ if __name__ == '__main__':
     for link in ohArray:
         for vfat in range(0,24):
              dict_dacScanResults[link][vfat] = r.TGraphErrors()
+
+    outputFiles = {}         
+             
+    for link in ohArray:         
+        outputFiles[link] = r.TFile("$DATA_PATH/"+chamber_config[link]+"/dacScans/scandate/"+args.outfilename,'recreate')
              
     # Loop over events in the tree and fill plots
     for event in dacScanFile.dacScanTree:
@@ -120,7 +125,7 @@ if __name__ == '__main__':
     print( "| -- | ----- | ------ |")        
     
     for oh in ohArray:
-        outputFile.cd()
+        outputFiles[oh].cd()
         graph_dacVals[oh].Write("dacValsOH"+str(oh))
         for vfat in range(0,24):
             print("| {0} | {1}  | {2} | ".format(
@@ -132,6 +137,6 @@ if __name__ == '__main__':
     # Make plots        
     for oh in ohArray:
         canv_Summary = make3x8Canvas('canv_Summary',dict_dacScanResults[oh],'AP',dict_dacScanFuncs[oh],'')
-        canv_Summary.SaveAs("SummaryOH"+str(oh)+".png")
-        outputFile.cd()
+        canv_Summary.SaveAs("$DATA_PATH/"+chamber_config[oh]+"/dacScans/scandate/SummaryOH"+str(oh)+".png")
+        outputFiles[oh].cd()
         canv_Summary.Write()
