@@ -14,12 +14,19 @@ import string
 
 #: Types of analysis and corresponding analysis tools
 ana_config = {
+        "dacScanV3":"dacScanV3.py",
         "latency":"anaUltraLatency.py",
+        "sbitMonInt":"anaSBitMonitor.py",
+        "sbitMonRO":"anaSbitReadout.py",
+        "sbitRatech":"anaSBitThresh.py",
+        "sbitRateor":"anaSBitThresh.py",
         "scurve":"anaUltraScurve.py",
+        "temperature":"monitorTemperatures.py",
         "thresholdch":"anaUltraThreshold.py",
         "thresholdvftrk":"anaUltraThreshold.py",
         "thresholdvftrig":"anaUltraThreshold.py",
-        "trim":"anaUltraScurve.py"
+        "trim":"anaUltraScurve.py",
+        "trimV3":"anaUltraScurve.py"
         }
 
 #: key values match ana_config (mostly...)

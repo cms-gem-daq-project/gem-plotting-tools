@@ -121,18 +121,32 @@ def getDirByAnaType(anaType, cName, ztrim=4):
     dataPath  = os.getenv('DATA_PATH')
 
     dirPath = ""
-    if anaType == "latency":
+    if anaType == "dacScanV3":
+        dirPath = "%s/%s"%(dataPath,anaType)
+    elif anaType == "latency":
         dirPath = "%s/%s/%s/trk/"%(dataPath,cName,anaType)
+    elif anaType == "sbitMonInt":
+        dirPath = "%s/%s/sbitMonitor/intTrig/"%(dataPath,cName)
+    elif anaType == "sbitMonRO":
+        dirPath = "%s/%s/sbitMonitor/readout/"%(dataPath,cName)
+    elif anaType == "sbitRatech":
+        dirPath = "%s/%s/sbitRate/perchannel/"%(dataPath,cName)
+    elif anaType == "sbitRateor":
+        dirPath = "%s/%s/sbitRate/channelOR/"%(dataPath,cName)
     elif anaType == "scurve":
         dirPath = "%s/%s/%s/"%(dataPath,cName,anaType)
+    elif anaType == "temperature":
+        dirPath = "%s/%s"%(dataPath,anaType)
     elif anaType == "thresholdch":
-        dirPath = "%s/%s/%s/channel/"%(dataPath,cName,"threshold")
+        dirPath = "%s/%s/threshold/channel/"%(dataPath,cName)
     elif anaType == "thresholdvftrig":
-        dirPath = "%s/%s/%s/vfat/trig/"%(dataPath,cName,"threshold")
+        dirPath = "%s/%s/threshold/vfat/trig/"%(dataPath,cName)
     elif anaType == "thresholdvftrk":
-        dirPath = "%s/%s/%s/vfat/trk/"%(dataPath,cName,"threshold")
+        dirPath = "%s/%s/threshold/vfat/trk/"%(dataPath,cName)
     elif anaType == "trim":
         dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
+    elif anaType == "trimV3":
+        dirPath = "%s/%s/trim/"%(dataPath,cName)
 
     return dirPath
 
