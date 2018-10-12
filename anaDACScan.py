@@ -1,8 +1,60 @@
 #!/usr/bin/env python
 
-"""
-anaDACScan
-==============
+r"""
+``anaDACScan`` -- analyzes DAC scan data
+========================================
+
+Synopsis
+--------
+
+**anaDACScan.py** [*OPTIONS*]
+
+Description
+-----------
+
+This script reads in calibration information and DAC scan data, performs a fit for each VFAT, computes the DAC value corresponding to the nominal current or voltage for each VFAT, and reports the results.
+
+
+Arguments
+---------
+
+.. program:: anaDACScan.py
+
+.. option:: infilename
+
+    Name of the input file root.
+
+.. option:: --assignXErrors  
+
+    Use the dacValX_Err values stored in the input file
+
+.. option:: --calFileList
+  
+    Provide a file containing a list of calFiles in the format: 
+    OH1 calFileOH1
+    OH2 calFileOH2
+    OH3 calFileOH3
+
+.. option:: --outfilename
+
+    Name of the output root file. Default is DACFitData.root.
+
+Example
+-------
+
+.. code-block:: bash
+
+    anaDACScan.py /afs/cern.ch/user/d/dorney/public/v3Hack/dacScanV3.root  --calFileList calibration.txt --assignXErrors
+
+
+Environment
+-----------
+
+
+Internals
+---------
+
+
 """
 
 if __name__ == '__main__':
