@@ -4,18 +4,19 @@
 anaDACScan
 ==============
 """
-import ROOT as r
-
-from gempython.gemplotting.utils.anautilities import parseCalFile
-from gempython.utils.nesteddict import nesteddict
-from gempython.gemplotting.utils.anautilities import make3x8Canvas
-
-from gempython.gemplotting.mapping.chamberInfo import chamber_config
-
-import argparse
 
 if __name__ == '__main__':
 
+    import ROOT as r
+    
+    from gempython.gemplotting.utils.anautilities import parseCalFile
+    from gempython.utils.nesteddict import nesteddict
+    from gempython.gemplotting.utils.anautilities import make3x8Canvas
+    
+    from gempython.gemplotting.mapping.chamberInfo import chamber_config
+    
+    import argparse
+    
     parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
 
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
