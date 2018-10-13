@@ -91,25 +91,29 @@ if __name__ == '__main__':
 
     dacScanFile = r.TFile(args.infilename)
 
+    import numpy as np
+    import root_numpy as rp
+    
+    list_bNames = ['link']
+    ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=list_bNames)
+    ohArray = np.unique(ohArray['link'])
+    
+    dataPath = os.getenv("DATA_PATH") 
+    
     if len(args.infilename.split('/')) > 1 and len(args.infilename.split('/')[len(args.infilename.split('/')) - 2].split('.')) == 5:
         scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
     else:    
         scandate = 'noscandate'
-    
-    import numpy as np
-    import root_numpy as rp
-    
-    # Determine which links present
-    list_bNames = ['link']
-    ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=list_bNames)
-    ohArray = np.unique(ohArray['link'])
 
+    for oh in ohArray:
+        os.system("mkdir -p "+ dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate)
+            
     # Determine which DAC was scanned and against which ADC
     nameX = ""
     nameY = ""
     for event in dacScanFile.dacScanTree:
-        nameX = event.nameX.data()
-        nameY = event.nameY.data()
+        nameX = str(event.nameX.data())
+        nameY = str(event.nameY.data())
         break # all entries will be the same
 
     if nameY not in ['ADC0', 'ADC1']:
@@ -125,8 +129,6 @@ if __name__ == '__main__':
             second = line.split(' ')[1].strip(' ')
             tuple_calInfo = parseCalFile(second)
             calInfo[int(first)] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
-
-    dataPath = os.getenv("DATA_PATH") 
 
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
     for oh in ohArray:
@@ -153,6 +155,9 @@ if __name__ == '__main__':
     for oh in ohArray:
         for vfat in range(0,24):
              dict_dacScanResults[oh][vfat] = r.TGraphErrors()
+             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
+             dict_dacScanResults[oh][vfat].GetXaxis().SetTitle(nameY)
+             dict_dacScanResults[oh][vfat].GetYaxis().SetTitle(nameX)
 
     outputFiles = {}         
              
@@ -164,9 +169,10 @@ if __name__ == '__main__':
         oh = event.link
         vfat = event.vfatN
 
+        #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
         calibrated_DAC_value=calInfo[oh]['slope'][vfat]*event.dacValX+calInfo[oh]['intercept'][vfat]
         calibrated_DAC_error=calInfo[oh]['slope'][vfat]*event.dacValX_Err+calInfo[oh]['intercept'][vfat]
-        
+
         if args.assignXErrors:
             dict_dacScanResults[oh][vfat].SetPoint(dict_dacScanResults[oh][vfat].GetN(),event.dacValY,calibrated_DAC_value)
             dict_dacScanResults[oh][vfat].SetPointError(dict_dacScanResults[oh][vfat].GetN()-1,event.dacValY_Err,calibrated_DAC_error)
