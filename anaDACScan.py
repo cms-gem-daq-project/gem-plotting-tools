@@ -114,24 +114,8 @@ if __name__ == '__main__':
         print("Error: unexpected value of nameY: '%s'"%nameY)
         exit(1)
 
-    nominalDacValues = {
-        "CFG_IREF":(10,"uA"),
-        "CFG_BIAS_PRE_I_BIT":(150,"uA"),
-        "CFG_BIAS_PRE_I_BLCC":(25,"nA"),
-        "CFG_BIAS_SH_I_BFCAS":(26,"uA"),
-        "CFG_BIAS_SH_I_BDIFF":(16,"uA"),
-        "CFG_BIAS_SD_I_BDIFF":(28,"uA"),
-        "CFG_BIAS_SD_I_BFCAS":(27,"uA"),
-        "CFG_BIAS_SD_I_BSF":(30,"uA"),
-        "CFG_BIAS_CFD_DAC_1":(20,"uA"),
-        "CFG_BIAS_CFD_DAC_2":(20,"uA"),
-        "CFG_HYST":(100,"nA"),
-        "CFG_THR_ARM_DAC":(3.2,"uA"),
-        "CFG_THR_ZCC_DAC":(275,"nA"),
-        "CFG_BIAS_PRE_VREF":(430,'mV'),
-        "CFG_ADC_VREF":(400,'mV')
-    }
-            
+    from utils.anaInfo import nominalDacValues    
+        
     if nameX not in nominalDacValues.keys():
         print("Error: unexpected value of nameX: '%s'"%nameX)
         exit(1)

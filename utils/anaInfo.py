@@ -12,6 +12,25 @@ Documentation
 
 import string
 
+#: Nominal current and voltage values from Tables 9 and 10 of the VFAT3 manual
+nominalDacValues = {
+        "CFG_IREF":(10,"uA"),
+        "CFG_BIAS_PRE_I_BIT":(150,"uA"),
+        "CFG_BIAS_PRE_I_BLCC":(25,"nA"),
+        "CFG_BIAS_SH_I_BFCAS":(26,"uA"),
+        "CFG_BIAS_SH_I_BDIFF":(16,"uA"),
+        "CFG_BIAS_SD_I_BDIFF":(28,"uA"),
+        "CFG_BIAS_SD_I_BFCAS":(27,"uA"),
+        "CFG_BIAS_SD_I_BSF":(30,"uA"),
+        "CFG_BIAS_CFD_DAC_1":(20,"uA"),
+        "CFG_BIAS_CFD_DAC_2":(20,"uA"),
+        "CFG_HYST":(100,"nA"),
+        "CFG_THR_ARM_DAC":(3.2,"uA"),
+        "CFG_THR_ZCC_DAC":(275,"nA"),
+        "CFG_BIAS_PRE_VREF":(430,'mV'),
+        "CFG_ADC_VREF":(400,'mV')
+}
+
 #: Types of analysis and corresponding analysis tools
 ana_config = {
         "dacScanV3":"dacScanV3.py",
