@@ -46,7 +46,7 @@ Example
 
 .. code-block:: bash
 
-    anaDACScan.py /afs/cern.ch/user/d/dorney/public/v3Hack/dacScanV3.root  --calFileList calibration.txt --assignXErrors
+    anaDACScan.py /path/to/input.root  --calFileList calibration.txt --assignXErrors
 
 
 Environment
