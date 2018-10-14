@@ -40,10 +40,6 @@ Arguments
 
     Name of the output root file. Default is DACFitData.root.
 
-.. option:: --output_txtfile_filename
-
-    Name of output text file that will contain the nominal DAC values in tab-delimited format. Default is NominalDACValues.txt.
-
 Example
 -------
 
