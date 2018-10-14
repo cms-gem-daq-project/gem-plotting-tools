@@ -254,11 +254,12 @@ if __name__ == '__main__':
         tree_dacVals[oh].Branch('vfatN',vfatN_branch,'vfatN/i')
         tree_dacVals[oh].Branch('dacVal',dacVal_branch,'dacVal/i')
         for vfat in range(0,24):
-             dict_dacVals[oh][vfat] = dict_DACvsADC_Funcs[oh][vfat].Eval(nominal)
-             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
-             vfatN_branch[0] = vfat
-             dacVal_branch[0] = dict_dacVals[oh][vfat]
-             tree_dacVals[oh].Fill() 
+            #evaluate the fitted function at the nominal current or voltage value and convert to an integer
+            dict_dacVals[oh][vfat] = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
+            graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
+            vfatN_branch[0] = vfat
+            dacVal_branch[0] = dict_dacVals[oh][vfat]
+            tree_dacVals[oh].Fill() 
              
     # Write out the dacVal results to a root file, a text file, and the terminal
     outputTxtFiles_dacVals = {}    
