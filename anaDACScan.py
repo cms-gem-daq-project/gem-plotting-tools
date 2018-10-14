@@ -67,6 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
     parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
+    parser.add_argument('-t','--output_txtfile_filename_base', dest='output_txtfile_filename', type=str, default="NominalDACValues.txt", help="Name of output text file that will contain the nominal DAC values in tab-delimited format", metavar='output_txtfile_filename')
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="Whether to assign errors for the X variable (which is actually plotted on the y-axis)")
 
     args = parser.parse_args()
@@ -113,6 +114,29 @@ if __name__ == '__main__':
         print("Error: unexpected value of nameY: '%s'"%nameY)
         exit(1)
 
+    nominalDacValues = {
+        "CFG_IREF":(10,"uA"),
+        "CFG_BIAS_PRE_I_BIT":(150,"uA"),
+        "CFG_BIAS_PRE_I_BLCC":(25,"nA"),
+        "CFG_BIAS_SH_I_BFCAS":(26,"uA"),
+        "CFG_BIAS_SH_I_BDIFF":(16,"uA"),
+        "CFG_BIAS_SD_I_BDIFF":(28,"uA"),
+        "CFG_BIAS_SD_I_BFCAS":(27,"uA"),
+        "CFG_BIAS_SD_I_BSF":(30,"uA"),
+        "CFG_BIAS_CFD_DAC_1":(20,"uA"),
+        "CFG_BIAS_CFD_DAC_2":(20,"uA"),
+        "CFG_HYST":(100,"nA"),
+        "CFG_THR_ARM_DAC":(3.2,"uA"),
+        "CFG_THR_ZCC_DAC":(275,"nA"),
+        "CFG_BIAS_PRE_VREF":(430,'mV'),
+        "CFG_ADC_VREF":(400,'mV')
+    }
+            
+    if nameX not in nominalDacValues.keys():
+        print("Error: unexpected value of nameX: '%s'"%nameX)
+        exit(1)
+    
+        
     calInfo = {}
 
     if args.calFileList != None:
@@ -143,16 +167,20 @@ if __name__ == '__main__':
         exit(1)
            
     # Initialize nested dictionaries
-    dict_dacScanResults = nesteddict()
-    dict_dacScanFuncs = nesteddict()
+    dict_DACvsADC_Graphs = nesteddict()
+    dict_RawADCvsDAC_Graphs = nesteddict()
+    dict_DACvsADC_Funcs = nesteddict()
 
     # Initialize a TGraphErrors for each vfat
     for oh in ohArray:
         for vfat in range(0,24):
-             dict_dacScanResults[oh][vfat] = r.TGraphErrors()
+             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
+             dict_RawADCvsDAC_Graphs[oh][vfat] = r.TGraphErrors()
              #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
-             dict_dacScanResults[oh][vfat].GetXaxis().SetTitle(nameY)
-             dict_dacScanResults[oh][vfat].GetYaxis().SetTitle(nameX)
+             dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
+             dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
+             dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
+             dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
 
     outputFiles = {}         
              
@@ -161,28 +189,42 @@ if __name__ == '__main__':
             outputFiles[oh] = r.TFile(elogPath+"/"+chamber_config[oh]+"/"+args.outfilename,'recreate')
         else:    
             outputFiles[oh] = r.TFile(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
-             
+
     # Loop over events in the tree and fill plots
     for event in dacScanFile.dacScanTree:
         oh = event.link
         vfat = event.vfatN
 
-        #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
-        calibrated_DAC_value=calInfo[oh]['slope'][vfat]*event.dacValX+calInfo[oh]['intercept'][vfat]
-        calibrated_DAC_error=calInfo[oh]['slope'][vfat]*event.dacValX_Err+calInfo[oh]['intercept'][vfat]
+        calibrated_ADC_value=calInfo[oh]['slope'][vfat]*event.dacValY+calInfo[oh]['intercept'][vfat]
+        calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err+calInfo[oh]['intercept'][vfat]
 
+        #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20k ohm resistor was used.
+        if nominalDacValues[nameX][1][1] == "A":
+
+            if nameX != 'CFG_IREF':
+                calibrated_ADC_value -= nominalDacValues['CFG_IREF'][0] 
+            
+            calibrated_ADC_value = calibrated_ADC_value/20000.0
+            calibrated_ADC_error = calibrated_ADC_value/20000.0
+
+        #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
+        #the nameX variable is the DAC register that is scanned, and we want to determine its nominal value
         if args.assignXErrors:
-            dict_dacScanResults[oh][vfat].SetPoint(dict_dacScanResults[oh][vfat].GetN(),event.dacValY,calibrated_DAC_value)
-            dict_dacScanResults[oh][vfat].SetPointError(dict_dacScanResults[oh][vfat].GetN()-1,event.dacValY_Err,calibrated_DAC_error)
+            dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
+            dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValY,event.dacValX)
+            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,event.dacValX_Err)
+            dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,event.dacValY_Err,event.dacValX_Err)
         else:    
-            dict_dacScanResults[oh][vfat].SetPoint(dict_dacScanResults[oh][vfat].GetN(),event.dacValY,calibrated_DAC_value)
-            dict_dacScanResults[oh][vfat].SetPointError(dict_dacScanResults[oh][vfat].GetN()-1,event.dacValY_Err,0)
+            dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
+            dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValY,event.dacValX)
+            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,0)
+            dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,event.dacValY_Err,0)
 
     # Fit the TGraphErrors objects    
     for oh in ohArray:
         for vfat in range(0,24):
-            dict_dacScanFuncs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x+[1]")
-            dict_dacScanResults[oh][vfat].Fit(dict_dacScanFuncs[oh][vfat],"Q") 
+            dict_DACvsADC_Funcs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x+[1]")
+            dict_DACvsADC_Graphs[oh][vfat].Fit(dict_DACvsADC_Funcs[oh][vfat],"Q") 
 
     nominal = -1        
 
@@ -205,7 +247,7 @@ if __name__ == '__main__':
         tree_dacVals[oh].Branch('vfatN',vfatN_branch,'vfatN/i')
         tree_dacVals[oh].Branch('dacVal',dacVal_branch,'dacVal/i')
         for vfat in range(0,24):
-             dict_dacVals[oh][vfat] = dict_dacScanResults[oh][vfat].Eval(nominal)
+             dict_dacVals[oh][vfat] = dict_DACvsADC_Funcs[oh][vfat].Eval(nominal)
              graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
              vfatN_branch[0] = vfat
              dacVal_branch[0] = dict_dacVals[oh][vfat]
@@ -217,21 +259,33 @@ if __name__ == '__main__':
     
     for oh in ohArray:
         outputFiles[oh].cd()
-        graph_dacVals[oh].Write("dacValsOH"+str(oh))
-        tree_dacVals[oh].Write("dacValsOH"+str(oh))
+        graph_dacVals[oh].Write("dacVals")
+        tree_dacVals[oh].Write("dacVals")
         for vfat in range(0,24):
             print("| {0} | {1}  | {2} | ".format(
                 oh,
                 vfat,
                 dict_dacVals[oh][vfat]
             ))
-        
+
+    outputTxtFiles_dacVals = {}    
+            
+    # Write out the results to a txt file in tab-delimited format
+    if scandate == 'noscandate':
+        outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/"+args.output_txtfile_filename,'w')
+    else:    
+        outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.output_txtfile_filename,'w')
+
+    for oh in ohArray:
+        for vfat in range(0,24):
+            outputTxtFiles_dacVals[oh].write(str(vfat)+"\t"+str(dict_dacVals[oh][vfat])+"\n")
+            
     # Make plots        
     for oh in ohArray:
-        canv_Summary = make3x8Canvas('canv_Summary',dict_dacScanResults[oh],'AP',dict_dacScanFuncs[oh],'')
+        canv_Summary = make3x8Canvas('canv_Summary',dict_DACvsADC_Graphs[oh],'AP',dict_DACvsADC_Funcs[oh],'')
         if scandate == 'noscandate':
-            canv_Summary.SaveAs(elogPath+"/"+chamber_config[oh]+"/SummaryOH"+str(oh)+".png")
+            canv_Summary.SaveAs(elogPath+"/"+chamber_config[oh]+"/Summary.png")
         else:
-            canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/SummaryOH"+str(oh)+".png")
+            canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/SummaryOH.png")
         outputFiles[oh].cd()
         canv_Summary.Write()
