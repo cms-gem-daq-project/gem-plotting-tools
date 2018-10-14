@@ -124,6 +124,8 @@ if __name__ == '__main__':
 
     if args.calFileList != None:
         for line in open(args.calFileList):
+            if line[0] == "#":
+                continue
             line = line.strip(' ').strip('\n')
             first = line.split(' ')[0].strip(' ')
             second = line.split(' ')[1].strip(' ')
