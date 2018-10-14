@@ -260,6 +260,7 @@ if __name__ == '__main__':
                 
                 if maxVfat3DACSize[dacSelect][1] == nameX:
                     maxDacValue = int(maxVfat3DACSize[dacSelect][0])
+                    break
                     
             #evaluate the fitted function at the nominal current or voltage value and convert to an integer
             nominalDacValue = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
