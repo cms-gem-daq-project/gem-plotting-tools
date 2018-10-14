@@ -58,6 +58,8 @@ if __name__ == '__main__':
     
     from gempython.gemplotting.mapping.chamberInfo import chamber_config
 
+    from gempython.tools.amc_user_functions_xhal import maxVfat3DACSize
+    
     import os
     
     import argparse
@@ -246,7 +248,28 @@ if __name__ == '__main__':
     for oh in ohArray:
         graph_dacVals[oh] = r.TGraph()
         for vfat in range(0,24):
+
+            maxDacValue = 255
+            
+            for dacSelect in maxVfat3DACSize.keys():
+
+                #the registers CFG_THR_ARM_DAC and CFG_THR_ZCC_DAC could correspond to voltages or currents
+                #we will use voltages until a way of distinguishing the two cases is implemented 
+                if dacSelect == 14 or dacSelect == 15:
+                    continue
+                
+                if maxVfat3DACSize[dacSelect][1] == nameX:
+                    maxDacValue = int(maxVfat3DACSize[dacSelect][0])
+                    
             #evaluate the fitted function at the nominal current or voltage value and convert to an integer
+            nominalDacValue = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
+            
+            if nominalDacValue > maxDacValue:
+                print('Warning: the nominal DAC value that was found from the fit is larger than the maximum value that the DAC register will hold')
+
+            if nominalDacValue < 0:
+                print('Warning: the nominal DAC value is that was found from the fit is less than 0')                
+            
             dict_dacVals[oh][vfat] = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
              
