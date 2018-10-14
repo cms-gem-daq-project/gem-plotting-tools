@@ -28,7 +28,7 @@ nominalDacValues = {
         "CFG_THR_ARM_DAC":(3.2,"uA"),
         "CFG_THR_ZCC_DAC":(275,"nA"),
         "CFG_BIAS_PRE_VREF":(430,'mV'),
-        "CFG_ADC_VREF":(400,'mV')
+        "CFG_ADC_VREF":(1.0,'V')
 }
 
 #: Types of analysis and corresponding analysis tools
