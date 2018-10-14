@@ -176,7 +176,6 @@ if __name__ == '__main__':
                     calDacCalFile))
                 ohArray = np.delete(ohArray,(oh))
 
-
     if len(ohArray) == 0:
         print('No OHs with a calFile, exiting.')
         exit(1)
@@ -244,22 +243,13 @@ if __name__ == '__main__':
 
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = {}
-    tree_dacVals = {}
     dict_dacVals = nesteddict()
     for oh in ohArray:
         graph_dacVals[oh] = r.TGraph()
-        tree_dacVals[oh] = r.TTree()
-        vfatN_branch = np.zeros(1, dtype=int)
-        dacVal_branch = np.zeros(1, dtype=int)
-        tree_dacVals[oh].Branch('vfatN',vfatN_branch,'vfatN/i')
-        tree_dacVals[oh].Branch('dacVal',dacVal_branch,'dacVal/i')
         for vfat in range(0,24):
             #evaluate the fitted function at the nominal current or voltage value and convert to an integer
             dict_dacVals[oh][vfat] = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
-            vfatN_branch[0] = vfat
-            dacVal_branch[0] = dict_dacVals[oh][vfat]
-            tree_dacVals[oh].Fill() 
              
     # Write out the dacVal results to a root file, a text file, and the terminal
     outputTxtFiles_dacVals = {}    
@@ -276,13 +266,12 @@ if __name__ == '__main__':
         outputFiles[oh].cd()
         outputFiles[oh].mkdir("Summary")
         outputFiles[oh].cd("Summary")
-        graph_dacVals[oh].Write("dacVals")
-        tree_dacVals[oh].Write("dacVals")
+        graph_dacVals[oh].Write("nominalDacValVsVFATX")
         for vfat in range(0,24):
             outputFiles[oh].cd()
             outputFiles[oh].mkdir("VFAT"+str(vfat))
             outputFiles[oh].cd("VFAT"+str(vfat))
-            dict_DACvsADC_Graphs[oh][vfat].Write()
+            dict_DACvsADC_Graphs[oh][vfat].Write("DACvsADC")
             outputFiles[oh].cd("../")
             outputTxtFiles_dacVals[oh].write(str(vfat)+"\t"+str(dict_dacVals[oh][vfat])+"\n")
             print("| {0} | {1}  | {2} | ".format(
@@ -298,6 +287,3 @@ if __name__ == '__main__':
             canv_Summary.SaveAs(elogPath+"/"+chamber_config[oh]+"/Summary.png")
         else:
             canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/Summary.png")
-        outputFiles[oh].cd()
-        outputFiles[oh].cd("Summary")
-        canv_Summary.Write()
