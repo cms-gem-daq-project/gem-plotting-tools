@@ -31,10 +31,10 @@ Arguments
   
     Provide a file containing a list of calFiles in the following format. Example:: 
 
-    OH1 calFileOH1
-    OH2 calFileOH2
-    OH3 calFileOH3
-    etc
+    0 /path/to/my/cal/file.txt
+    1 /path/to/my/cal/file.txt
+    ...
+    ...
 
 .. option:: --outfilename
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
 
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
-    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: OH1 filenameOH1 <newline> OH2 filenameOH2 <newline> etc", metavar="calFileList")
+    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="Whether to assign errors for the X variable (which is actually plotted on the y-axis)")
 
