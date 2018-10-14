@@ -237,33 +237,36 @@ if __name__ == '__main__':
              dacVal_branch[0] = dict_dacVals[oh][vfat]
              tree_dacVals[oh].Fill() 
              
-    # Write out the dacVal results to both a file and the terminal         
+    # Write out the dacVal results to a root file, a text file, and the terminal
+    outputTxtFiles_dacVals = {}    
+            
+    if scandate == 'noscandate':
+        outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/"+args.output_txtfile_filename,'w')
+    else:    
+        outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.output_txtfile_filename,'w')
+
     print( "| OH | vfatN | dacVal |")
     print( "| :-: | :---: | :----: |")        
     
     for oh in ohArray:
         outputFiles[oh].cd()
+        outputFiles[oh].mkdir("Summary")
+        outputFiles[oh].cd("Summary")
         graph_dacVals[oh].Write("dacVals")
         tree_dacVals[oh].Write("dacVals")
         for vfat in range(0,24):
+            outputFiles[oh].cd()
+            outputFiles[oh].mkdir("VFAT"+str(vfat))
+            outputFiles[oh].cd("VFAT"+str(vfat))
+            dict_DACvsADC_Graphs[oh][vfat].Write()
+            outputFiles[oh].cd("../")
+            outputTxtFiles_dacVals[oh].write(str(vfat)+"\t"+str(dict_dacVals[oh][vfat])+"\n")
             print("| {0} | {1}  | {2} | ".format(
                 oh,
                 vfat,
                 dict_dacVals[oh][vfat]
             ))
 
-    outputTxtFiles_dacVals = {}    
-            
-    # Write out the results to a txt file in tab-delimited format
-    if scandate == 'noscandate':
-        outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/"+args.output_txtfile_filename,'w')
-    else:    
-        outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.output_txtfile_filename,'w')
-
-    for oh in ohArray:
-        for vfat in range(0,24):
-            outputTxtFiles_dacVals[oh].write(str(vfat)+"\t"+str(dict_dacVals[oh][vfat])+"\n")
-            
     # Make plots        
     for oh in ohArray:
         canv_Summary = make3x8Canvas('canv_Summary',dict_DACvsADC_Graphs[oh],'AP',dict_DACvsADC_Funcs[oh],'')
@@ -272,4 +275,5 @@ if __name__ == '__main__':
         else:
             canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/SummaryOH.png")
         outputFiles[oh].cd()
+        outputFiles[oh].cd("Summary")
         canv_Summary.Write()
