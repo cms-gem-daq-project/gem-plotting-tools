@@ -25,7 +25,7 @@ Arguments
 
 .. option:: --assignXErrors  
 
-    Use the dacValX_Err values stored in the input file
+    If this flag is set, the dacValX_Err values stored in the input file when constructing the plots. If this flag is not set, the error associated with the dacValX values is always taken to be 0. The dacValY_err values are always used.
 
 .. option:: --calFileList
   
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
     parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
-    parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="Whether to assign errors for the X variable (which is actually plotted on the y-axis)")
+    parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="dacValY_Err values are always used, but dacValX_Err values are used if and only if this flag is set")
 
     args = parser.parse_args()
 
