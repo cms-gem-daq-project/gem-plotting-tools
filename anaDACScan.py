@@ -40,6 +40,10 @@ Arguments
 
     Name of the output root file. Default is DACFitData.root.
 
+.. option:: --output_txtfile_filename
+
+    Name of output text file that will contain the nominal DAC values in tab-delimited format. Default is NominalDACValues.txt.
+
 Example
 -------
 
@@ -185,12 +189,12 @@ if __name__ == '__main__':
         #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20k ohm resistor was used.
         if nominalDacValues[nameX][1][1] == "A":
 
+            calibrated_ADC_value = calibrated_ADC_value/20000.0
+            calibrated_ADC_error = calibrated_ADC_value/20000.0
+
             if nameX != 'CFG_IREF':
                 calibrated_ADC_value -= nominalDacValues['CFG_IREF'][0] 
             
-            calibrated_ADC_value = calibrated_ADC_value*20000.0
-            calibrated_ADC_error = calibrated_ADC_value*20000.0
-
         #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
         #the nameX variable is the DAC register that is scanned, and we want to determine its nominal value
         if args.assignXErrors:
