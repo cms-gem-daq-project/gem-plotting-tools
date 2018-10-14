@@ -205,7 +205,7 @@ if __name__ == '__main__':
         vfat = event.vfatN
 
         calibrated_ADC_value=calInfo[oh]['slope'][vfat]*event.dacValY+calInfo[oh]['intercept'][vfat]
-        calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err+calInfo[oh]['intercept'][vfat]
+        calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err
 
         #from Table 29 of the VFAT3 manual, we are guessing the calibrated voltage is in mV
         calibrated_ADC_value /= 1000.0
