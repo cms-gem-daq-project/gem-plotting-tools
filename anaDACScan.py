@@ -71,7 +71,6 @@ if __name__ == '__main__':
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
     parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
-    parser.add_argument('-t','--output_txtfile_filename', dest='output_txtfile_filename', type=str, default="NominalDACValues.txt", help="Name of output text file that will contain the nominal DAC values in tab-delimited format", metavar='output_txtfile_filename')
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="Whether to assign errors for the X variable (which is actually plotted on the y-axis)")
 
     args = parser.parse_args()
@@ -255,9 +254,9 @@ if __name__ == '__main__':
     outputTxtFiles_dacVals = {}    
             
     if scandate == 'noscandate':
-        outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/"+args.output_txtfile_filename,'w')
+        outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/NominalDACValues.txt",'w')
     else:    
-        outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.output_txtfile_filename,'w')
+        outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/NominalDACValues.txt",'w')
 
     print( "| OH | vfatN | dacVal |")
     print( "| :-: | :---: | :----: |")        
