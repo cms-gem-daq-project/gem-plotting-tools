@@ -123,8 +123,35 @@ if __name__ == '__main__':
     if nameX not in nominalDacValues.keys():
         print("Error: unexpected value of nameX: '%s'"%nameX)
         exit(1)
-    
-        
+
+    nominal_iref = nominalDacValues['CFG_IREF'][0]
+
+    if nominalDacValues['CFG_IREF'][1] == 'A':
+        pass
+    elif nominalDacValues['CFG_IREF'][1] == 'mA':
+        nominal_iref *= pow(10.0,-3)
+    elif nominalDacValues['CFG_IREF'][1] == 'uA':
+        nominal_iref *= pow(10.0,-6)
+    elif nominalDacValues['CFG_IREF'][1] == 'nA':
+        nominal_iref *= pow(10.0,-9)
+    else:
+        print("Error: unexpected units for nominal reference current: '%s'"%nominalDacValues['CFG_IREF'][1])
+        exit(1)
+     
+    nominal = nominalDacValues[nameX][0]
+
+    if nominalDacValues[nameX][1] == "V" or nominalDacValues[nameX][1] == "A":
+        pass
+    elif nominalDacValues[nameX][1][0] == 'm':
+        nominal *= pow(10.0,-3)        
+    elif nominalDacValues[nameX][1][0] == 'u':
+        nominal *= pow(10.0,-6)
+    elif nominalDacValues[nameX][1][0] == 'n':
+        nominal *= pow(10.0,-9)
+    else:
+        print("Error: unexpected units: '%s'"%nominalDacValues[nameX][1])
+        exit(1)
+
     calInfo = {}
 
     if args.calFileList != None:
@@ -190,10 +217,10 @@ if __name__ == '__main__':
         if nominalDacValues[nameX][1][1] == "A":
 
             calibrated_ADC_value = calibrated_ADC_value/20000.0
-            calibrated_ADC_error = calibrated_ADC_value/20000.0
+            calibrated_ADC_error = calibrated_ADC_error/20000.0
 
             if nameX != 'CFG_IREF':
-                calibrated_ADC_value -= nominalDacValues['CFG_IREF'][0] 
+                calibrated_ADC_value -= nominal_iref 
             
         #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
         #the nameX variable is the DAC register that is scanned, and we want to determine its nominal value
@@ -202,7 +229,7 @@ if __name__ == '__main__':
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValY,event.dacValX)
             dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,event.dacValX_Err)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,event.dacValY_Err,event.dacValX_Err)
-        else:    
+        else:
             dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValY,event.dacValX)
             dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,0)
@@ -211,18 +238,10 @@ if __name__ == '__main__':
     # Fit the TGraphErrors objects    
     for oh in ohArray:
         for vfat in range(0,24):
-            dict_DACvsADC_Funcs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x+[1]")
+            #use a fifth degree polynomial to do the fit
+            dict_DACvsADC_Funcs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
             dict_DACvsADC_Graphs[oh][vfat].Fit(dict_DACvsADC_Funcs[oh][vfat],"Q") 
 
-    nominal = -1        
-
-    #from Tables 9 and 10 of the VFAT3 manual 
-    if nameX == "CFG_THR_ARM_DAC":
-        nominal = 3.2
-    else:
-        print("Error: unexpected value of nameX: '%s'"%nameX)
-        exit(1)
-        
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = {}
     tree_dacVals = {}
@@ -277,7 +296,7 @@ if __name__ == '__main__':
         if scandate == 'noscandate':
             canv_Summary.SaveAs(elogPath+"/"+chamber_config[oh]+"/Summary.png")
         else:
-            canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/SummaryOH.png")
+            canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/Summary.png")
         outputFiles[oh].cd()
         outputFiles[oh].cd("Summary")
         canv_Summary.Write()
