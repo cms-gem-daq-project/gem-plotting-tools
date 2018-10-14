@@ -14,7 +14,6 @@ Description
 
 This script reads in calibration information and DAC scan data, performs a fit for each VFAT, computes the DAC value corresponding to the nominal current or voltage for each VFAT, and reports the results.
 
-
 Arguments
 ---------
 
@@ -47,16 +46,6 @@ Example
 .. code-block:: bash
 
     anaDACScan.py /path/to/input.root  --calFileList calibration.txt --assignXErrors
-
-
-Environment
------------
-
-
-Internals
----------
-
-
 """
 
 if __name__ == '__main__':
@@ -111,9 +100,6 @@ if __name__ == '__main__':
             os.system("mkdir -p "+ elogPath+"/"+chamber_config[oh])
         else:
             os.system("mkdir -p "+ dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate)
-
-        
-
             
     # Determine which DAC was scanned and against which ADC
     nameX = ""
