@@ -211,6 +211,10 @@ if __name__ == '__main__':
         calibrated_ADC_value=calInfo[oh]['slope'][vfat]*event.dacValY+calInfo[oh]['intercept'][vfat]
         calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err+calInfo[oh]['intercept'][vfat]
 
+        #from Table 29 of the VFAT3 manual, we are guessing the calibrated voltage is in mV
+        calibrated_ADC_value /= 1000.0
+        calibrated_ADC_error /= 1000.0
+        
         #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20k ohm resistor was used.
         if nominalDacValues[nameX][1][1] == "A":
 
