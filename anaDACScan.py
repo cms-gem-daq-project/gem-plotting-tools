@@ -184,7 +184,7 @@ if __name__ == '__main__':
     for oh in ohArray:
         for vfat in range(0,24):
             dict_dacScanFuncs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x+[1]")
-            dict_dacScanResults[oh][vfat].Fit(dict_dacScanFuncs[oh][vfat]) 
+            dict_dacScanResults[oh][vfat].Fit(dict_dacScanFuncs[oh][vfat],"Q") 
 
     nominal = -1        
 
