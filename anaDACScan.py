@@ -98,15 +98,22 @@ if __name__ == '__main__':
     ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=list_bNames)
     ohArray = np.unique(ohArray['link'])
     
-    dataPath = os.getenv("DATA_PATH") 
+    dataPath = os.getenv("DATA_PATH")
+    elogPath = os.getenv("ELOG_PATH") 
     
     if len(args.infilename.split('/')) > 1 and len(args.infilename.split('/')[len(args.infilename.split('/')) - 2].split('.')) == 5:
         scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
     else:    
         scandate = 'noscandate'
-
+        
     for oh in ohArray:
-        os.system("mkdir -p "+ dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate)
+        if scandate == 'noscandate':
+            os.system("mkdir -p "+ elogPath+"/"+chamber_config[oh])
+        else:
+            os.system("mkdir -p "+ dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate)
+
+        
+
             
     # Determine which DAC was scanned and against which ADC
     nameX = ""
@@ -163,8 +170,11 @@ if __name__ == '__main__':
 
     outputFiles = {}         
              
-    for oh in ohArray:         
-        outputFiles[oh] = r.TFile(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
+    for oh in ohArray:
+        if scandate == 'noscandate':
+            outputFiles[oh] = r.TFile(elogPath+"/"+chamber_config[oh]+"/"+args.outfilename,'recreate')
+        else:    
+            outputFiles[oh] = r.TFile(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
              
     # Loop over events in the tree and fill plots
     for event in dacScanFile.dacScanTree:
@@ -233,6 +243,9 @@ if __name__ == '__main__':
     # Make plots        
     for oh in ohArray:
         canv_Summary = make3x8Canvas('canv_Summary',dict_dacScanResults[oh],'AP',dict_dacScanFuncs[oh],'')
-        canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/SummaryOH"+str(oh)+".png")
+        if scandate == 'noscandate':
+            canv_Summary.SaveAs(elogPath+"/"+chamber_config[oh]+"/SummaryOH"+str(oh)+".png")
+        else:
+            canv_Summary.SaveAs(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/SummaryOH"+str(oh)+".png")
         outputFiles[oh].cd()
         canv_Summary.Write()
