@@ -217,7 +217,7 @@ if __name__ == '__main__':
              
     # Write out the dacVal results to both a file and the terminal         
     print( "| OH | vfatN | dacVal |")
-    print( "| -- | ----- | ------ |")        
+    print( "| :-: | :---: | :----: |")        
     
     for oh in ohArray:
         outputFiles[oh].cd()
