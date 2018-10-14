@@ -13,6 +13,7 @@ Documentation
 import string
 
 #: Nominal current and voltage values from Tables 9 and 10 of the VFAT3 manual
+#: The registers CFG_THR_ARM_DAC CFG_THR_ZCC_DAC may correspond to either a voltage or a current. Below I have used the voltage. Be careful if you have taken a current scan with these registers (dacSelect options 14 or 15).
 nominalDacValues = {
         "CFG_IREF":(10,"uA"),
         "CFG_BIAS_PRE_I_BIT":(150,"uA"),
@@ -25,8 +26,8 @@ nominalDacValues = {
         "CFG_BIAS_CFD_DAC_1":(20,"uA"),
         "CFG_BIAS_CFD_DAC_2":(20,"uA"),
         "CFG_HYST":(100,"nA"),
-        "CFG_THR_ARM_DAC":(3.2,"uA"),
-        "CFG_THR_ZCC_DAC":(275,"nA"),
+        "CFG_THR_ARM_DAC":(64,"mV"),
+        "CFG_THR_ZCC_DAC":(5.5,"mV"),
         "CFG_BIAS_PRE_VREF":(430,'mV'),
         "CFG_ADC_VREF":(1.0,'V')
 }
