@@ -192,7 +192,7 @@ if __name__ == '__main__':
             dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
-            if nominalDacValues['CFG_IREF'][1][1] == 'A':
+            if nominalDacValues[nameX][1][1] == 'A':
                 dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (uA)")
             else:
                 dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (mV)")
