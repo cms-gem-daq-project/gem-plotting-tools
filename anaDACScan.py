@@ -123,28 +123,30 @@ if __name__ == '__main__':
 
     nominal_iref = nominalDacValues['CFG_IREF'][0]
 
+    #convert all currents to uA 
     if nominalDacValues['CFG_IREF'][1] == 'A':
-        pass
+        nominal_iref *= pow(10.0,6)        
     elif nominalDacValues['CFG_IREF'][1] == 'mA':
-        nominal_iref *= pow(10.0,-3)
+        nominal_iref *= pow(10.0,3)
     elif nominalDacValues['CFG_IREF'][1] == 'uA':
-        nominal_iref *= pow(10.0,-6)
+        pass
     elif nominalDacValues['CFG_IREF'][1] == 'nA':
-        nominal_iref *= pow(10.0,-9)
+        nominal_iref *= pow(10.0,-3)
     else:
         print("Error: unexpected units for nominal reference current: '%s'"%nominalDacValues['CFG_IREF'][1])
         exit(1)
      
     nominal = nominalDacValues[nameX][0]
 
+    #convert all voltages to mV
     if nominalDacValues[nameX][1] == "V" or nominalDacValues[nameX][1] == "A":
-        pass
+        nominal *= pow(10.0,3)
     elif nominalDacValues[nameX][1][0] == 'm':
-        nominal *= pow(10.0,-3)        
+        pass
     elif nominalDacValues[nameX][1][0] == 'u':
-        nominal *= pow(10.0,-6)
+        nominal *= pow(10.0,-3)
     elif nominalDacValues[nameX][1][0] == 'n':
-        nominal *= pow(10.0,-9)
+        nominal *= pow(10.0,-6)
     else:
         print("Error: unexpected units: '%s'"%nominalDacValues[nameX][1])
         exit(1)
@@ -190,7 +192,10 @@ if __name__ == '__main__':
             dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
-            dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
+            if nominalDacValues['CFG_IREF'][1][1] == 'A':
+                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (uA)")
+            else:
+                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (mV)")
             dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
 
     outputFiles = {}         
@@ -206,18 +211,17 @@ if __name__ == '__main__':
         oh = event.link
         vfat = event.vfatN
 
+        #the output of the calibration is mV
         calibrated_ADC_value=calInfo[oh]['slope'][vfat]*event.dacValY+calInfo[oh]['intercept'][vfat]
         calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err
 
-        #from Table 29 of the VFAT3 manual, we are guessing the calibrated voltage is in mV
-        calibrated_ADC_value /= 1000.0
-        calibrated_ADC_error /= 1000.0
-        
-        #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20k ohm resistor was used.
+        #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20 kOhm resistor was used.
         if nominalDacValues[nameX][1][1] == "A":
 
-            calibrated_ADC_value = calibrated_ADC_value/20000.0
-            calibrated_ADC_error = calibrated_ADC_error/20000.0
+            #V (mV) = I (uA) R (kOhm)
+            #V (10^-3) = I (10^-6) R (10^3)
+            calibrated_ADC_value = calibrated_ADC_value/20.0
+            calibrated_ADC_error = calibrated_ADC_error/20.0
 
             if nameX != 'CFG_IREF':
                 calibrated_ADC_value -= nominal_iref 
