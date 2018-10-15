@@ -185,13 +185,13 @@ if __name__ == '__main__':
     # Initialize a TGraphErrors for each vfat
     for oh in ohArray:
         for vfat in range(0,24):
-             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
-             dict_RawADCvsDAC_Graphs[oh][vfat] = r.TGraphErrors()
-             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
-             dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
-             dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
-             dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
-             dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
+            dict_RawADCvsDAC_Graphs[oh][vfat] = r.TGraphErrors()
+            dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX)
+            dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
+            dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
+            #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
+            dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
+            dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
 
     outputFiles = {}         
              
@@ -269,7 +269,7 @@ if __name__ == '__main__':
                 print('Warning: the nominal DAC value that was found from the fit is larger than the maximum value that the DAC register will hold')
 
             if nominalDacValue < 0:
-                print('Warning: the nominal DAC value is that was found from the fit is less than 0')                
+                print('Warning: the nominal DAC value that was found from the fit is less than 0')                
             
             dict_dacVals[oh][vfat] = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
@@ -295,6 +295,7 @@ if __name__ == '__main__':
             outputFiles[oh].mkdir("VFAT"+str(vfat))
             outputFiles[oh].cd("VFAT"+str(vfat))
             dict_DACvsADC_Graphs[oh][vfat].Write("DACvsADC")
+            dict_RawADCvsDAC_Graphs[oh][vfat].Write("RawADCvsDAC")
             outputFiles[oh].cd("../")
             outputTxtFiles_dacVals[oh].write(str(vfat)+"\t"+str(dict_dacVals[oh][vfat])+"\n")
             print("| {0} | {1}  | {2} | ".format(
