@@ -25,7 +25,7 @@ Arguments
 
 .. option:: --assignXErrors  
 
-    If this flag is set, the dacValX_Err values stored in the input file when constructing the plots. If this flag is not set, the error associated with the dacValX values is always taken to be 0. The dacValY_err values are always used.
+    If this flag is set, the dacValX_Err values stored in the input file are used when constructing the plots and performing the fits. If this flag is not set, the error associated with the dacValX values is always taken to be 0. Note that these errors are actually errors on the variable plotted on the y-axis in the DAC vs ADC plots. The dacValY_Err values, which would correspond to the errors on the x-axis in the DAC vs ADC plots, cannot be used because fits do not converge when they are used. 
 
 .. option:: --calFileList
   
@@ -231,13 +231,13 @@ if __name__ == '__main__':
         if args.assignXErrors:
             dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValY,event.dacValX)
-            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,event.dacValX_Err)
-            dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,event.dacValY_Err,event.dacValX_Err)
+            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,0,event.dacValX_Err)
+            dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,0,event.dacValX_Err)
         else:
             dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValY,event.dacValX)
-            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,0)
-            dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,event.dacValY_Err,0)
+            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,0,0)
+            dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,0,0)
 
     # Fit the TGraphErrors objects    
     for oh in ohArray:
