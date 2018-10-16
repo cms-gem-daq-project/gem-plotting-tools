@@ -188,15 +188,15 @@ if __name__ == '__main__':
     for oh in ohArray:
         for vfat in range(0,24):
             dict_RawADCvsDAC_Graphs[oh][vfat] = r.TGraphErrors()
-            dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX)
-            dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
+            dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
+            dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
             if nominalDacValues[nameX][1][len(nominalDacValues[nameX][1])-1] == 'A':
-                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (uA)")
+                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX + " (uA)")
             else:
-                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (mV)")
-            dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
+                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX + " (mV)")
+            dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
 
     outputFiles = {}         
              
