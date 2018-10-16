@@ -166,13 +166,13 @@ if __name__ == '__main__':
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
     for oh in ohArray:
         if oh not in calInfo.keys():
-            calDacCalFile = "{0}/{1}/calFile_calDac_{1}.txt".format(dataPath,chamber_config[oh])
-            calDacCalFileExists = os.path.isfile(calDacCalFile)
-            if not calDacCalFileExists:
+            calAdcCalFile = "{0}/{1}/calFile_calAdc_{1}.txt".format(dataPath,chamber_config[oh])
+            calAdcCalFileExists = os.path.isfile(calAdcCalFile)
+            if not calAdcCalFileExists:
                 print("Skipping OH{0}, detector {1}, missing CFG_CAL_DAC Calibration file:\n\t{2}".format(
                     oh,
                     chamber_config[oh],
-                    calDacCalFile))
+                    calAdcCalFile))
                 ohArray = np.delete(ohArray,(oh))
 
     if len(ohArray) == 0:
