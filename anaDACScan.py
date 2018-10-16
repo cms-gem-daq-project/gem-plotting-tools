@@ -138,15 +138,23 @@ if __name__ == '__main__':
      
     nominal = nominalDacValues[nameX][0]
 
-    #convert all voltages to mV
-    if nominalDacValues[nameX][1] == "V" or nominalDacValues[nameX][1] == "A":
+    #convert all voltages to mV and currents to uA
+    if nominalDacValues[nameX][1] == "V":
         nominal *= pow(10.0,3)
-    elif nominalDacValues[nameX][1][0] == 'm':
+    elif nominalDacValues[nameX][1] == 'mV':
         pass
-    elif nominalDacValues[nameX][1][0] == 'u':
+    elif nominalDacValues[nameX][1] == 'uV':
         nominal *= pow(10.0,-3)
-    elif nominalDacValues[nameX][1][0] == 'n':
+    elif nominalDacValues[nameX][1] == 'nV':
         nominal *= pow(10.0,-6)
+    elif nominalDacValues[nameX][1] == "A":
+        nominal *= pow(10.0,6)
+    elif nominalDacValues[nameX][1] == 'mA':
+        nominal *= pow(10.0,3)
+    elif nominalDacValues[nameX][1] == 'uA':
+        pass
+    elif nominalDacValues[nameX][1] == 'nA':
+        nominal *= pow(10.0,-3)
     else:
         print("Error: unexpected units: '%s'"%nominalDacValues[nameX][1])
         exit(1)
