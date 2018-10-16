@@ -53,6 +53,7 @@ preprpm: default
 	@cp -rf anaSBit*.py $(ScriptDir)
 	@cp -rf anaXDAQ*.py $(ScriptDir)
 	@cp -rf ana_scans.py $(ScriptDir)
+	@cp -rf anaDACScan.py $(ScriptDir)
 	@cp -rf anaXDAQLatency.py $(ScriptDir)
 	@cp -rf packageFiles4Docker.py $(ScriptDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
