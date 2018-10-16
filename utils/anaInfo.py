@@ -49,8 +49,6 @@ nominalDacScalingFactors = {
         "CFG_ADC_VREF": 1
 }
 
-
-
 #: Types of analysis and corresponding analysis tools
 ana_config = {
         "dacScanV3":"dacScanV3.py",

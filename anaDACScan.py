@@ -122,7 +122,7 @@ if __name__ == '__main__':
         print("Error: unexpected value of nameX: '%s'"%nameX)
         exit(1)
 
-    #the nominal reference current is 10 uA and it has a scaling    
+    #the nominal reference current is 10 uA and it has a scaling factor of 0.5   
     nominal_iref = 10/0.5
 
     nominal = nominalDacValues[nameX][0]/nominalDacScalingFactors[nameX]
