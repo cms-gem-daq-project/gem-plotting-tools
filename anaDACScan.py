@@ -192,7 +192,7 @@ if __name__ == '__main__':
             dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
-            if nominalDacValues[nameX][1][1] == 'A':
+            if nominalDacValues[nameX][1][len(nominalDacValues[nameX][1])-1] == 'A':
                 dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (uA)")
             else:
                 dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (mV)")
@@ -216,7 +216,7 @@ if __name__ == '__main__':
         calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err
 
         #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20 kOhm resistor was used.
-        if nominalDacValues[nameX][1][1] == "A":
+        if nominalDacValues[nameX][1][len(nominalDacValues[nameX][1])-1] == "A":
 
             #V (mV) = I (uA) R (kOhm)
             #V (10^-3) = I (10^-6) R (10^3)
