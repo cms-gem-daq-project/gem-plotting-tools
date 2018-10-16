@@ -115,28 +115,17 @@ if __name__ == '__main__':
         print("Error: unexpected value of nameY: '%s'"%nameY)
         exit(1)
 
-    from utils.anaInfo import nominalDacValues    
+    from utils.anaInfo import nominalDacValues
+    from utils.anaInfo import nominalDacScalingFactors
         
     if nameX not in nominalDacValues.keys():
         print("Error: unexpected value of nameX: '%s'"%nameX)
         exit(1)
 
-    nominal_iref = nominalDacValues['CFG_IREF'][0]
+    #the nominal reference current is 10 uA and it has a scaling    
+    nominal_iref = 10/0.5
 
-    #convert all currents to uA 
-    if nominalDacValues['CFG_IREF'][1] == 'A':
-        nominal_iref *= pow(10.0,6)        
-    elif nominalDacValues['CFG_IREF'][1] == 'mA':
-        nominal_iref *= pow(10.0,3)
-    elif nominalDacValues['CFG_IREF'][1] == 'uA':
-        pass
-    elif nominalDacValues['CFG_IREF'][1] == 'nA':
-        nominal_iref *= pow(10.0,-3)
-    else:
-        print("Error: unexpected units for nominal reference current: '%s'"%nominalDacValues['CFG_IREF'][1])
-        exit(1)
-     
-    nominal = nominalDacValues[nameX][0]
+    nominal = nominalDacValues[nameX][0]/nominalDacScalingFactors[nameX]
 
     #convert all voltages to mV and currents to uA
     if nominalDacValues[nameX][1] == "V":
