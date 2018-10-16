@@ -280,11 +280,12 @@ if __name__ == '__main__':
              
     # Write out the dacVal results to a root file, a text file, and the terminal
     outputTxtFiles_dacVals = {}    
-            
-    if scandate == 'noscandate':
-        outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/NominalDACValues.txt",'w')
-    else:    
-        outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/NominalDACValues.txt",'w')
+
+    for oh in ohArray:
+        if scandate == 'noscandate':
+            outputTxtFiles_dacVals[oh] = open(elogPath+"/"+chamber_config[oh]+"/NominalDACValues.txt",'w')
+        else:    
+            outputTxtFiles_dacVals[oh] = open(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/NominalDACValues.txt",'w')
 
     print( "| OH | vfatN | dacVal |")
     print( "| :-: | :---: | :----: |")        
