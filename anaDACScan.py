@@ -79,7 +79,6 @@ if __name__ == '__main__':
     r.TH1.SetDefaultSumw2(False)
     r.gROOT.SetBatch(True)
     r.gStyle.SetOptStat(1111111)
-    r.gStyle.SetDrawOption
     
     dacScanFile = r.TFile(args.infilename)
 
