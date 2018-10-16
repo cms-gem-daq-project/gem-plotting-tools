@@ -79,7 +79,8 @@ if __name__ == '__main__':
     r.TH1.SetDefaultSumw2(False)
     r.gROOT.SetBatch(True)
     r.gStyle.SetOptStat(1111111)
-
+    r.gStyle.SetDrawOption
+    
     dacScanFile = r.TFile(args.infilename)
 
     import numpy as np
@@ -188,15 +189,16 @@ if __name__ == '__main__':
     for oh in ohArray:
         for vfat in range(0,24):
             dict_RawADCvsDAC_Graphs[oh][vfat] = r.TGraphErrors()
-            dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY)
-            dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
+            dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX)
+            dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
+            dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
             if nominalDacValues[nameX][1][len(nominalDacValues[nameX][1])-1] == 'A':
-                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX + " (uA)")
+                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (#muA)")
             else:
-                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX + " (mV)")
-            dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
+                dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (mV)")
+
 
     outputFiles = {}         
              
@@ -244,6 +246,8 @@ if __name__ == '__main__':
         for vfat in range(0,24):
             #use a fifth degree polynomial to do the fit
             dict_DACvsADC_Funcs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
+            dict_DACvsADC_Funcs[oh][vfat].SetLineWidth(1)
+            dict_DACvsADC_Funcs[oh][vfat].SetLineStyle(3)
             dict_DACvsADC_Graphs[oh][vfat].Fit(dict_DACvsADC_Funcs[oh][vfat],"Q") 
 
     # Determine DAC values to achieve recommended bias voltage and current settings
@@ -251,6 +255,9 @@ if __name__ == '__main__':
     dict_dacVals = nesteddict()
     for oh in ohArray:
         graph_dacVals[oh] = r.TGraph()
+        graph_dacVals[oh].SetMinimum(0)
+        graph_dacVals[oh].GetXaxis().SetTitle("VFATN")
+        graph_dacVals[oh].GetYaxis().SetTitle("nominal DAC value")
         for vfat in range(0,24):
 
             maxDacValue = 255
@@ -311,7 +318,7 @@ if __name__ == '__main__':
 
     # Make plots        
     for oh in ohArray:
-        canv_Summary = make3x8Canvas('canv_Summary',dict_DACvsADC_Graphs[oh],'AP',dict_DACvsADC_Funcs[oh],'')
+        canv_Summary = make3x8Canvas('canv_Summary',dict_DACvsADC_Graphs[oh],'APE1',dict_DACvsADC_Funcs[oh],'')
         if scandate == 'noscandate':
             canv_Summary.SaveAs(elogPath+"/"+chamber_config[oh]+"/Summary.png")
         else:
