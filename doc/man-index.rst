@@ -15,6 +15,7 @@ Analysis tools
     :maxdepth: 1
 
     man/plot_eff
+    man/anaDACScan
 
 Arbitrary plotting tools
 ------------------------
@@ -56,7 +57,6 @@ documented elsewhere.
     * :program:`ana_scans.py`
     * :program:`anaSBitTresh.py`
     * :program:`anaUltraLatency.py`
-    * :program:`anaDACScan.py`
     * :program:`anaUltraScurve.py`
     * :program:`anaUltraThreshold.py`
     * :program:`anaXDAQLatency.py`
