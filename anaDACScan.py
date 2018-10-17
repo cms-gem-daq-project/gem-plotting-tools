@@ -25,7 +25,7 @@ Arguments
 
 .. option:: --assignXErrors  
 
-    If this flag is set, the dacValX_Err values stored in the input file are used when constructing the plots and performing the fits. If this flag is not set, the error associated with the dacValX values is always taken to be 0. Note that these errors are actually errors on the variable plotted on the y-axis in the DAC vs ADC plots. The dacValY_Err values, which would correspond to the errors on the x-axis in the DAC vs ADC plots, cannot be used because fits do not converge when they are used. 
+    If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case). 
 
 .. option:: --calFileList
   
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
     parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
-    parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="dacValY_Err values are always used, but dacValX_Err values are used if and only if this flag is set")
+    parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case).")
 
     args = parser.parse_args()
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
     for oh in ohArray:
         if oh not in calInfo.keys():
-            calAdcCalFile = "{0}/{1}/calFile_calAdc_{1}.txt".format(dataPath,chamber_config[oh])
+            calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[oh],nameY)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
             if not calAdcCalFileExists:
                 print("Skipping OH{0}, detector {1}, missing CFG_CAL_DAC Calibration file:\n\t{2}".format(
