@@ -123,9 +123,9 @@ if __name__ == '__main__':
         exit(1)
 
     #the nominal reference current is 10 uA and it has a scaling factor of 0.5   
-    nominal_iref = 10/0.5
+    nominal_iref = 10*0.5
 
-    nominal = nominalDacValues[nameX][0]/nominalDacScalingFactors[nameX]
+    nominal = nominalDacValues[nameX][0]
 
     #convert all voltages to mV and currents to uA
     if nominalDacValues[nameX][1] == "V":
@@ -223,7 +223,9 @@ if __name__ == '__main__':
 
             if nameX != 'CFG_IREF':
                 calibrated_ADC_value -= nominal_iref 
-            
+
+            calibrated_ADC_value /= nominalDacScalingFactors[nameX]    
+                
         #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
         #the nameX variable is the DAC register that is scanned, and we want to determine its nominal value
         if args.assignXErrors:
