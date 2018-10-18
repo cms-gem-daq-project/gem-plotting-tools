@@ -85,9 +85,18 @@ if __name__ == '__main__':
     import numpy as np
     import root_numpy as rp
     
-    list_bNames = ['link']
-    ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=list_bNames)
+    ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=['link'])
     ohArray = np.unique(ohArray['link'])
+
+    #list of (oh,vfat) pairs to mask because they have a constant dacValyY value of 0, indicating they are not connecting
+    mask = []
+    
+    for oh in ohArray:
+        for vfat in range(0,24):
+            array = rp.tree2array(tree=dacScanFile.dacScanTree, branches=['dacValY'],selection='link == '+str(oh)+' && vfatN == '+str(vfat))
+            array = np.unique(array['dacValY'])
+            if len(array) == 1 and array[0] == 0:
+                mask.append((oh,vfat))
     
     dataPath = os.getenv("DATA_PATH")
     elogPath = os.getenv("ELOG_PATH") 
@@ -181,20 +190,24 @@ if __name__ == '__main__':
     dict_RawADCvsDAC_Graphs = nesteddict()
     dict_DACvsADC_Funcs = nesteddict()
 
-    # Initialize a TGraphErrors for each vfat
+    # Initialize a TGraphErrors and a TF1 for each vfat
     for oh in ohArray:
         for vfat in range(0,24):
             dict_RawADCvsDAC_Graphs[oh][vfat] = r.TGraphErrors()
             dict_RawADCvsDAC_Graphs[oh][vfat].GetXaxis().SetTitle(nameX)
             dict_RawADCvsDAC_Graphs[oh][vfat].GetYaxis().SetTitle(nameY)
             dict_DACvsADC_Graphs[oh][vfat] = r.TGraphErrors()
+            dict_DACvsADC_Graphs[oh][vfat].SetMarkerSize(5)
             #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
             dict_DACvsADC_Graphs[oh][vfat].GetYaxis().SetTitle(nameX)
             if nominalDacValues[nameX][1][len(nominalDacValues[nameX][1])-1] == 'A':
                 dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (#muA)")
             else:
                 dict_DACvsADC_Graphs[oh][vfat].GetXaxis().SetTitle(nameY + " (mV)")
-
+            #we will use a fifth degree polynomial to do the fit
+            dict_DACvsADC_Funcs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
+            dict_DACvsADC_Funcs[oh][vfat].SetLineWidth(1)
+            dict_DACvsADC_Funcs[oh][vfat].SetLineStyle(3)
 
     outputFiles = {}         
              
@@ -208,6 +221,9 @@ if __name__ == '__main__':
     for event in dacScanFile.dacScanTree:
         oh = event.link
         vfat = event.vfatN
+
+        if (oh,vfat) in mask:
+            continue
 
         #the output of the calibration is mV
         calibrated_ADC_value=calInfo[oh]['slope'][vfat]*event.dacValY+calInfo[oh]['intercept'][vfat]
@@ -224,29 +240,30 @@ if __name__ == '__main__':
             if nameX != 'CFG_IREF':
                 calibrated_ADC_value -= nominal_iref 
 
-            calibrated_ADC_value /= nominalDacScalingFactors[nameX]    
+            calibrated_ADC_value /= nominalDacScalingFactors[nameX]
                 
         #the reversal of x and y is intended - we want to plot the nameX variable on the y-axis and the nameY variable on the x-axis
         #the nameX variable is the DAC register that is scanned, and we want to determine its nominal value
         if args.assignXErrors:
             dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValX,event.dacValY)
-            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,0,event.dacValX_Err)
+            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,event.dacValX_Err)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,event.dacValX_Err,0)
         else:
             dict_DACvsADC_Graphs[oh][vfat].SetPoint(dict_DACvsADC_Graphs[oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[oh][vfat].GetN(),event.dacValX,event.dacValY)
-            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,0,0)
+            dict_DACvsADC_Graphs[oh][vfat].SetPointError(dict_DACvsADC_Graphs[oh][vfat].GetN()-1,calibrated_ADC_error,0)
             dict_RawADCvsDAC_Graphs[oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[oh][vfat].GetN()-1,0,0)
 
     # Fit the TGraphErrors objects    
     for oh in ohArray:
         for vfat in range(0,24):
-            #use a fifth degree polynomial to do the fit
-            dict_DACvsADC_Funcs[oh][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
-            dict_DACvsADC_Funcs[oh][vfat].SetLineWidth(1)
-            dict_DACvsADC_Funcs[oh][vfat].SetLineStyle(3)
-            dict_DACvsADC_Graphs[oh][vfat].Fit(dict_DACvsADC_Funcs[oh][vfat],"Q") 
+            if (oh,vfat) in mask:
+                #so that the output plots for these VFATs are completely empty
+                dict_DACvsADC_Funcs[oh][vfat].SetLineColor(0)
+                continue
+            #the fits fail when the errors on dacValY (the x-axis variable) are used 
+            dict_DACvsADC_Graphs[oh][vfat].Fit(dict_DACvsADC_Funcs[oh][vfat],"QEX0")
 
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = {}
@@ -257,6 +274,8 @@ if __name__ == '__main__':
         graph_dacVals[oh].GetXaxis().SetTitle("VFATN")
         graph_dacVals[oh].GetYaxis().SetTitle("nominal DAC value")
         for vfat in range(0,24):
+            if (oh,vfat) in mask:
+                continue
 
             maxDacValue = 255
             
@@ -301,6 +320,9 @@ if __name__ == '__main__':
         outputFiles[oh].cd("Summary")
         graph_dacVals[oh].Write("nominalDacValVsVFATX")
         for vfat in range(0,24):
+            if (oh,vfat) in mask:
+                continue            
+            
             outputFiles[oh].cd()
             outputFiles[oh].mkdir("VFAT"+str(vfat))
             outputFiles[oh].cd("VFAT"+str(vfat))
