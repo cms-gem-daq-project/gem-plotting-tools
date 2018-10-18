@@ -84,6 +84,8 @@ if __name__ == '__main__':
 
     import numpy as np
     import root_numpy as rp
+
+    dacScanFile.dacScanTree.LoadBaskets()
     
     ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=['link'])
     ohArray = np.unique(ohArray['link'])
@@ -97,7 +99,7 @@ if __name__ == '__main__':
             array = np.unique(array['dacValY'])
             if len(array) == 1 and array[0] == 0:
                 mask.append((oh,vfat))
-    
+
     dataPath = os.getenv("DATA_PATH")
     elogPath = os.getenv("ELOG_PATH") 
     
