@@ -484,7 +484,7 @@ if __name__ == '__main__':
         vfatCH = array( 'i', [ 0 ] )
         myT.Branch( 'vfatCH', vfatCH, 'vfatCH/I' )
         vfatID = array( 'L', [0] )
-        myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
+        myT.Branch( 'vfatID', vfatID, 'vfatID/i' ) #Hex Chip ID of VFAT
         vfatN = array( 'i', [ 0 ] )
         myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
         vthr = array( 'i', [ 0 ] )

@@ -120,7 +120,7 @@ if __name__ == '__main__':
     vfatN = array( 'i', [ 0 ] )
     myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
     vfatID = array( 'L', [0] )
-    myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
+    myT.Branch( 'vfatID', vfatID, 'vfatID/i' ) #Hex Chip ID of VFAT
     hitCountMaxLat = array( 'f', [ 0 ] )
     myT.Branch( 'hitCountMaxLat', hitCountMaxLat, 'hitCountMaxLat/F' )
     hitCountMaxLatErr = array( 'f', [ 0 ] )
