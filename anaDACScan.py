@@ -84,7 +84,6 @@ if __name__ == '__main__':
 
     import root_numpy as rp
     import numpy as np
-    import ROOT as r
     list_bNames = ['vfatN','link','dacValY']
     vfatArray = rp.tree2array(tree=dacScanFile.dacScanTree,branches=list_bNames)
     ohArray = np.unique(vfatArray['link'])
