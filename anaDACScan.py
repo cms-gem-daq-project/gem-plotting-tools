@@ -82,23 +82,15 @@ if __name__ == '__main__':
     
     dacScanFile = r.TFile(args.infilename)
 
-    import numpy as np
     import root_numpy as rp
-
-    dacScanFile.dacScanTree.LoadBaskets()
-    
-    ohArray = rp.tree2array(tree=dacScanFile.dacScanTree, branches=['link'])
-    ohArray = np.unique(ohArray['link'])
-
-    #list of (oh,vfat) pairs to mask because they have a constant dacValyY value of 0, indicating they are not connecting
-    mask = []
-    
-    for oh in ohArray:
-        for vfat in range(0,24):
-            array = rp.tree2array(tree=dacScanFile.dacScanTree, branches=['dacValY'],selection='link == '+str(oh)+' && vfatN == '+str(vfat))
-            array = np.unique(array['dacValY'])
-            if len(array) == 1 and array[0] == 0:
-                mask.append((oh,vfat))
+    import numpy as np
+    import ROOT as r
+    list_bNames = ['vfatN','link','dacValY']
+    vfatArray = rp.tree2array(tree=dacScanFile.dacScanTree,branches=list_bNames)
+    ohArray = np.unique(vfatArray['link'])
+    dict_nonzeroVFATs = {}
+    for ohN in ohArray:
+        dict_nonzeroVFATs[ohN] = np.unique(vfatArray[np.logical_and(vfatArray['dacValY'] > 0,vfatArray['link'] == ohN)]['vfatN'])
 
     dataPath = os.getenv("DATA_PATH")
     elogPath = os.getenv("ELOG_PATH") 
@@ -177,9 +169,10 @@ if __name__ == '__main__':
             calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[oh],nameY)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
             if not calAdcCalFileExists:
-                print("Skipping OH{0}, detector {1}, missing CFG_CAL_DAC Calibration file:\n\t{2}".format(
+                print("Skipping OH{0}, detector {1}, missing {2} calibration file:\n\t{3}".format(
                     oh,
                     chamber_config[oh],
+                    nameY,
                     calAdcCalFile))
                 ohArray = np.delete(ohArray,(oh))
 
@@ -225,7 +218,7 @@ if __name__ == '__main__':
         oh = event.link
         vfat = event.vfatN
 
-        if (oh,vfat) in mask:
+        if vfat not in dict_nonzeroVFATs[oh]:
             continue
 
         #the output of the calibration is mV
@@ -261,7 +254,7 @@ if __name__ == '__main__':
     # Fit the TGraphErrors objects    
     for oh in ohArray:
         for vfat in range(0,24):
-            if (oh,vfat) in mask:
+            if vfat not in dict_nonzeroVFATs[oh]:
                 #so that the output plots for these VFATs are completely empty
                 dict_DACvsADC_Funcs[oh][vfat].SetLineColor(0)
                 continue
@@ -277,7 +270,7 @@ if __name__ == '__main__':
         graph_dacVals[oh].GetXaxis().SetTitle("VFATN")
         graph_dacVals[oh].GetYaxis().SetTitle("nominal DAC value")
         for vfat in range(0,24):
-            if (oh,vfat) in mask:
+            if vfat not in dict_nonzeroVFATs[oh]:
                 continue
 
             maxDacValue = 255
@@ -323,7 +316,7 @@ if __name__ == '__main__':
         outputFiles[oh].cd("Summary")
         graph_dacVals[oh].Write("nominalDacValVsVFATX")
         for vfat in range(0,24):
-            if (oh,vfat) in mask:
+            if vfat not in dict_nonzeroVFATs[oh]:
                 continue            
             
             outputFiles[oh].cd()
