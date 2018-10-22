@@ -15,6 +15,7 @@ Analysis tools
     :maxdepth: 1
 
     man/plot_eff
+    man/anaDACScan
 
 Arbitrary plotting tools
 ------------------------

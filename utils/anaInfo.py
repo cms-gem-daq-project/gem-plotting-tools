@@ -12,6 +12,43 @@ Documentation
 
 import string
 
+#: Nominal current and voltage values from Tables 9 and 10 of the VFAT3 manual
+#: The registers CFG_THR_ARM_DAC CFG_THR_ZCC_DAC may correspond to either a voltage or a current. Below I have used the voltage. Be careful if you have taken a current scan with these registers (dacSelect options 14 or 15).
+nominalDacValues = {
+        "CFG_BIAS_PRE_I_BIT":(150,"uA"),
+        "CFG_BIAS_PRE_I_BLCC":(25,"nA"),
+        "CFG_BIAS_SH_I_BFCAS":(26,"uA"),
+        "CFG_BIAS_SH_I_BDIFF":(16,"uA"),
+        "CFG_BIAS_SD_I_BDIFF":(28,"uA"),
+        "CFG_BIAS_SD_I_BFCAS":(27,"uA"),
+        "CFG_BIAS_SD_I_BSF":(30,"uA"),
+        "CFG_BIAS_CFD_DAC_1":(20,"uA"),
+        "CFG_BIAS_CFD_DAC_2":(20,"uA"),
+        "CFG_HYST":(100,"nA"),
+        "CFG_THR_ARM_DAC":(64,"mV"),
+        "CFG_THR_ZCC_DAC":(5.5,"mV"),
+        "CFG_BIAS_PRE_VREF":(430,'mV'),
+        "CFG_ADC_VREF":(1.0,'V')
+}
+
+#: From Tables 12 and 13 from the VFAT3 manual
+nominalDacScalingFactors = {
+        "CFG_BIAS_PRE_I_BIT":0.2,
+        "CFG_BIAS_PRE_I_BLCC":100,
+        "CFG_BIAS_SH_I_BFCAS":1,
+        "CFG_BIAS_SH_I_BDIFF":1,
+        "CFG_BIAS_SD_I_BDIFF":1,
+        "CFG_BIAS_SD_I_BFCAS":1,
+        "CFG_BIAS_SD_I_BSF":0.25,
+        "CFG_BIAS_CFD_DAC_1":1,
+        "CFG_BIAS_CFD_DAC_2":1,
+        "CFG_HYST":1,
+        "CFG_THR_ARM_DAC":1,
+        "CFG_THR_ZCC_DAC":4,
+        "CFG_BIAS_PRE_VREF":1,
+        "CFG_ADC_VREF": 1
+}
+
 #: Types of analysis and corresponding analysis tools
 ana_config = {
         "dacScanV3":"dacScanV3.py",

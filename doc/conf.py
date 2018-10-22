@@ -251,6 +251,8 @@ man_pages = [
      authors, 1),
     ('man/plot_eff', 'plot_eff.py', u'Perform an efficiency analysis',
      authors, 1),
+    ('man/anaDACScan', 'anaDACScan.py', u'Perform a DAC scan analysis',
+     authors, 1),
     ('man/timeHistoryAnalyzer', 'timeHistoryAnalyzer.py', u'Analyze the time evolution of channels',
      authors, 1),
     ('man/clusterAnaScurve', 'clusterAnaScurve.py', u'Analyze S-curves using the LSF cluster',
