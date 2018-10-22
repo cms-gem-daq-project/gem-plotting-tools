@@ -119,8 +119,8 @@ if __name__ == '__main__':
     myT = r.TTree('latFitTree','Tree Holding FitData')
     vfatN = array( 'i', [ 0 ] )
     myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
-    vfatID = array( 'i', [-1] )
-    myT.Branch( 'vfatID', vfatID, 'vfatID/I' ) #Hex Chip ID of VFAT
+    vfatID = array( 'L', [0] )
+    myT.Branch( 'vfatID', vfatID, 'vfatID/i' ) #Hex Chip ID of VFAT
     hitCountMaxLat = array( 'f', [ 0 ] )
     myT.Branch( 'hitCountMaxLat', hitCountMaxLat, 'hitCountMaxLat/F' )
     hitCountMaxLatErr = array( 'f', [ 0 ] )

@@ -101,6 +101,7 @@ after_script: skip
     - gem install github_changelog_generator
   script:
     - echo 'Running build stage on docker container $DOCKER_CONTAINER_ID'
+    - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -eic "sudo pip install -Ur /home/daqbuild/${REPO_NAME}/requirements-dev.txt" || travis_terminate 1
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -eic "cd /home/daqbuild/${REPO_NAME}; make" || travis_terminate 1
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -eic "cd /home/daqbuild/${REPO_NAME}; make rpm" || travis_terminate 1
     - docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -eic "cd /home/daqbuild/${REPO_NAME}; rpm -q --filesbypkg -p rpm/*.rpm"
