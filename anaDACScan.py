@@ -156,9 +156,9 @@ if __name__ == '__main__':
         for line in open(args.calFileList):
             if line[0] == "#":
                 continue
-            line = line.strip(' ').strip('\n')
-            first = line.split(' ')[0].strip(' ')
-            second = line.split(' ')[1].strip(' ')
+            line = line.strip()
+            first = line.split()[0]
+            second = line.split()[1]
             tuple_calInfo = parseCalFile(second)
             calInfo[int(first)] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
 
@@ -289,12 +289,14 @@ if __name__ == '__main__':
             nominalDacValue = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
             
             if nominalDacValue > maxDacValue:
-                print('Warning: the nominal DAC value that was found from the fit is larger than the maximum value that the DAC register will hold')
+                print('Warning: Fitted DAC value > the maximum value of the register. It will be replaced by the maximum value of the register.')
+                nominalDacValue = maxDacValue
 
             if nominalDacValue < 0:
-                print('Warning: the nominal DAC value that was found from the fit is less than 0')                
+                print('Warning: Fitted DAC value < 0. It will be replaced by 0.')
+                nominalDacValue = 0
             
-            dict_dacVals[oh][vfat] = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
+            dict_dacVals[oh][vfat] = nominalDacValue
             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
              
     # Write out the dacVal results to a root file, a text file, and the terminal
