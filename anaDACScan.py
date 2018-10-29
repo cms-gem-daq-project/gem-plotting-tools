@@ -286,13 +286,13 @@ if __name__ == '__main__':
                     break
                     
             #evaluate the fitted function at the nominal current or voltage value and convert to an integer
-            nominalDacValue = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
+            fittedDacValue = int(dict_DACvsADC_Funcs[oh][vfat].Eval(nominal))
+            finalDacValue = max(0,min(maxDacValue,fittedDacValue))
             
-            if nominalDacValue < 0 or nominalDacValue > maxDacValue:
-                print('Warning: The fitted DAC value, '+str(nominalDacValue)+', is outside of the range that the register can hold: [0,'+str(maxDacValue)+']. It will be replaced by '+str(max(0,min(maxDacValue,nominalDacValue)))+'.')
-                nominalDacValue = max(0,min(maxDacValue,nominalDacValue))
-
-            dict_dacVals[oh][vfat] = nominalDacValue
+            if fittedDacValue != finalDacValue:
+                print('Warning: The fitted DAC value, %i, is outside of the range that the register can hold: [0,%i]. It will be replaced by %i.'%(fittedDacValue,maxDacValue,finalDacValue))
+                
+            dict_dacVals[oh][vfat] = finalDacValue
             graph_dacVals[oh].SetPoint(graph_dacVals[oh].GetN(),vfat,dict_dacVals[oh][vfat])
              
     # Write out the dacVal results to a root file, a text file, and the terminal
