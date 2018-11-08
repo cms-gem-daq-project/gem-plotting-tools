@@ -17,6 +17,7 @@ import string
 nominalDacValues = {
         "CFG_BIAS_PRE_I_BIT":(150,"uA"),
         "CFG_BIAS_PRE_I_BLCC":(25,"nA"),
+        "CFG_BIAS_PRE_I_BSF":(26,"uA"),
         "CFG_BIAS_SH_I_BFCAS":(26,"uA"),
         "CFG_BIAS_SH_I_BDIFF":(16,"uA"),
         "CFG_BIAS_SD_I_BDIFF":(28,"uA"),
@@ -35,6 +36,7 @@ nominalDacValues = {
 nominalDacScalingFactors = {
         "CFG_BIAS_PRE_I_BIT":0.2,
         "CFG_BIAS_PRE_I_BLCC":100,
+        "CFG_BIAS_PRE_I_BSF":0.25,
         "CFG_BIAS_SH_I_BFCAS":1,
         "CFG_BIAS_SH_I_BDIFF":1,
         "CFG_BIAS_SD_I_BDIFF":1,
