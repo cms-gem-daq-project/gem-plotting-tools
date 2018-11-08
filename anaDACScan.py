@@ -117,8 +117,7 @@ if __name__ == '__main__':
         print("Error: unexpected value of nameY: '%s'"%nameY)
         exit(1)
 
-    from utils.anaInfo import nominalDacValues
-    from utils.anaInfo import nominalDacScalingFactors
+    from gempython.gemplotting.utils.anaInfo import nominalDacValues, nominalDacScalingFactors
         
     if nameX not in nominalDacValues.keys():
         print("Error: unexpected value of nameX: '%s'"%nameX)
