@@ -1,4 +1,4 @@
-.. automodule:: anaDACScan.py
+.. automodule:: anaDACScan
     :members:
     :undoc-members:
     :show-inheritance:
