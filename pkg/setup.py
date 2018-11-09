@@ -88,8 +88,8 @@ setup(name             = '__packagename__',
       # dependency_links   = ['http://cmsgemos.web.cern.ch/cmsgemos/repo/tarball/master#egg=package-1.0']
       zip_safe         = False,
       setup_requires   = [
-          'setuptools>=25.0'
-          'sphinx>=1.0, <=1.4'
+          'setuptools>=25.0',
+          'sphinx>=1.0,<=1.4'
       ],
       install_requires = getreqs(),
       license          = 'GNU General Public License v3 (GPLv3)',
