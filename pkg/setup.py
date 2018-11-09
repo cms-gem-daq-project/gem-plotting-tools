@@ -89,6 +89,7 @@ setup(name             = '__packagename__',
       zip_safe         = False,
       setup_requires   = [
           'setuptools>=25.0'
+          'sphinx>=1.0, <=1.4'
       ],
       install_requires = getreqs(),
       license          = 'GNU General Public License v3 (GPLv3)',
