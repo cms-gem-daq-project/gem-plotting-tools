@@ -64,18 +64,20 @@ if __name__ == '__main__':
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case).")
     parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
-    parser.add_argument("-p","--print",dest=printSum, action="store_true", help="If provided prints a summary table to terminal for each DAC showing for each VFAT position the nominal value that was found")
+    parser.add_argument("-p","--print",dest="printSum", action="store_true", help="If provided prints a summary table to terminal for each DAC showing for each VFAT position the nominal value that was found")
     args = parser.parse_args()
 
     print("Analyzing: '%s'"%args.infilename)
 
     # Set default histogram behavior
+    import ROOT as r
     r.TH1.SetDefaultSumw2(False)
     r.gROOT.SetBatch(True)
     r.gStyle.SetOptStat(1111111)
     
-    import ROOT as r
-    dacScanFile = r.TFile(args.infilename)
+    dacScanFile = r.TFile(args.infilename,"READ")
+
+    print("Loading info from input TTree")
 
     import root_numpy as rp
     import numpy as np
@@ -88,7 +90,6 @@ if __name__ == '__main__':
         dict_nonzeroVFATs[ohN] = np.unique(vfatArray[np.logical_and(vfatArray['dacValY'] > 0,vfatArray['link'] == ohN)]['vfatN'])
 
     from gempython.utils.wrappers import envCheck
-
     envCheck("DATA_PATH")
     envCheck("ELOG_PATH")
 
@@ -113,20 +114,21 @@ if __name__ == '__main__':
     # Determine which DAC was scanned and against which ADC
     adcName = ""
     for event in dacScanFile.dacScanTree:
-        #adcName = str(event.adcName.data())
-        adcName = event.adcName
+        adcName = str(event.nameY.data())
         break # all entries will be the same
 
+    from gempython.utils.gemlogger import colormsg
+    import logging
     if adcName not in ['ADC0', 'ADC1']:
-        print("Error: unexpected value of adcName: '%s'"%adcName)
+        print(colormsg("Error: unexpected value of adcName: '%s'"%adcName,logging.ERROR))
         exit(os.EX_DATAERR)
 
     from gempython.gemplotting.utils.anaInfo import nominalDacValues, nominalDacScalingFactors
     nominal = {}
-    for idx in len(dacNameArray):
-        dacName = dacNameArray[idx]
+    for idx in range(len(dacNameArray)):
+        dacName = np.asscalar(dacNameArray[idx])
         if dacName not in nominalDacValues.keys():
-            print("Error: unexpected DAC Name: '{}'".format(dacName))
+            print(colormsg("Error: unexpected DAC Name: '{}'".format(dacName),logging.ERROR))
             exit(os.EX_DATAERR)
         else:
             nominal[dacName] = nominalDacValues[dacName][0]
@@ -149,7 +151,7 @@ if __name__ == '__main__':
             elif nominalDacValues[dacName][1] == 'nA':
                 nominal[dacName] *= pow(10.0,-3)
             else:
-                print("Error: unexpected units: '%s'"%nominalDacValues[dacName][1])
+                print(colormsg("Error: unexpected units: '%s'"%nominalDacValues[dacName][1],logging.ERROR))
                 exit(os.EX_DATAERR)
 
     #the nominal reference current is 10 uA and it has a scaling factor of 0.5   
@@ -180,8 +182,8 @@ if __name__ == '__main__':
                 ohArray = np.delete(ohArray,(oh))
 
     if len(ohArray) == 0:
-        print('No OHs with a calFile, exiting.')
-        exit(1)
+        print(colormsg('No OHs with a calFile, exiting.',logging.ERROR))
+        exit(os.EX_DATAERR)
            
     # Initialize nested dictionaries
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -189,9 +191,11 @@ if __name__ == '__main__':
     dict_RawADCvsDAC_Graphs = ndict()
     dict_DACvsADC_Funcs = ndict()
 
+    print("Initializing TObjects")
+
     # Initialize a TGraphErrors and a TF1 for each vfat
-    for idx in len(dacNameArray):
-        dacName = dacNameArray[idx]
+    for idx in range(len(dacNameArray)):
+        dacName = np.asscalar(dacNameArray[idx])
         for oh in ohArray:
             for vfat in range(0,24):
                 dict_RawADCvsDAC_Graphs[dacName][oh][vfat] = r.TGraphErrors()
@@ -207,7 +211,7 @@ if __name__ == '__main__':
                 else:
                     dict_DACvsADC_Graphs[dacName][oh][vfat].GetXaxis().SetTitle(adcName + " (mV)")
                 #we will use a fifth degree polynomial to do the fit
-                dict_DACvsADC_Funcs[dacName][oh][vfat] = r.TF1("DAC Scan Function","pol5")
+                dict_DACvsADC_Funcs[dacName][oh][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
                 dict_DACvsADC_Funcs[dacName][oh][vfat].SetLineWidth(1)
                 dict_DACvsADC_Funcs[dacName][oh][vfat].SetLineStyle(3)
 
@@ -217,6 +221,8 @@ if __name__ == '__main__':
             outputFiles[oh] = r.TFile(elogPath+"/"+chamber_config[oh]+"/"+args.outfilename,'recreate')
         else:    
             outputFiles[oh] = r.TFile(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
+
+    print("Looping over stored events in dacScanTree")
 
     # Loop over events in the tree and fill plots
     for event in dacScanFile.dacScanTree:
@@ -231,7 +237,7 @@ if __name__ == '__main__':
         calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err
 
         #Get the DAC Name in question
-        dacName = event.nameX
+        dacName = str(event.nameX.data())
 
         #Use Ohm's law to convert the currents to voltages. The VFAT3 team told us that a 20 kOhm resistor was used.
         if nominalDacValues[dacName][1][len(nominalDacValues[dacName][1])-1] == "A":
@@ -259,9 +265,11 @@ if __name__ == '__main__':
             dict_RawADCvsDAC_Graphs[dacName][oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetN(),event.dacValX,event.dacValY)
             dict_RawADCvsDAC_Graphs[dacName][oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetN()-1,0,0)
 
+    print("fitting DAC vs. ADC distributions")
+
     # Fit the TGraphErrors objects
-    for idx in len(dacNameArray):
-        dacName = dacNameArray[idx]
+    for idx in range(len(dacNameArray)):
+        dacName = np.asscalar(dacNameArray[idx])
         for oh in ohArray:
             for vfat in range(0,24):
                 if vfat not in dict_nonzeroVFATs[oh]:
@@ -277,11 +285,13 @@ if __name__ == '__main__':
     for dacSelect,dacInfo in maxVfat3DACSize.iteritems():
         dict_maxByDacName[dacInfo[1]]=dacInfo[0]
 
+    print("Determining nominal values for bias voltage and/or current settings")
+
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = ndict()
     dict_dacVals = ndict()
-    for idx in len(dacNameArray):
-        dacName = dacNameArray[idx]
+    for idx in range(len(dacNameArray)):
+        dacName = np.asscalar(dacNameArray[idx])
         maxDacValue = dict_maxByDacName[dacName]
 
         for oh in ohArray:
@@ -295,35 +305,39 @@ if __name__ == '__main__':
                     continue
 
                 #evaluate the fitted function at the nominal current or voltage value and convert to an integer
-                fittedDacValue = int(dict_DACvsADC_Funcs[dacName][oh][vfat].Eval(nominal))
+                fittedDacValue = int(dict_DACvsADC_Funcs[dacName][oh][vfat].Eval(nominal[dacName]))
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
                 
                 if fittedDacValue != finalDacValue:
-                    print('Warning: The fitted DAC value, %i, is outside of the range that the register can hold: [0,%i]. It will be replaced by %i.'%(fittedDacValue,maxDacValue,finalDacValue))
+                    errorMsg = "Warning: when fitting DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
+                            dacName,
+                            fittedDacValue,
+                            maxDacValue,
+                            finalDacValue)
+                    print(colormsg(errorMsg,logging.ERROR))
                     
                 dict_dacVals[dacName][oh][vfat] = finalDacValue
                 graph_dacVals[dacName][oh].SetPoint(graph_dacVals[dacName][oh].GetN(),vfat,dict_dacVals[dacName][oh][vfat])
-             
+
+    print("Writing output data")
+
     # Write out the dacVal results to a root file, a text file, and the terminal
     outputTxtFiles_dacVals = ndict()
-    for idx in len(dacNameArray):
-        dacName = dacNameArray[idx]
+    for idx in range(len(dacNameArray)):
+        dacName = np.asscalar(dacNameArray[idx])
         for oh in ohArray:
             if scandate == 'noscandate':
                 outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,chamber_config[oh],dacName),'w')
             else:
                 outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,chamber_config[oh],scandate,dacName),'w')
 
-    print( "| OH | vfatN | dacVal |")
-    print( "| :-: | :---: | :----: |")        
-    
     for oh in ohArray:
         # Per VFAT Poosition
         for vfat in range(0,24):
             thisVFATDir = outputFiles[oh].mkdir("VFAT{0}".format(vfat))
 
-            for idx in len(dacNameArray):
-                dacName = dacNameArray[idx]
+            for idx in range(len(dacNameArray)):
+                dacName = np.asscalar(dacNameArray[idx])
 
                 thisDACDir = thisVFATDir.mkdir(dacName)
                 thisDACDir.cd()
@@ -333,13 +347,13 @@ if __name__ == '__main__':
                 dict_RawADCvsDAC_Graphs[dacName][oh][vfat].Write("g_VFAT{0}_RawADCvsDAC_{1}".format(vfat,dacName))
 
                 if vfat in dict_nonzeroVFATs[oh]:
-                    outputTxtFiles_dacVals[oh].write("{0}\t{1}\n".format(vfat,dict_dacVals[dacName][oh][vfat]))
+                    outputTxtFiles_dacVals[dacName][oh].write("{0}\t{1}\n".format(vfat,dict_dacVals[dacName][oh][vfat]))
 
         # Summary Case
         dirSummary = outputFiles[oh].mkdir("Summary")
         dirSummary.cd()
-        for idx in len(dacNameArray):
-            dacName = dacNameArray[idx]
+        for idx in range(len(dacNameArray)):
+            dacName = np.asscalar(dacNameArray[idx])
 
             # Store summary graph
             graph_dacVals[dacName][oh].Write("g_NominalvsVFATPos_{0}".format(dacName))
@@ -347,7 +361,7 @@ if __name__ == '__main__':
             # Store summary grid canvas and print images
             canv_Summary = make3x8Canvas("canv_Summary_{0}".format(dacName),dict_DACvsADC_Graphs[dacName][oh],'APE1',dict_DACvsADC_Funcs[dacName][oh],'')
             if scandate == 'noscandate':
-                canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,chamber_config[oh],dacName)
+                canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,chamber_config[oh],dacName))
             else:
                 canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{2}.png".format(dataPath,chamber_config[oh],scandate,dacName))
 
@@ -356,8 +370,8 @@ if __name__ == '__main__':
         print("| ohN | vfatN | dacName | Value |")
         print("| :-: | :---: | :-----: | :---: |")
         for oh in ohArray:
-            for idx in len(dacNameArray):
-                dacName = dacNameArray[idx]
+            for idx in range(len(dacNameArray)):
+                dacName = np.asscalar(dacNameArray[idx])
             
                 for vfat in range(0,24):
                     if vfat not in dict_nonzeroVFATs[oh]:
