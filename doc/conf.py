@@ -28,6 +28,7 @@ authors = [
     'Cameron Bravo',
     'Mykhailo Dalchenko',
     'Brian Dorney',
+    'Andrew Michael Levin',
     'Louis Moureaux',
     'Jared Sturdy',
 ]
@@ -239,6 +240,10 @@ latex_documents = [
 man_pages = [
     ('index', 'gemplotting', u'gemplotting Documentation',
      authors, 1),
+    ('man/anaDACScan', 'anaDACScan.py', u'Perform a DAC scan analysis',
+     authors, 1),
+    ('man/clusterAnaScurve', 'clusterAnaScurve.py', u'Analyze S-curves using the LSF cluster',
+     authors, 1),
     ('man/gemPlotter', 'gemPlotter.py', u'Plot time evolution of scan results',
      authors, 1),
     ('man/gemSCurveAnaToolkit', 'gemSCurveAnaToolkit.py', u'Plot scan results vs time',
@@ -247,15 +252,13 @@ man_pages = [
      authors, 1),
     ('man/packageFiles4Docker', 'packageFiles4Docker.py', u'Creates a tarball containing data',
      authors, 1),
+    ('man/plotChanLossRate', 'plotChanLossRate.py', u'Plots channel loss as a function of time',
+     authors, 1),
     ('man/plotSCurveFitResults', 'plotSCurveFitResults.py', u'Compare S-curves results across scandates',
      authors, 1),
     ('man/plot_eff', 'plot_eff.py', u'Perform an efficiency analysis',
      authors, 1),
-    ('man/anaDACScan', 'anaDACScan.py', u'Perform a DAC scan analysis',
-     authors, 1),
     ('man/timeHistoryAnalyzer', 'timeHistoryAnalyzer.py', u'Analyze the time evolution of channels',
-     authors, 1),
-    ('man/clusterAnaScurve', 'clusterAnaScurve.py', u'Analyze S-curves using the LSF cluster',
      authors, 1),
 ]
 

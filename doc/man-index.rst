@@ -44,6 +44,7 @@ Miscellaneous
 
     man/clusterAnaScurve
     man/packageFiles4Docker
+    man/plotChanLossRate
 
 Missing pages
 -------------
