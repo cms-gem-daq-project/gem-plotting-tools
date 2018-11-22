@@ -1,5 +1,150 @@
 #!/bin/env python
 
+r"""
+``plotChanLossRate.py`` --- Plot channel loss rate of detectors
+===============================================================
+
+Synopsis
+--------
+
+**plotChanLossRate.py** [*OPTIONS*] <*INPUT FILE*>
+
+Description
+-----------
+
+The :program:`plotChanLossRate.py` tool is for plotting channel loss as a function of time.  It is also possible to also plot another time series observable on the same TPad as the channel loss but with a secondary y-axis that can help to look for correlations in the data between some external observable (e.g. applied high voltage).
+
+Mandatory Arguments
+-------------------
+
+The following list shows the mandatory inputs that must be supplied to execute
+the script.
+
+.. program:: plotChanLossRate.py
+
+.. option:: [INPUT FILE]
+
+    This is a delimited file, delimited by :token:`--delimiter`, whose first line is treated as a 
+    column header with subsequent lines listing detector name and the physical filename that gives
+    the channel loss file for that detector and delimited by :token:`--delimiter`.  For example:
+
+        Chamber,ChannelLossFile
+        GEMINIm27L1,/some/path/ChanLoss_GEMINIm27L1_20181105.txt
+        ...
+        ...
+        GEMINIm30L1,/some/path/ChanLoss_GEMINIm30L1_20181105.txt
+        GEMINIm30L2,/some/path/ChanLoss_GEMINIm30L2_20181105.txt
+
+    Each of the individual files themselves are treated as delimited files (again delimited by 
+    :token:`--delimiter`) whose first line is treated as a column header with subsequent lines listing
+    a date range where channel loss occurred and the amount of channels that where lost in that range.
+    For example:
+
+        Start Date , End Date ,  Burnt Channels
+        2018.07.09.23.41 ,  2018.07.14.07.02 ,  12
+        2018.07.14.07.22 ,  2018.07.15.14.32 ,  1
+        ...
+        ...
+        2018.10.19.11.22 ,  2018.10.21.16.39 ,  4
+        2018.10.21.13.46 ,  2018.10.24.06.31 ,  2
+
+    The first two columns are expected to be in datetime format.  The datetime format is expected
+    to follow :token:`--startDateFormat` (:token:`--endDateFormat) for the first (second) column.
+
+Optional Arguments
+------------------
+
+.. option:: -c, --cummulative
+
+    If provided the channel loss data is tailled and the primary y-axis is drawn as the cummulative
+    channel loss instead of the instantaneous loss.
+
+.. option:: -d, --delimiter <DELIMITER>
+
+    Delimiter in the mandatory input file.
+
+.. option:: -e, --endDate <ENDDATE>
+
+    Ending date given in format specified by :token:`--endDateFormat`
+
+.. option: --endDateFormat <ENDDATEFORMAT>
+
+    Specifies ending datetime format to be used for mandatory input file. Use the characters 
+    `Y`,`M`,`D`,`h`,`m`,`s` to define which characters in a datetime data entry correspond to
+    respectively years, months, days, hours, minues, and seconds.  For example for a datetime
+    entry of "2018.11.05.23.59" the datetime format should be supplied as "YYYY.MM.DD hh:mm".
+
+.. option::: -f, --fileObsData <DATA FILE>
+
+    If provided a secondary data series is plotted on a secondary y-axis on the same `TPad` as the 
+    channel loss data.  This is expected to be a delimited (delimited by :token:`--delimiter`) whose
+    first line should be a column header. Subsequent lines are delimited datetime then observable 
+    data. The datetime format is expected to be is expected to be in format `YYYY.MM.DD hh:mm:ss`.
+    For example:
+
+        Begin time,Init Lumi (mub-1s-1)
+        2018.11.05 04:33:58,0.00007
+        2018.11.05 02:01:10,0.00007
+        2018.10.26 06:11:23,0.03171
+        ...
+        ...
+
+.. option:: --logy1
+
+    Primary y-axis is drawn logarithmically.
+
+.. option:: --logy2
+
+    Secondary y-axis is drawn logarithmically.
+
+.. option:: -p, --percentage
+
+    Plotted channel loss data is presented as a percentage of the total number of channels in 
+    a detector instead of the raw channel number.
+
+.. option:: -n, --noLeg
+
+    TLegend is not drawn on the output TCanvas.
+
+.. option:: -s, --startDate
+
+    Starting date given in format specified by :token:`--startDateFormat`
+
+.. option::: --startDateFormat <STARTDATEFORMAT>
+
+    Specifies starting datetime format to be used for mandatory input file. Use the characters 
+    `Y`,`M`,`D`,`h`,`m`,`s` to define which characters in a datetime data entry correspond to
+    respectively years, months, days, hours, minues, and seconds.  For example for a datetime
+    entry of "2018.11.05.23.59" the datetime format should be supplied as "YYYY.MM.DD hh:mm".
+
+.. option:: -t, --totalChan <TOTALCHAN>
+
+    Specify the total number of channels in a detector; e.g. 3072 for GE1/1.
+
+Examples
+--------
+
+To plot just the channel loss for a given set of inputs execute:
+
+    plotChanLossRate.py ChanLoss_AllDet.txt
+
+To plot a secondary observable in addition to the channel loss on the same TPad execute:
+
+    plotChanLossRate.py -f CMSPeakInstLumi.txt ChanLoss_AllDet.txt
+
+To make a cummulative channel loss plot execute:
+
+    plotChanLossRate.py -c ChanLoss_AllDet.txt
+
+To make an instantaneous channel loss in percentage execute:
+
+    plotChanLossRate.py -p ChanLoss_AllDet.txt
+
+To make a cummulative percentage channel loss plot execute:
+
+    plotChanLossRate.py -c -p ChanLoss_AllDet.txt
+"""
+
 def getDateFromStr(strDate,strFormat="YYYY.MM.DD.hh.mm"):
     """
     Reads in a date given by strDate following strFormat and returns a datetime.datetime object.
