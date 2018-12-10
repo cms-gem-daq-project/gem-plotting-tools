@@ -173,7 +173,10 @@ if __name__ == '__main__':
         if oh not in calInfo.keys():
             calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[oh],adcName)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
-            if not calAdcCalFileExists:
+            if calAdcCalFileExists:
+                tuple_calInfo = parseCalFile(calAdcCalFile)
+                calInfo[oh] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
+            else:    
                 print("Skipping OH{0}, detector {1}, missing {2} calibration file:\n\t{3}".format(
                     oh,
                     chamber_config[oh],
