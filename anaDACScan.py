@@ -312,11 +312,14 @@ if __name__ == '__main__':
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
                 
                 if fittedDacValue != finalDacValue:
-                    errorMsg = "Warning: when fitting DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
+                    errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
                             dacName,
                             fittedDacValue,
                             maxDacValue,
-                            finalDacValue)
+                            finalDacValue,
+                            oh,
+                            vfat,
+                            chamber_config[oh])
                     print(colormsg(errorMsg,logging.ERROR))
                     
                 dict_dacVals[dacName][oh][vfat] = finalDacValue
