@@ -57,6 +57,19 @@ if __name__ == "__main__":
     if not infile.IsOpen():
         print infilename,"is not open"
         exit(os.EX_IOERR)
+        pass
+
+    # Get run number
+    fields = args.infile.split("_")
+    if "run" in fields[0]:
+        runNo = fields[0]
+    else:
+        runNo = "runUnknown"
+        pass
+
+    # Make output dir in $ELOG_PATH
+    from gempython.utils.wrappers import runCommand
+    runCommand(["mkdir", "{0}/{1}".format(elogPath,runNo)])
 
     # Make nested containers
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -67,6 +80,7 @@ if __name__ == "__main__":
     dictMapping = ndict()       #   dictMapping[slot][oh]          -> mapping dict
     latencyMean = ndict()       #   latencyMean[slot][oh]          -> histogram
     latencyRMS = ndict()        #   latencyRMS[slot][oh]           -> histogram
+    vfatHitMulti = ndict()      #   vfatHitMulti[slot][oh][vfatN]  -> histogram
     vfatLatHists = ndict()      #   vfatHists[slot][oh][vfatN]     -> histogram
     vfatLatHists2D = ndict()    #   vfatHists2D[slot][oh][vfatN]   -> histogram
 
@@ -94,7 +108,7 @@ if __name__ == "__main__":
             pass
 
         # Make an output TFile to store the remapped histo's in
-        outname = args.infile.split("/")[-1].strip(".analyzed.root")
+        outname = args.infile.split("/")[-1].replace(".analyzed.root")
         outFileRemapped = r.TFile("{0}/{1}_readoutStrips.analyzed.root".format(elogPath,outname),"RECREATE")
         outFileRemapped.mkdir("AMC{0}".format(args.slot))
         pass
@@ -140,10 +154,12 @@ if __name__ == "__main__":
         # Get Distributions from File
         for vfat,path in enumerate(vfatDirs):
             # Load Dist
+            vfatHitMulti[args.slot][oh][vfat] = infile.Get(baseDir[args.slot][oh]+path+"/n_hits_per_event") 
             vfatLatHists[args.slot][oh][vfat] = infile.Get(baseDir[args.slot][oh]+path+"/latencyScan")
             vfatLatHists2D[args.slot][oh][vfat] = infile.Get(baseDir[args.slot][oh]+path+"/latencyScan2D")
 
             # Rename
+            vfatHitMulti[args.slot][oh][vfat].SetName("{0}_AMC{1}_OH{2}_VFAT{3}".format(vfatHitMulti[args.slot][oh][vfat].GetName(),args.slot,oh,vfat))
             vfatLatHists[args.slot][oh][vfat].SetName("{0}_AMC{1}_OH{2}_VFAT{3}".format(vfatLatHists[args.slot][oh][vfat].GetName(),args.slot,oh,vfat))
             vfatLatHists2D[args.slot][oh][vfat].SetName("{0}_AMC{1}_OH{2}_VFAT{3}".format(vfatLatHists2D[args.slot][oh][vfat].GetName(),args.slot,oh,vfat))
 
@@ -169,14 +185,21 @@ if __name__ == "__main__":
                     pass
                 pass
     
-            # Set Titles
+            # Set Style
+            vfatHitMulti[args.slot][oh][vfat].SetTitle("VFAT{0}".format(vfat))
+            vfatHitMulti[args.slot][oh][vfat].GetXaxis().SetTitle("Hit Multiplicity per Event")
+            vfatHitMulti[args.slot][oh][vfat].GetXaxis().SetRangeUser(1e-1,129)
+            vfatHitMulti[args.slot][oh][vfat].GetYaxis().SetTitle("N")
+            vfatHitMulti[args.slot][oh][vfat].GetYaxis().SetRangeUser(1e-1,1e8)
+
+            # Set Style
             vfatLatHists[args.slot][oh][vfat].SetTitle("VFAT{0}".format(vfat))
             vfatLatHists[args.slot][oh][vfat].GetXaxis().SetTitle("CFG_LATENCY")
             vfatLatHists[args.slot][oh][vfat].GetXaxis().SetRangeUser(args.scanmin,args.scanmax)
             vfatLatHists[args.slot][oh][vfat].GetYaxis().SetTitle("N")
             vfatLatHists[args.slot][oh][vfat].GetYaxis().SetRangeUser(1e-1,2e5)
 
-            # Set Titles
+            # Set Style
             vfatLatHists2D[args.slot][oh][vfat].SetTitle("VFAT{0}".format(vfat))
             vfatLatHists2D[args.slot][oh][vfat].GetXaxis().SetTitle("CFG_LATENCY")
             vfatLatHists2D[args.slot][oh][vfat].GetXaxis().SetRangeUser(args.scanmin,args.scanmax)
@@ -211,15 +234,19 @@ if __name__ == "__main__":
 
         # Print Canvas
         r.gStyle.SetOptStat(0)
+        canvHitMulti = make3x8Canvas("canvHitMulti_AMC{0}_OH{1}".format(args.slot,oh),vfatHitMulti[args.slot][oh],"hist")
         canvLat1D = make3x8Canvas("canvLatScan1D_AMC{0}_OH{1}".format(args.slot,oh),vfatLatHists[args.slot][oh],"hist")
         canvLat2D = make3x8Canvas("canvLatScan2D_AMC{0}_OH{1}".format(args.slot,oh),vfatLatHists2D[args.slot][oh],"colz")
         
         for vfat in range(0,24):
-            canvLat1D.cd(vfat).SetLogz()
+            canvHitMulti.cd(vfat).SetLogx()
+            canvHitMulti.cd(vfat).SetLogy()
+            canvLat1D.cd(vfat).SetLogy()
             canvLat2D.cd(vfat).SetLogz()
         
-        canvLat1D.SaveAs("{0}/{1}.png".format(elogPath,canvLat1D.GetName()))
-        canvLat2D.SaveAs("{0}/{1}.png".format(elogPath,canvLat2D.GetName()))
+        canvHitMulti.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,runNo,canvHitMulti.GetName()))
+        canvLat1D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,runNo,canvLat1D.GetName()))
+        canvLat2D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,runNo,canvLat2D.GetName()))
 
         r.gStyle.SetOptStat(1111111)
         canvLatScanAllVFATs = r.TCanvas("canvLatScanAllVFATs_AMC{0}_OH{1}".format(args.slot,oh),"Sum of All VFATs on AMC{0} OH{1}".format(args.slot,oh),600,600)
@@ -228,7 +255,7 @@ if __name__ == "__main__":
         allVFATsLatency[args.slot][oh].Draw()
         allVFATsLatency[args.slot][oh].GetXaxis().SetRangeUser(args.scanmin,args.scanmax)
         allVFATsLatency[args.slot][oh].Draw("hist")
-        canvLatScanAllVFATs.SaveAs("{0}/{1}.png".format(elogPath,canvLatScanAllVFATs.GetName()))
+        canvLatScanAllVFATs.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,runNo,canvLatScanAllVFATs.GetName()))
 
         canvLatScanStats = r.TCanvas("canvLatScanStats_AMC{0}_OH{1}".format(args.slot,oh),"Latency Scan Summary Statistics",1200,600)
         canvLatScanStats.Divide(2,1)
@@ -236,12 +263,12 @@ if __name__ == "__main__":
         latencyMean[args.slot][oh].Draw("ep0")
         canvLatScanStats.cd(2)
         latencyRMS[args.slot][oh].Draw("ep0")
-        canvLatScanStats.SaveAs("{0}/{1}.png".format(elogPath,canvLatScanStats.GetName()))
+        canvLatScanStats.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,runNo,canvLatScanStats.GetName()))
         pass # End Loop over OH's of this AMC
 
     print("Your distributions can be found under:")
     print("")
-    print("\t{0}".format(elogPath))
+    print("\t{0}/{1}".format(elogPath,runNo))
     print("")
     
     if args.mapping is not None:
