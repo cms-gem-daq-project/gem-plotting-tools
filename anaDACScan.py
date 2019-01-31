@@ -52,37 +52,19 @@ Example
     anaDACScan.py /path/to/input.root  --calFileList calibration.txt --assignXErrors
 """
 
-if __name__ == '__main__':
-    from gempython.gemplotting.utils.anautilities import parseCalFile
-    from gempython.gemplotting.utils.anautilities import make3x8Canvas
-    from gempython.gemplotting.mapping.chamberInfo import chamber_config
-    
-    import argparse
-    parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
-
-    parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
-    parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case).")
-    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
-    parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
-    parser.add_argument("-p","--print",dest="printSum", action="store_true", help="If provided prints a summary table to terminal for each DAC showing for each VFAT position the nominal value that was found")
-    args = parser.parse_args()
-
-    print("Analyzing: '%s'"%args.infilename)
-
+def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # Set default histogram behavior
     import ROOT as r
     r.TH1.SetDefaultSumw2(False)
     r.gROOT.SetBatch(True)
     r.gStyle.SetOptStat(1111111)
-    
-    dacScanFile = r.TFile(args.infilename,"READ")
 
     print("Loading info from input TTree")
 
     import root_numpy as rp
     import numpy as np
     list_bNames = ['vfatN','link','dacValY','nameX']
-    vfatArray = rp.tree2array(tree=dacScanFile.dacScanTree,branches=list_bNames)
+    vfatArray = rp.tree2array(tree=dacScanTree,branches=list_bNames)
     ohArray = np.unique(vfatArray['link'])
     dacNameArray = np.unique(vfatArray['nameX'])
     dict_nonzeroVFATs = {}
@@ -97,11 +79,6 @@ if __name__ == '__main__':
     dataPath = os.getenv("DATA_PATH")
     elogPath = os.getenv("ELOG_PATH") 
     
-    if len(args.infilename.split('/')) > 1 and len(args.infilename.split('/')[len(args.infilename.split('/')) - 2].split('.')) == 5:
-        scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
-    else:    
-        scandate = 'noscandate'
-        
     from gempython.utils.wrappers import runCommand
     for oh in ohArray:
         if scandate == 'noscandate':
@@ -110,6 +87,7 @@ if __name__ == '__main__':
         else:
             runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
             runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
+            pass
             
     # Determine which DAC was scanned and against which ADC
     adcName = ""
@@ -389,5 +367,46 @@ if __name__ == '__main__':
                         dacName,
                         dict_dacVals[dacName][oh][vfat])
                     )
+                    pass
+                pass
+            pass
+        pass
+
+    return
+
+if __name__ == '__main__':
+    from gempython.gemplotting.utils.anautilities import parseCalFile
+    from gempython.gemplotting.utils.anautilities import make3x8Canvas
+    from gempython.gemplotting.mapping.chamberInfo import chamber_config
+    
+    import argparse
+    parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
+
+    parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
+    parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case).")
+    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
+    parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
+    parser.add_argument("-p","--print",dest="printSum", action="store_true", help="If provided prints a summary table to terminal for each DAC showing for each VFAT position the nominal value that was found")
+    args = parser.parse_args()
+
+    print("Analyzing: '%s'"%args.infilename)
+
+    # Set default histogram behavior
+    import ROOT as r
+    r.TH1.SetDefaultSumw2(False)
+    r.gROOT.SetBatch(True)
+    r.gStyle.SetOptStat(1111111)
+    
+    dacScanFile = r.TFile(args.infilename,"READ")
+
+    print("Loading info from input TTree")
+
+    if len(args.infilename.split('/')) > 1 and len(args.infilename.split('/')[len(args.infilename.split('/')) - 2].split('.')) == 5:
+        scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
+    else:    
+        scandate = 'noscandate'
+
+    dacAnalysis(args, dacScanFile.dacScanTree, chamber_config, scandate=scandate)
+    dacScanFile.Close()
 
     print("\nAnalysis completed. Goodbye")
