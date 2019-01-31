@@ -400,7 +400,7 @@ if __name__ == '__main__':
     ###################
     # Make output ROOT file
     ###################
-    outFileName = "{0}/calFile_{1}_{2}.root".format(elogPath,chamberName,thrDacName)
+    outFileName = "{0}/calFile_{2}_{1}.root".format(elogPath,chamberName,thrDacName)
     outFile = r.TFile(outFileName,"RECREATE")
 
     # Plot Containers
@@ -572,7 +572,7 @@ if __name__ == '__main__':
     print("\n\t{0}/calFile_{2}_{1}.txt\n".format(elogPath,chamberName,thrDacName))
 
     print("You can find all ROOT objects in:")
-    print("\n\t{0}/calFile_{1}_{2}.root\n".format(elogPath,chamberName,thrDacName))
+    print("\n\t{0}/calFile_{2}_{1}.root\n".format(elogPath,chamberName,thrDacName))
 
     print("You can find all plots in:")
     print("\n\t{0}\n".format(elogPath))
