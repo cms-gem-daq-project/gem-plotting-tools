@@ -1,6 +1,68 @@
 #!/bin/env python
 
-def main(args):
+r"""
+``plotSbitThreshComp.py`` - compares sbit threshold measurements
+================================================================
+
+Synopsis
+--------
+
+**plotSbitThreshComp.py** [*OPTIONS*]
+
+Description
+-----------
+
+This script reads in a  
+
+Arguments
+---------
+
+Mandatory arguments
+...................
+
+The following list shows the mandatory inputs that must be supplied to execute
+the script:
+
+.. program:: plot_eff.py
+
+.. option:: filename <FILE>
+
+    Physical filename of the input file to be passed to :program:`plot_eff.py`.
+    The format of this input file should follow the :doc:`Three Column Format
+    </scandate-list-formats>`.
+
+Optional arguments
+..................
+
+The following list shows the optional inputs that can be supplied when
+executing the script:
+
+.. option:: -a,--alphaLabels
+
+    Provide this argument if alphanumeric characters exist in the third column of :option:`filename`.
+
+.. option:: -c,--calFileARM 
+
+    File specifying CFG_THR_ARM_DAC calibration per vfat.  If provided x-axis of each VFAT will be converted from DAC units to charge units (fC).  Format of file follows from TTree::ReadFile() with brnach names: 'vfatN/I:slope/F:intercept/F'
+
+.. option:: -n,--noLeg
+
+    If provided, do not draw a TLegend on the output plots
+
+.. option:: -s --savePlots
+
+   Make *.png file for all plots that will be saved in the output TFile 
+
+Example
+-------
+
+.. code-block:: bash
+
+    plotSbitThreshComp.py -a -c calFieArm.txt --savePlots inputListOfScanDates.txt 
+
+"""
+
+def compareSBitThreshResults(args):
     # Suppress all pop-ups from ROOT
     import ROOT as r
     r.gROOT.SetBatch(True)
@@ -184,7 +246,7 @@ def main(args):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Arguments to supply to plotSbitThreshComp.py')
-    parser.add_argument("filename", type=str, help="To Be Filled In")
+    parser.add_argument("filename", type=str, help="Tab delimited filename specifying list of scandates to compare. First line understood as column header.  First column is chamber_name, second is scandate, and third will be used to fill a TLegend.  See documentation for parseListOfScanDatesFile(...) for more details")
 
     parser.add_argument("-a","--alphaLabels", action="store_true",help="Provide this argument if alphanumeric characters exist in the third column of the input file")
     parser.add_argument("-c","--calFileARM", type=str, 
@@ -193,7 +255,7 @@ if __name__ == '__main__':
             help="Do not draw a TLegend on the output plots")
     parser.add_argument("-s","--savePlots", action="store_true",
             help="Make *.png file for all plots that will be saved in the output TFile")
-    parser.set_defaults(func=main)
+    parser.set_defaults(func=compareSBitThreshResults)
     args = parser.parse_args()
     args.func(args)
 
