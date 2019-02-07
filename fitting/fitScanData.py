@@ -407,7 +407,7 @@ class ScanDataFitter(DeadChannelFinder):
             self.feed(event)
         return
 
-def fitScanData(treeFileName, isVFAT3=False, calFileName=None):
+def fitScanData(treeFileName, isVFAT3=False, calFileName=None, calTuple=None):
     """
     Helper function to fit scan data. Creates a :py:class:`ScanDataFitter`,
     loads the data and returns the results of :py:meth:`ScanDataFitter.fit`.
@@ -416,6 +416,7 @@ def fitScanData(treeFileName, isVFAT3=False, calFileName=None):
         treeFileName (string): Path to the ``TFile`` that contains the scan data
         isVFAT3 (bool): Whether the detector uses VFAT3
         calFileName (string): Path to the file that contains calibration data
+        calTuple (tuple): Tuple of numpy arrays providing CAL_DAC calibration, idx = 0 (1) for slope (intercept); indexed by VFAT position
 
     .. seealso::
 
@@ -430,6 +431,12 @@ def fitScanData(treeFileName, isVFAT3=False, calFileName=None):
         fitter = ScanDataFitter(
                 calDAC2Q_m = tuple_calInfo[0],
                 calDAC2Q_b = tuple_calInfo[1],
+                isVFAT3=isVFAT3
+                )
+    elif calTuple is not None:
+        fitter = ScanDataFitter(
+                calDAC2Q_m = calTuple[0],
+                calDAC2Q_b = calTuple[1],
                 isVFAT3=isVFAT3
                 )
     else:
