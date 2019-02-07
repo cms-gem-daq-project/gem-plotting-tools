@@ -15,6 +15,20 @@ Documentation
 """
 
 def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
+    """
+    Analyzes DAC scan data to determine nominal bias current/voltage settings for a particular VFAT3 DAC.
+    Returns a dictionary where:
+
+        dict_dacVals[dacName][oh][vfat] = value
+
+    Here dacName are the values stored in the "nameX" TBranch of the input TTree.
+
+        dacScanTree - Instance of gemDacCalTreeStructure.  Note the "nameY" TBranch must be either "ADC0" or "ADC1"
+        chamber_config - chamber_config dictionary
+        scandate - Either a string 'noscandate' or an a datetime object formated as YYYY.MM.DD.hh.mm, e.g
+                   returned from "datetime.datetime.now().strftime("%Y.%m.%d.%H.%M")"
+    """
+
     # Set default histogram behavior
     import ROOT as r
     r.TH1.SetDefaultSumw2(False)
@@ -330,7 +344,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             pass
         pass
 
-    return
+    return dict_dacVals
 
 def filePathExists(searchPath, subPath=None, debug=False):
     import os
