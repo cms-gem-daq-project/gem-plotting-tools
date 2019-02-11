@@ -126,7 +126,7 @@ if __name__ == '__main__':
             mapVFATPos2VFATSN = np.loadtxt(
                         fname = args.listOfVFATs,
                         dtype={'names':('vfatN', 'serialNum'),
-                                'formats':('i4', 'i4')},
+                                'formats':('u4', 'u4')},
                         skiprows=1,
                     )
         except Exception as e:
@@ -135,7 +135,7 @@ if __name__ == '__main__':
             exit(os.EX_NOINPUT)
             pass
     else:
-        mapVFATPos2VFATSN = np.zeros(24,dtype={'names':('vfatN', 'serialNum'),'formats':('i4', 'i4')})
+        mapVFATPos2VFATSN = np.zeros(24,dtype={'names':('vfatN', 'serialNum'),'formats':('u4', 'u4')})
 
     # Get list of THR DAC values
     listOfThrValues = []
