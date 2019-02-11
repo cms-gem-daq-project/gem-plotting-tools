@@ -52,8 +52,9 @@ def getGemDBView(view, vfatList=None, fromProd=True, debug=False):
     if vfatList is not None:
         if len(vfatList) != df_gemView.shape[1]:
             printYellow("Length of returned view does not match length of input vfat List")
-            vfatsNotFound = [ chipId for chipId in vfatList if str(hex(chipId)) not in df_gemView['vfat3_ser_num']]
+            vfatsNotFound = [ str(hex(chipId)).strip('L') for chipId in vfatList if str(hex(chipId)).strip('L') not in list(df_gemView['vfat3_ser_num'])]
             printYellow("VFATs not found: {0}".format(vfatsNotFound))
+            print(df_gemView['vfat3_ser_num'])
             pass
         pass
 
@@ -112,9 +113,9 @@ def getVFATFilter(vfatList):
     strRetFilter = " WHERE ("
     for idx, vfatID in enumerate(vfatList):
         if idx == 0:
-            strRetFilter += " data.VFAT3_SER_NUM='{0}'".format(hex(vfatID))
+            strRetFilter += " data.VFAT3_SER_NUM='{0}'".format(str(hex(vfatID)).strip('L'))
         else:
-            strRetFilter += " OR data.VFAT3_SER_NUM='{0}'".format(hex(vfatID))
+            strRetFilter += " OR data.VFAT3_SER_NUM='{0}'".format(str(hex(vfatID)).strip('L'))
             pass
         pass
     strRetFilter += " )\n"
