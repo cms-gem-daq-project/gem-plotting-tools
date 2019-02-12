@@ -51,13 +51,16 @@ def getGemDBView(view, vfatList=None, fromProd=True, debug=False):
         pass
 
     if vfatList is not None:
-        df_gemView = joinOnVFATSerNum(vfatList,df_gemView)
-        
+        # First warn the user which VFATs are *not* found
         if len(vfatList) != df_gemView.shape[1]:
             printYellow("Length of returned view does not match length of input vfat List")
             vfatsNotFound = [ str(hex(chipId)).strip('L') for chipId in vfatList if str(hex(chipId)).strip('L') not in list(df_gemView['vfat3_ser_num'])]
             printYellow("VFATs not found: {0}".format(vfatsNotFound))
             pass
+        
+        # Then add a 'vfatN' column to the output df; this increases row # to len(vfatList)
+        df_gemView = joinOnVFATSerNum(vfatList,df_gemView)
+        
         pass
 
     return df_gemView
@@ -133,15 +136,15 @@ def joinOnVFATSerNum(vfatList, dfGemView):
     dfGemView - A pandas dataframe containing the column name 'vfat3_ser_num'
     """
 
-    if 'vfat_ser_num' in dfGemView.columns:
+    if 'vfat3_ser_num' in dfGemView.columns:
         dfVFATPos = pd.DataFrame(
                     {   'vfatN':[vfat for vfat in range(24)], 
-                        'vfat_ser_num':[str(hex(id)).strip('L') for id in vfatList]}
+                        'vfat3_ser_num':[str(hex(id)).strip('L') for id in vfatList]}
                 )
 
-        dfGemView.join(dfVFATPos.set_index('vfat_ser_num'), on='vfat_ser_num')
+        dfGemView = pd.merge(dfVFATPos, dfGemView, on='vfat3_ser_num', how='outer')
     else:
-        printYellow("column 'vfat_ser_num' not in input dataframe columns: {0}".format(dfGemView.columns))
+        printYellow("column 'vfat3_ser_num' not in input dataframe columns: {0}".format(dfGemView.columns))
         pass
 
     return dfGemView
