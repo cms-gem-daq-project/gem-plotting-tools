@@ -1,5 +1,7 @@
 from gempython.utils.gemlogger import getGEMLogger, printYellow
 
+import pandas as pd
+
 dbNameDev = "INT2R" # development
 dbNamePro = "cms_omds_lb" # production
 
@@ -37,7 +39,6 @@ def getGemDBView(view, vfatList=None, fromProd=True, debug=False):
         pass
 
     # get a pandas data frame object containing the db query
-    import pandas as pd
     if fromProd:
         df_gemView = pd.read_sql(query, con=(connection+dbNamePro))
     else:
@@ -50,11 +51,12 @@ def getGemDBView(view, vfatList=None, fromProd=True, debug=False):
         pass
 
     if vfatList is not None:
+        df_gemView = joinOnVFATSerNum(vfatList,df_gemView)
+        
         if len(vfatList) != df_gemView.shape[1]:
             printYellow("Length of returned view does not match length of input vfat List")
             vfatsNotFound = [ str(hex(chipId)).strip('L') for chipId in vfatList if str(hex(chipId)).strip('L') not in list(df_gemView['vfat3_ser_num'])]
             printYellow("VFATs not found: {0}".format(vfatsNotFound))
-            print(df_gemView['vfat3_ser_num'])
             pass
         pass
 
@@ -66,7 +68,7 @@ def getVFAT3CalInfo(vfatList, fromProd=True, debug=False):
     for VFAT calibration.  Specifically a pandas dataframe will be returned with
     only the following columns:
 
-        ['vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']
+        ['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']
 
     vfatList    - list of VFAT Chip ID's.
     fromProd    - If True (False) the view is taken from the Production (Development) DB
@@ -75,7 +77,7 @@ def getVFAT3CalInfo(vfatList, fromProd=True, debug=False):
 
     df_vfatCalInfo = getVFAT3ProdSumView(vfatList, fromProd, debug)
 
-    return df_vfatCalInfo[['vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']]
+    return df_vfatCalInfo[['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']]
 
 def getVFAT3ConfView(vfatList, fromProd=True, debug=False):
     """
@@ -121,3 +123,25 @@ def getVFATFilter(vfatList):
     strRetFilter += " )\n"
 
     return strRetFilter
+
+def joinOnVFATSerNum(vfatList, dfGemView):
+    """
+    Creates a dataframe object from vfatList with keys 'vfat3_ser_num' and 'vfatN'.
+    Then it joins this dataframe with dfGemView using the 'vfat3_ser_num'.
+
+    vfatList - A list of vfat ChipID's ordered by vfat position (sw)
+    dfGemView - A pandas dataframe containing the column name 'vfat3_ser_num'
+    """
+
+    if 'vfat_ser_num' in dfGemView.columns:
+        dfVFATPos = pd.DataFrame(
+                    {   'vfatN':[vfat for vfat in range(24)], 
+                        'vfat_ser_num':[str(hex(id)).strip('L') for id in vfatList]}
+                )
+
+        dfGemView.join(dfVFATPos.set_index('vfat_ser_num'), on='vfat_ser_num')
+    else:
+        printYellow("column 'vfat_ser_num' not in input dataframe columns: {0}".format(dfGemView.columns))
+        pass
+
+    return dfGemView
