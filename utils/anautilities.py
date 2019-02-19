@@ -67,7 +67,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             
     # Determine which DAC was scanned and against which ADC
     adcName = ""
-    for event in dacScanFile.dacScanTree:
+    for event in dacScanTree:
         adcName = str(event.nameY.data())
         break # all entries will be the same
 
@@ -178,7 +178,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     print("Looping over stored events in dacScanTree")
 
     # Loop over events in the tree and fill plots
-    for event in dacScanFile.dacScanTree:
+    for event in dacScanTree:
         oh = event.link
         vfat = event.vfatN
 
