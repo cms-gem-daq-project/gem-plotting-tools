@@ -75,14 +75,12 @@ if __name__ == '__main__':
     
     dacScanFile = r.TFile(args.infilename,"READ")
 
-    print("Loading info from input TTree")
-
     if len(args.infilename.split('/')) > 1 and len(args.infilename.split('/')[len(args.infilename.split('/')) - 2].split('.')) == 5:
         scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
     else:    
         scandate = 'noscandate'
 
-    from gempython.gemplotting.anautilities import dacAnalysis
+    from gempython.gemplotting.utils.anautilities import dacAnalysis
     dacAnalysis(args, dacScanFile.dacScanTree, chamber_config, scandate=scandate)
     dacScanFile.Close()
 
