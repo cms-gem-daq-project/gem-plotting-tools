@@ -8,6 +8,7 @@ dbNamePro = "cms_omds_lb" # production
 connection = "oracle://CMS_GEM_APPUSER_R:GEM_Reader_2015@"
 
 knownViews = [
+        'GEM_SUPRCHMBR_VFAT_VIEW',
         #'GEM_VFAT2_CHIP_CONF_V_RH',
         'GEM_VFAT3_CHIP_CONF_V_RH',
         'GEM_VFAT3_PROD_SUMMARY_V_RH'
