@@ -63,6 +63,8 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         else:
             runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
             runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
+            runCommand(["unlink", "{0}/{1}/dacScans/current".format(dataPath,chamber_config[oh])])
+            runCommand(["ln","-s","{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate),"{0}/{1}/dacScans/current".format(dataPath,chamber_config[oh])])
             pass
             
     # Determine which DAC was scanned and against which ADC
