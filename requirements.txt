@@ -1,13 +1,13 @@
-cx_Oracle >= 7.1.0
+cx_Oracle
 numpy>1.7,<1.12; python_version == '2.6'
 numpy>1.7,<1.12; python_version == '3.2'
 numpy>1.7,<1.12; python_version == '3.3'
 numpy>1.7,<1.15; python_version == '2.7'
 numpy>1.7; python_version >= '3.4'
-pandas >= 0.24.1
+pandas
 ## currently conflicts if numpy isn't installed, as it will download it's own version due to steup_requries
 root_numpy
-sqlalchemy >= 1.2.17
+sqlalchemy
 ## 'tabulate' dropped explicit support for Python 2.6 in version 0.8.1
 ## Version 0.8.0 isn't in the CHANGELOG
 tabulate>=0.4.4,<0.8; python_version == '2.6'
