@@ -55,7 +55,7 @@ def getGEMDBView(view, vfatList=None, fromProd=True, debug=False):
         # First warn the user which VFATs are *not* found
         if len(vfatList) != df_gemView.shape[1]:
             printYellow("Length of returned view does not match length of input vfat List")
-            vfatsNotFound = [ str(hex(chipId)).strip('L') for chipId in vfatList if str(hex(chipId)).strip('L') not in list(df_gemView['vfat3_ser_num'])]
+            vfatsNotFound = [ "0x{:x}".format(chipId) for chipId in vfatList if "0x{:x}".format(chipId) not in list(df_gemView['vfat3_ser_num'])]
             printYellow("VFATs not found: {0}".format(vfatsNotFound))
             pass
         
@@ -119,9 +119,9 @@ def getVFATFilter(vfatList):
     strRetFilter = " WHERE ("
     for idx, vfatID in enumerate(vfatList):
         if idx == 0:
-            strRetFilter += " data.VFAT3_SER_NUM='{0}'".format(str(hex(vfatID)).strip('L'))
+            strRetFilter += " data.VFAT3_SER_NUM='0x{:x}'".format(vfatID)
         else:
-            strRetFilter += " OR data.VFAT3_SER_NUM='{0}'".format(str(hex(vfatID)).strip('L'))
+            strRetFilter += " OR data.VFAT3_SER_NUM='0x{:x}'".format(vfatID)
             pass
         pass
     strRetFilter += " )\n"
@@ -140,7 +140,7 @@ def joinOnVFATSerNum(vfatList, dfGEMView):
     if 'vfat3_ser_num' in dfGEMView.columns:
         dfVFATPos = pd.DataFrame(
                     {   'vfatN':[vfat for vfat in range(24)], 
-                        'vfat3_ser_num':[str(hex(id)).strip('L') for id in vfatList]}
+                        'vfat3_ser_num':["0x{:x}".format(id) for id in vfatList]}
                 )
 
         dfGEMView = pd.merge(dfVFATPos, dfGEMView, on='vfat3_ser_num', how='outer')
@@ -148,4 +148,4 @@ def joinOnVFATSerNum(vfatList, dfGEMView):
         printYellow("column 'vfat3_ser_num' not in input dataframe columns: {0}".format(dfGEMView.columns))
         pass
 
-    return dfGEMView
+    return df_gemView
