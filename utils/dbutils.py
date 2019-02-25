@@ -14,7 +14,7 @@ knownViews = [
         'GEM_VFAT3_PROD_SUMMARY_V_RH'
         ]
 
-def getGemDBView(view, vfatList=None, fromProd=True, debug=False):
+def getGEMDBView(view, vfatList=None, fromProd=True, debug=False):
     """
     Gets the GEM DB view defined by view for the list of vfats provided by vfatList, or
     if no vfatList is provided the full view stored in the DB.
@@ -94,7 +94,7 @@ def getVFAT3ConfView(vfatList, fromProd=True, debug=False):
     debug       - Prints additional info if true
     """
 
-    return getGemDBView("GEM_VFAT3_CHIP_CONF_V_RH",vfatList,fromProd,debug)
+    return getGEMDBView("GEM_VFAT3_CHIP_CONF_V_RH",vfatList,fromProd,debug)
 
 def getVFAT3ProdSumView(vfatList, fromProd=True, debug=False):
     """
@@ -107,7 +107,7 @@ def getVFAT3ProdSumView(vfatList, fromProd=True, debug=False):
     debug       - Prints additional info if true
     """
 
-    return getGemDBView("GEM_VFAT3_PROD_SUMMARY_V_RH",vfatList,fromProd,debug)
+    return getGEMDBView("GEM_VFAT3_PROD_SUMMARY_V_RH",vfatList,fromProd,debug)
 
 def getVFATFilter(vfatList):
     """
@@ -128,24 +128,24 @@ def getVFATFilter(vfatList):
 
     return strRetFilter
 
-def joinOnVFATSerNum(vfatList, dfGemView):
+def joinOnVFATSerNum(vfatList, dfGEMView):
     """
     Creates a dataframe object from vfatList with keys 'vfat3_ser_num' and 'vfatN'.
-    Then it joins this dataframe with dfGemView using the 'vfat3_ser_num'.
+    Then it joins this dataframe with dfGEMView using the 'vfat3_ser_num'.
 
     vfatList - A list of vfat ChipID's ordered by vfat position (sw)
-    dfGemView - A pandas dataframe containing the column name 'vfat3_ser_num'
+    dfGEMView - A pandas dataframe containing the column name 'vfat3_ser_num'
     """
 
-    if 'vfat3_ser_num' in dfGemView.columns:
+    if 'vfat3_ser_num' in dfGEMView.columns:
         dfVFATPos = pd.DataFrame(
                     {   'vfatN':[vfat for vfat in range(24)], 
                         'vfat3_ser_num':[str(hex(id)).strip('L') for id in vfatList]}
                 )
 
-        dfGemView = pd.merge(dfVFATPos, dfGemView, on='vfat3_ser_num', how='outer')
+        dfGEMView = pd.merge(dfVFATPos, dfGEMView, on='vfat3_ser_num', how='outer')
     else:
-        printYellow("column 'vfat3_ser_num' not in input dataframe columns: {0}".format(dfGemView.columns))
+        printYellow("column 'vfat3_ser_num' not in input dataframe columns: {0}".format(dfGEMView.columns))
         pass
 
-    return dfGemView
+    return dfGEMView
