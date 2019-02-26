@@ -1,11 +1,7 @@
 from gempython.utils.gemlogger import getGEMLogger, printYellow
+from gempython.utils.wrappers import envCheck
 
 import pandas as pd
-
-dbNameDev = "INT2R" # development
-dbNamePro = "cms_omds_lb" # production
-
-connection = "oracle://CMS_GEM_APPUSER_R:GEM_Reader_2015@"
 
 knownViews = [
         'GEM_SUPRCHMBR_VFAT_VIEW',
@@ -14,7 +10,7 @@ knownViews = [
         'GEM_VFAT3_PROD_SUMMARY_V_RH'
         ]
 
-def getGEMDBView(view, vfatList=None, fromProd=True, debug=False):
+def getGEMDBView(view, vfatList=None, debug=False):
     """
     Gets the GEM DB view defined by view for the list of vfats provided by vfatList, or
     if no vfatList is provided the full view stored in the DB.
@@ -23,9 +19,12 @@ def getGEMDBView(view, vfatList=None, fromProd=True, debug=False):
 
     view        - Name of View to retrieve from GEM DB 
     vfatList    - list of VFAT Chip ID's, if None the full view is retrieved
-    fromProd    - If True (False) the view is taken from the Production (Development) DB
     debug       - Prints additional info if true
     """
+
+    # Check to make sure DB $ENV variables exist
+    envCheck("GEM_ONLINE_DB_NAME")
+    envCheck("GEM_ONLINE_DB_CONN")
 
     import os
     if view not in knownViews:
@@ -40,11 +39,9 @@ def getGEMDBView(view, vfatList=None, fromProd=True, debug=False):
         pass
 
     # get a pandas data frame object containing the db query
-    if fromProd:
-        df_gemView = pd.read_sql(query, con=(connection+dbNamePro))
-    else:
-        df_gemView = pd.read_sql(query, con=(connection+dbNameDev))
-        pass
+    dbName = os.getenv("GEM_ONLINE_DB_NAME")
+    dbConn = os.getenv("GEM_ONLINE_DB_CONN")
+    df_gemView = pd.read_sql(query, con=(dbConn+dbName))
 
     if debug:
         df_gemView.info()
@@ -66,7 +63,7 @@ def getGEMDBView(view, vfatList=None, fromProd=True, debug=False):
 
     return df_gemView
 
-def getVFAT3CalInfo(vfatList, fromProd=True, debug=False):
+def getVFAT3CalInfo(vfatList, debug=False):
     """
     Gets from GEM_VFAT3_PROD_SUMMARY_V_RH view a subset of data that is necessary
     for VFAT calibration.  Specifically a pandas dataframe will be returned with
@@ -75,39 +72,36 @@ def getVFAT3CalInfo(vfatList, fromProd=True, debug=False):
         ['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']
 
     vfatList    - list of VFAT Chip ID's.
-    fromProd    - If True (False) the view is taken from the Production (Development) DB
     debug       - Prints additional info if true
     """
 
-    df_vfatCalInfo = getVFAT3ProdSumView(vfatList, fromProd, debug)
+    df_vfatCalInfo = getVFAT3ProdSumView(vfatList, debug)
 
     return df_vfatCalInfo[['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']]
 
-def getVFAT3ConfView(vfatList, fromProd=True, debug=False):
+def getVFAT3ConfView(vfatList, debug=False):
     """
     Gets the GEM_VFAT3_CHIP_CONF_V_RH view in the GEM DB for a list of input VFATs.
 
     Returns a pandas dataframe object storing the data read from the DB
 
     vfatList    - list of VFAT Chip ID's.
-    fromProd    - If True (False) the view is taken from the Production (Development) DB
     debug       - Prints additional info if true
     """
 
-    return getGEMDBView("GEM_VFAT3_CHIP_CONF_V_RH",vfatList,fromProd,debug)
+    return getGEMDBView("GEM_VFAT3_CHIP_CONF_V_RH",vfatList,debug)
 
-def getVFAT3ProdSumView(vfatList, fromProd=True, debug=False):
+def getVFAT3ProdSumView(vfatList, debug=False):
     """
     Gets the GEM_VFAT3_PROD_SUMMARY_V_RH view in the GEM DB for a list of input VFATs.
 
     Returns a pandas dataframe object storing the data read from the DB
 
     vfatList    - list of VFAT Chip ID's.
-    fromProd    - If True (False) the view is taken from the Production (Development) DB
     debug       - Prints additional info if true
     """
 
-    return getGEMDBView("GEM_VFAT3_PROD_SUMMARY_V_RH",vfatList,fromProd,debug)
+    return getGEMDBView("GEM_VFAT3_PROD_SUMMARY_V_RH",vfatList,debug)
 
 def getVFATFilter(vfatList):
     """
@@ -148,4 +142,4 @@ def joinOnVFATSerNum(vfatList, dfGEMView):
         printYellow("column 'vfat3_ser_num' not in input dataframe columns: {0}".format(dfGEMView.columns))
         pass
 
-    return df_gemView
+    return dfGEMView
