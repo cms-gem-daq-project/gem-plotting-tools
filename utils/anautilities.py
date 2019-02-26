@@ -494,7 +494,7 @@ def getEmptyPerVFATList(n_vfat=24):
 
     return [ [] for vfat in range(0,n_vfat) ]
 
-def getMapping(mappingFileName):
+def getMapping(mappingFileName, isVFAT2=True):
     """
     Returns a nested dictionary, the outer dictionary uses VFAT position as the has a key,
     the inner most dict has keys from the list anaInfo.py mappingNames.
@@ -553,9 +553,14 @@ def getMapping(mappingFileName):
         if idx == 0: 
             continue # skip the header line
         mapping = line.rsplit('\t')
-        ret_mapDict[int(mapping[0])]['Strip'][int(mapping[2]) - 1] = int(mapping[1])
-        ret_mapDict[int(mapping[0])]['PanPin'][int(mapping[2]) -1] = int(mapping[3])
-        ret_mapDict[int(mapping[0])]['vfatCH'][int(mapping[2]) - 1] = int(mapping[2]) - 1
+        if isVFAT2: 
+            ret_mapDict[int(mapping[0])]['Strip'][int(mapping[2]) - 1] = int(mapping[1])
+            ret_mapDict[int(mapping[0])]['PanPin'][int(mapping[2]) -1] = int(mapping[3])
+            ret_mapDict[int(mapping[0])]['vfatCH'][int(mapping[2]) - 1] = int(mapping[2]) - 1
+        else: #EDMS document numbers VFAT3 channels from [0,127]
+            ret_mapDict[int(mapping[0])]['Strip'][int(mapping[2])] = int(mapping[1])
+            ret_mapDict[int(mapping[0])]['PanPin'][int(mapping[2])] = int(mapping[3])
+            ret_mapDict[int(mapping[0])]['vfatCH'][int(mapping[2])] = int(mapping[2])
 
     return ret_mapDict
 

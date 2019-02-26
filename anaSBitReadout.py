@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     # Loading the dictionary with the mapping
     from gempython.gemplotting.utils.anautilities import make3x8Canvas, saveSummaryByiEta, getMapping
-    vfat_ch_strips = getMapping(mapping)
+    vfat_ch_strips = getMapping(mapping, isVFAT2=False)
     print("\nVFAT channels to strips \n"+mapping+"\nMAP loaded")
 
     # Loading and reversing the dictionary with (eta , phi) <-> vfatN
@@ -248,7 +248,8 @@ if __name__ == '__main__':
     for branch in brName[1:]:
         print ("Unpacking now %s, %s entries" %
                (branch, str(rawData[branch].shape).translate(None, "(),")))
-        for word in rawData[branch]:
+        for wordNum,word in enumerate(rawData[branch]):
+            print("Processing Branch {0} Word {1}".format(branch,wordNum))
             sbitAddr = ((word) & 0x7FF)
             
             # INVALID ADDRESS CHECK
