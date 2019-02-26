@@ -35,8 +35,8 @@ the script.
 
 .. program:: anaSBitReadout.py
 
-.. option:: inputfolder
-    Physical path of the directory with .dat files to be passed to :program:`gemPlotter.py`, in the :doc:`Three Column Format </scandate-list-formats>`.
+.. option:: path
+    Physical path of the directory with .dat files to be passed to :program:`gemPlotter.py`.
 
 .. option:: type
     Size of the GEB. Could be long or short. If this option is not provided the GEB type will be assumed to be long
@@ -52,10 +52,10 @@ Examples
 --------
 
 .. code-block:: bash
-    anaSBitReadout.py -i <inputfoldername> -t short
+    anaSBitReadout.py -i <pathname> -t short
 resulting plots will be stored under:
 .. code-block:: bash
-    inputfoldername/sbitReadOut/
+    pathname/sbitReadOut/
 """
 
 if __name__ == '__main__':
@@ -65,15 +65,13 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(
-        description="Unpack and plot data collected by sbitReadOut.py. The data are stored in the folder: \n inputfolder/sbitReadout/ ")
-    parser.add_argument("inputfolder", type=str, dest="path",
-                        help="Specify the folder containing the .dat files collected by sbitReadOut.py", required=True)
-    parser.add_argument("type", dest="GEBtype", type=str,,
-                        help="Specify GEB (long/short). If not provided, default value is long", metavar="GEBtype")
+        description="Unpack and plot data collected by sbitReadOut.py. The data are stored in the folder: \n path/sbitReadout/ ")
+    parser.add_argument("path", type=str, help="Specify the folder containing the .dat files collected by sbitReadOut.py")
+    parser.add_argument("GEBtype", type=str,help="Specify GEB (long/short). If not provided, default value is long")
     parser.add_argument("-o", "--outfilename", type=str, default="sbitReadOut.root", dest="outfilename",
-                        help="Specify Output Filename. If not provided default value is sbitReadOut.root", metavar="outfilename")
+                        help="Specify Output Filename. If not provided default value is sbitReadOut.root")
     parser.add_argument("-m", "--mapping", type=str, dest="mapping",
-                        help="Specify the txt file containing the channel <-> strip mapping. If not provided a default mapping will be loaded based on GEB size", metavar="mapping")
+                        help="Specify the txt file containing the channel <-> strip mapping. If not provided a default mapping will be loaded based on GEB size")
 
     args = parser.parse_args()
     path = args.path
@@ -123,7 +121,7 @@ if __name__ == '__main__':
 
     # Loading the dictionary with the mapping
     from gempython.gemplotting.utils.anautilities import make3x8Canvas, saveSummaryByiEta, getMapping
-    vfat_ch_strips = getMapping(mapping, False)
+    vfat_ch_strips = getMapping(mapping)
     print("\nVFAT channels to strips \n"+mapping+"\nMAP loaded")
 
     # Loading and reversing the dictionary with (eta , phi) <-> vfatN
