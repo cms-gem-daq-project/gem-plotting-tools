@@ -16,6 +16,7 @@ Analysis tools
 
     man/plot_eff
     man/anaDACScan
+    man/anaSBitReadout
 
 Arbitrary plotting tools
 ------------------------
