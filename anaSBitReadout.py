@@ -248,10 +248,9 @@ if __name__ == '__main__':
     for branch in brName[1:]:
         print ("Unpacking now %s, %s entries" %
                (branch, str(rawData[branch].shape).translate(None, "(),")))
-        # h is a dummy variable to be printed in case of error
-        for h, word in enumerate(rawData[branch]):
-
+        for word in rawData[branch]:
             sbitAddr = ((word) & 0x7FF)
+            
             # INVALID ADDRESS CHECK
             if sbitAddr >= 1536:
                 continue
