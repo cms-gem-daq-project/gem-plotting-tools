@@ -66,12 +66,16 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(
         description="Unpack and plot data collected by sbitReadOut.py. The data are stored in the folder: \n path/sbitReadout/ ")
+    # Positional Arguments
     parser.add_argument("path", type=str, help="Specify the folder containing the .dat files collected by sbitReadOut.py")
     parser.add_argument("GEBtype", type=str,help="Specify GEB (long/short). If not provided, default value is long")
-    parser.add_argument("-o", "--outfilename", type=str, default="sbitReadOut.root", dest="outfilename",
-                        help="Specify Output Filename. If not provided default value is sbitReadOut.root")
+
+    # Optional Arguments
+    parser.add_argument("-d", "--debug",action="store_true",help="Prints additional debugging info")
     parser.add_argument("-m", "--mapping", type=str, dest="mapping",
                         help="Specify the txt file containing the channel <-> strip mapping. If not provided a default mapping will be loaded based on GEB size")
+    parser.add_argument("-o", "--outfilename", type=str, default="sbitReadOut.root", dest="outfilename",
+                        help="Specify Output Filename. If not provided default value is sbitReadOut.root")
 
     args = parser.parse_args()
     path = args.path
@@ -122,7 +126,9 @@ if __name__ == '__main__':
     # Loading the dictionary with the mapping
     from gempython.gemplotting.utils.anautilities import make3x8Canvas, saveSummaryByiEta, getMapping
     vfat_ch_strips = getMapping(mapping, isVFAT2=False)
-    print("\nVFAT channels to strips \n"+mapping+"\nMAP loaded")
+
+    if args.debug:
+        print("\nVFAT channels to strips \n"+mapping+"\nMAP loaded")
 
     # Loading and reversing the dictionary with (eta , phi) <-> vfatN
     from gempython.gemplotting.mapping.chamberInfo import chamber_iEta2VFATPos
@@ -146,18 +152,23 @@ if __name__ == '__main__':
     
     # searching for all the files with this format and adding them to the TTree
     import glob
-    print ("\nReading .dat files from the folder %s" % path)
+    if args.debug:
+        print ("\nReading .dat files from the folder %s" % path)
     for idx, file in enumerate(glob.glob(path+'/sbitReadOut_run*.dat')):
         os.system("cat "+file+" | tail -n +2 >> "+path + "catfile.txt")
         os.system("echo" + "" + " >>" + path + "catfile.txt")
     inT.ReadFile(path+"catfile.txt", "evtNum/i:sbitClusterData0/i:sbitClusterData1/i:sbitClusterData2/i:sbitClusterData3/i:sbitClusterData4/i:sbitClusterData5/i:sbitClusterData6/i:sbitClusterData7/i")
-    print ("%d input files have been read and added to the TTree" % (idx+1))
+    if args.debug:
+        print ("%d input files have been read and added to the TTree" % (idx+1))
 
     inT.Write()
-    print ('TTree written\n')
-    print ("Removing the catfile.txt ...")
+    if args.debug:
+        print ('TTree written\n')
+        print ("Removing the catfile.txt ...")
     runCommand(["rm", path+"catfile.txt"])
-    print ("Done\n")
+
+    if args.debug:
+        print ("Done\n")
     """
     Going to build the output tree starting from the previous TTree converted into an array.
     First of all, going to initilize the array which will hold the data
@@ -245,11 +256,13 @@ if __name__ == '__main__':
     # loop over all branch names but the first (evnt num)
     from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2iEtaiPhi as vfat_to_etaphi
     from gempython.utils.gemlogger import printRed, printYellow
+    print("Analyzing Raw Data\nThis may take some time please be patient")
     for branch in brName[1:]:
-        print ("Unpacking now %s, %s entries" %
-               (branch, str(rawData[branch].shape).translate(None, "(),")))
+        if args.debug:
+            print ("Unpacking now %s, %s entries" % (branch, str(rawData[branch].shape).translate(None, "(),")))
         for wordNum,word in enumerate(rawData[branch]):
-            print("Processing Branch {0} Word {1}".format(branch,wordNum))
+            if args.debug:
+                print("Processing Branch {0} Word {1}".format(branch,wordNum))
             sbitAddr = ((word) & 0x7FF)
             
             # INVALID ADDRESS CHECK
@@ -271,7 +284,8 @@ if __name__ == '__main__':
 
             # In case of wrong mapping adjacent channels may not be adjacent strips, which is physically inconsistent
             if(np.abs(strip[0] - strip[1]) > 1):
-                printRed("WARNING: not adjacent strips")
+                if args.debug:
+                    printRed("WARNING: not adjacent strips")
 
             # filling vfat 1Dhistos
             vfat_h_strip[vfatN[0]].Fill(strip[0])
