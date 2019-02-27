@@ -30,7 +30,7 @@ nominalDacValues = {
         "CFG_THR_ARM_DAC":(64,"mV"),
         "CFG_THR_ZCC_DAC":(5.5,"mV"),
         "CFG_BIAS_PRE_VREF":(430,'mV'),
-        "CFG_ADC_VREF":(1.0,'V')
+        "CFG_VREF_ADC":(1.0,'V')
 }
 
 #: From Tables 12 and 13 from the VFAT3 manual
