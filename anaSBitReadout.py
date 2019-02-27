@@ -19,7 +19,7 @@ The :program:`anaSBitReadout.py` tool is for unpacking data collected with sbitR
     -Folder "iETAs" which are the unpacked data sorted by iEta number
    
 It will also print the following plots in .png format:
-    -ChannSummary.png which is a 3x8 canvas containing all the 24 VFATs with their channel hits
+    -ChanSummary.png which is a 3x8 canvas containing all the 24 VFATs with their channel hits
     -StripSummary.png which is a 3x8 canvas containing all the 24 VFATs with their strips hits
     -ietaChanSummary.png which is a summary of the channel hits for each of the 8 iEta positions
     -ietaStripSummary.png which is a summary of the strip hits for each of the 8 iEta positions
@@ -176,14 +176,17 @@ if __name__ == '__main__':
 
     # copying the branch names in order to work with input TTree as an array
     import numpy as np
-    branches = inT.GetListOfBranches()
-    brName = np.empty([branches.GetEntries()], dtype='object')
-    for i in range(0, branches.GetEntries()):
-        brName[i] = branches[i].GetName()
+    bNames = []
+    for branch in inT.GetListOfBranches():
+        bNames.append(branch.GetName())
+    clusterNames = bNames
+    clusterNames.remove("evtNum")
+    print("bNames = {0}".format(bNames))
+    print("clusterNames = {0}".format(clusterNames))
 
     # converting the input tree in array then intialiting the unpackd TTree
     import root_numpy as rp
-    rawData = rp.tree2array(tree=outF.Packed, branches=brName)
+    rawData = rp.tree2array(tree=outF.Packed, branches=bNames)
     outT = r.TTree('unPacked', 'Tree holding unpacked data')
 
     """
@@ -215,20 +218,21 @@ if __name__ == '__main__':
     # initializing vfat 1Dhisto
     # While strip & ch branch are filled with arrays, histos are filled with one entries at a time
 
-    vfat_h_strip = ndict()
     vfat_h_ch = ndict()
-    vfat_h_sbitSize = ndict()
     vfat_h_delay = ndict()
+    vfat_h_sbitSize = ndict()
+    vfat_h_strip = ndict()
+    for vfat in range(0, 24):
+        vfat_h_ch[vfat] = r.TH1F("h_VFAT{0}_chan_vs_hit".format(vfat), "VFAT{0}".format(vfat), 128, 0., 128.)
+        vfat_h_delay[vfat] = r.TH1F("h_VFAT{0}_L1A_sbit_delay".format(vfat), "VFAT{0}: L1A delay".format(vfat), 4096, 0., 4096.)
+        vfat_h_sbitSize[vfat] = r.TH1F("h_VFAT{0}_sbitSize_vs_hit".format(vfat), "VFAT{0}: SBIT Size".format(vfat), 8, 0., 8.)
+        vfat_h_strip[vfat] = r.TH1F("h_VFAT{0}_strips_vs_hit".format(vfat), "VFAT{0}".format(vfat), 128, 0., 128.)
 
-    for i in range(0, 24):
-        vfat_h_strip[i] = r.TH1F("h_VFAT{0}_strips_vs_hit".format(i), "VFAT{0}".format(i), 128, 0., 128.)
-        vfat_h_ch[i] = r.TH1F("h_VFAT{0}_chan_vs_hit".format(i), "VFAT{0}".format(i), 128, 0., 128.)
-        vfat_h_sbitSize[i] = r.TH1F("h_VFAT{0}_sbitSize_vs_hit".format(i), "VFAT{0}: SBIT Size".format(i), 8, 0., 8.)
-        vfat_h_delay[i] = r.TH1F("h_VFAT{0}_L1A_sbit_delay".format(i), "VFAT{0}: L1A delay".format(i), 4096, 0., 4096.)
-        vfat_h_ch[i].SetXTitle("Chann Num")
-        vfat_h_strip[i].SetXTitle("Strip Num")
-        vfat_h_strip[i].SetFillColorAlpha(r.kBlue, 0.35)
-        vfat_h_ch[i].SetFillColorAlpha(r.kBlue, 0.35)
+        vfat_h_ch[vfat].SetXTitle("Chan Num")
+        vfat_h_ch[vfat].SetFillColorAlpha(r.kBlue, 0.35)
+
+        vfat_h_strip[vfat].SetXTitle("Strip Num")
+        vfat_h_strip[vfat].SetFillColorAlpha(r.kBlue, 0.35)
 
     # initializing eta 1Dhisto
     ieta_h_strip = ndict()
@@ -236,39 +240,48 @@ if __name__ == '__main__':
     ieta_h_sbitSize = ndict()
     ieta_h_delay = ndict()
 
-    for i in range(1, 9):
-        ieta_h_strip[i] = r.TH1F("h_ieta{0}_strips_vs_hit".format(i), "i#eta = {0} | i#phi (1,2,3)".format(i), 384, 0., 384.)
-        ieta_h_ch[i] = r.TH1F("h_ieta{0}_chan_vs_hit".format(i), "i#eta = {0} | i#phi (1,2,3)".format(i), 384, 0., 384.)
-        ieta_h_sbitSize[i] = r.TH1F("h_ieta{0}_sbitSize_vs_hit".format(i), "i#eta = {0} SBIT Size".format(i), 8, 0., 8.)
-        ieta_h_delay[i] = r.TH1F("h_ieta{0}_L1A_Sbit_delay".format(i), "i#eta = {0} L1A delay".format(i), 4096, 0., 4096.)
+    for ieta in range(1, 9):
+        ieta_h_strip[ieta] = r.TH1F("h_ieta{0}_strips_vs_hit".format(ieta), "i#eta = {0} | i#phi (1,2,3)".format(ieta), 384, 0., 384.)
+        ieta_h_ch[ieta] = r.TH1F("h_ieta{0}_chan_vs_hit".format(ieta), "i#eta = {0} | i#phi (1,2,3)".format(ieta), 384, 0., 384.)
+        ieta_h_sbitSize[ieta] = r.TH1F("h_ieta{0}_sbitSize_vs_hit".format(ieta), "i#eta = {0} SBIT Size".format(ieta), 8, 0., 8.)
+        ieta_h_delay[ieta] = r.TH1F("h_ieta{0}_L1A_Sbit_delay".format(ieta), "i#eta = {0} L1A delay".format(ieta), 4096, 0., 4096.)
 
-        ieta_h_strip[i].SetFillColorAlpha(r.kBlue, 0.35)
-        ieta_h_ch[i].SetFillColorAlpha(r.kBlue, 0.35)
-        ieta_h_strip[i].SetXTitle("Strip num")
-        ieta_h_ch[i].SetXTitle("Chan num")
+        ieta_h_strip[ieta].SetFillColorAlpha(r.kBlue, 0.35)
+        ieta_h_ch[ieta].SetFillColorAlpha(r.kBlue, 0.35)
+        ieta_h_strip[ieta].SetXTitle("Strip num")
+        ieta_h_ch[ieta].SetXTitle("Chan num")
 
     # initializing 2Dhisto
     dict_h2d_ieta_strip = ndict()
     dict_h2d_ieta_ch = ndict()
     dict_h2d_ieta_strip[0] = r.TH2I('h2d_ieta_strip', 'Strips summary        (i#phi = 1,2,3);strip number;i#eta', 384, 0, 384, 8, 0.5, 8.5)
-    dict_h2d_ieta_ch[0] = r.TH2I('h_2d_ieta_ch', 'Channels summary        (i#phi = 1,2,3);chan number;i#eta', 384, 0, 384, 8, 0.5, 8.5)
+    dict_h2d_ieta_ch[0] = r.TH2I('h_2d_ieta_ch', 'Chanels summary        (i#phi = 1,2,3);chan number;i#eta', 384, 0, 384, 8, 0.5, 8.5)
 
     # loop over all branch names but the first (evnt num)
     from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2iEtaiPhi as vfat_to_etaphi
     from gempython.utils.gemlogger import printRed, printYellow
     print("Analyzing Raw Data\nThis may take some time please be patient")
-    for branch in brName[1:]:
-        if args.debug:
-            print ("Unpacking now %s, %s entries" % (branch, str(rawData[branch].shape).translate(None, "(),")))
-        for wordNum,word in enumerate(rawData[branch]):
-            if args.debug:
-                print("Processing Branch {0} Word {1}".format(branch,wordNum))
-            sbitAddr = ((word) & 0x7FF)
+    h_clusterMulti = r.TH1F("h_clusterMulti".format(vfat), "", 9,-0.5,8.5)
+    for event in rawData:
+        print("event = ")
+        print(event)
+        nValidClusters = 0
+        if (args.debug and ((event['evtNum'] % 100) == 0)):
+            print("Analyzing Event {0}".format(event['evtNum']))
+        for cName in clusterNames:
+            # Remove in a later refactoring
+            # Right now if an sbit is not sent L1A delay will be max and sbit address is 0x0 and cluster size is 0x0, this is 0x3ffc000; so we ignore this word
+            # Otherwise it will always report SBIT 0 of VFAT 7
+            word = event[cName]
+            if word == 0x3ffc000:
+                continue
             
             # INVALID ADDRESS CHECK
+            sbitAddr = ((word) & 0x7FF)
             if sbitAddr >= 1536:
                 continue
 
+            nValidClusters+=1
             vfatN[0] = (7 - sbitAddr/192 + ((sbitAddr % 192)/64)*8)
             sbitSize[0] = ((word >> 11) & 0x7)
             chHitPerCluster[0] = 2*(sbitSize[0]+1)
@@ -342,9 +355,10 @@ if __name__ == '__main__':
                 ieta_h_ch[eta].Fill((phi-1)*128+vfatCH[i])
                 dict_h2d_ieta_strip[0].Fill(strip[i]+128*(phi-1), eta)
                 dict_h2d_ieta_ch[0].Fill(vfatCH[i]+128*(phi-1), eta)
-
+                pass
             outT.Fill()
-
+            pass
+        h_clusterMulti.Fill(nValidClusters)
         pass
 
     #
@@ -360,12 +374,12 @@ if __name__ == '__main__':
     canv_3x8.SaveAs(filename+'/StripSummary.png')
 
     canv_3x8 = make3x8Canvas(
-        name="Chann_3x8canv",
+        name="Chan_3x8canv",
         initialContent=vfat_h_ch,
         initialDrawOpt="hist",
         secondaryContent=None,
         secondaryDrawOpt="hist")
-    canv_3x8.SaveAs(filename+'/ChannSummary.png')
+    canv_3x8.SaveAs(filename+'/ChanSummary.png')
 
     canv_3x8 = make3x8Canvas(
                              name="SbitSize_3x8canv",
@@ -394,9 +408,11 @@ if __name__ == '__main__':
                       filename, trimPt=None, drawOpt="")
 
     # Making&Filling folders in the TFile
+    outF.cd()
     outT.Write()
-    vfatDir = outF.mkdir("VFATs")
-    ietaDir = outF.mkdir("iETAs")
+    vfatDir = outF.mkdir("VFAT")
+    ietaDir = outF.mkdir("ieta")
+    h_clusterMulti.Write()
 
     vfatDir.cd()
     for vfat in range(0, 24):
