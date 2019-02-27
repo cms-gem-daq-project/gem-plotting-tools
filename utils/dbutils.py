@@ -41,27 +41,27 @@ def getGEMDBView(view, vfatList=None, debug=False):
     # get a pandas data frame object containing the db query
     dbName = os.getenv("GEM_ONLINE_DB_NAME")
     dbConn = os.getenv("GEM_ONLINE_DB_CONN")
-    df_gemView = pd.read_sql(query, con=(dbConn+dbName))
+    dfGEMView = pd.read_sql(query, con=(dbConn+dbName))
 
     if debug:
-        df_gemView.info()
-        print("Read {0} rows from view {1}".format(df_gemView.shape[0],view))
+        dfGEMView.info()
+        print("Read {0} rows from view {1}".format(dfGEMView.shape[0],view))
         pass
 
     if vfatList is not None:
         # First warn the user which VFATs are *not* found
-        if len(vfatList) != df_gemView.shape[1]:
+        if len(vfatList) != dfGEMView.shape[1]:
             printYellow("Length of returned view does not match length of input vfat List")
-            vfatsNotFound = [ "0x{:x}".format(chipId) for chipId in vfatList if "0x{:x}".format(chipId) not in list(df_gemView['vfat3_ser_num'])]
+            vfatsNotFound = [ "0x{:x}".format(chipId) for chipId in vfatList if "0x{:x}".format(chipId) not in list(dfGEMView['vfat3_ser_num'])]
             printYellow("VFATs not found: {0}".format(vfatsNotFound))
             pass
         
         # Then add a 'vfatN' column to the output df; this increases row # to len(vfatList)
-        df_gemView = joinOnVFATSerNum(vfatList,df_gemView)
+        dfGEMView = joinOnVFATSerNum(vfatList,df_gemView)
         
         pass
 
-    return df_gemView
+    return dfGEMView
 
 def getVFAT3CalInfo(vfatList, debug=False):
     """
