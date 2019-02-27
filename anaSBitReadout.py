@@ -157,7 +157,7 @@ if __name__ == '__main__':
     for idx, file in enumerate(glob.glob(path+'/sbitReadOut_run*.dat')):
         os.system("cat "+file+" | tail -n +2 >> "+path + "catfile.txt")
         os.system("echo" + "" + " >>" + path + "catfile.txt")
-    inT.ReadFile(path+"catfile.txt", "evtNum/i:sbitClusterData0/i:sbitClusterData1/i:sbitClusterData2/i:sbitClusterData3/i:sbitClusterData4/i:sbitClusterData5/i:sbitClusterData6/i:sbitClusterData7/i")
+    inT.ReadFile(path+"catfile.txt", "evtNum/I:sbitClusterData0/I:sbitClusterData1/I:sbitClusterData2/I:sbitClusterData3/I:sbitClusterData4/I:sbitClusterData5/I:sbitClusterData6/I:sbitClusterData7/I")
     if args.debug:
         print ("%d input files have been read and added to the TTree" % (idx+1))
 
@@ -175,14 +175,13 @@ if __name__ == '__main__':
     """
 
     # copying the branch names in order to work with input TTree as an array
+    import copy
     import numpy as np
     bNames = []
     for branch in inT.GetListOfBranches():
         bNames.append(branch.GetName())
-    clusterNames = bNames
+    clusterNames = copy.deepcopy(bNames)
     clusterNames.remove("evtNum")
-    print("bNames = {0}".format(bNames))
-    print("clusterNames = {0}".format(clusterNames))
 
     # converting the input tree in array then intialiting the unpackd TTree
     import root_numpy as rp
@@ -198,19 +197,21 @@ if __name__ == '__main__':
     - In each run it will be filled from 0 up to chHitPerCluster
     """
     from array import array
-    vfatN = array('i', [0])
+    evtNum = array('f', [0])
     chHitPerCluster = array('i', [0])
-    vfatCH = array('i', 16*[0])
-    strip = array('i', 16*[0])
-    sbitSize = array('i', [0])
     L1Delay = array('i', [0])
+    sbitSize = array('i', [0])
+    strip = array('i', 16*[0])
+    vfatCH = array('i', 16*[0])
+    vfatN = array('i', [0])
 
-    outT.Branch('vfatN', vfatN, 'vfatN/I')
+    outT.Branch('evtNum', evtNum, 'evtNum/F')
     outT.Branch('chHitPerCluster', chHitPerCluster, 'chHitPerCluster/I')
-    outT.Branch('vfatCH', vfatCH, 'vfatCH[chHitPerCluster]/I')
-    outT.Branch('strip', strip, 'strip[chHitPerCluster]/I')
-    outT.Branch('sbitSize', sbitSize, 'sbitSize/I')
     outT.Branch('L1Delay', L1Delay, 'L1Delay/I')
+    outT.Branch('sbitSize', sbitSize, 'sbitSize/I')
+    outT.Branch('strip', strip, 'strip[chHitPerCluster]/I')
+    outT.Branch('vfatN', vfatN, 'vfatN/I')
+    outT.Branch('vfatCH', vfatCH, 'vfatCH[chHitPerCluster]/I')
 
     """
     Defining both VFAT and iEta histos
@@ -262,12 +263,12 @@ if __name__ == '__main__':
     from gempython.utils.gemlogger import printRed, printYellow
     print("Analyzing Raw Data\nThis may take some time please be patient")
     h_clusterMulti = r.TH1F("h_clusterMulti".format(vfat), "", 9,-0.5,8.5)
+    cumulativeEvtNum = 0
     for event in rawData:
-        print("event = ")
-        print(event)
+        evtNum[0] += event['evtNum']
         nValidClusters = 0
-        if (args.debug and ((event['evtNum'] % 100) == 0)):
-            print("Analyzing Event {0}".format(event['evtNum']))
+        if (args.debug and ((evtNum[0] % 100) == 0)):
+            print("Analyzing Event {0}".format(int(evtNum[0])))
         for cName in clusterNames:
             # Remove in a later refactoring
             # Right now if an sbit is not sent L1A delay will be max and sbit address is 0x0 and cluster size is 0x0, this is 0x3ffc000; so we ignore this word
