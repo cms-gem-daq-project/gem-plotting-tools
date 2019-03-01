@@ -57,7 +57,7 @@ def getGEMDBView(view, vfatList=None, debug=False):
             pass
         
         # Then add a 'vfatN' column to the output df; this increases row # to len(vfatList)
-        dfGEMView = joinOnVFATSerNum(vfatList,df_gemView)
+        dfGEMView = joinOnVFATSerNum(vfatList,dfGEMView)
         
         pass
 
