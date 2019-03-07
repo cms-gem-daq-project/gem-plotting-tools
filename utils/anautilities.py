@@ -19,7 +19,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     Analyzes DAC scan data to determine nominal bias current/voltage settings for a particular VFAT3 DAC.
     Returns a dictionary where:
 
-        dict_dacVals[dacName][oh][vfat] = value
+        dict_dacVals[dacName][ohKey][vfat] = value
+
+    Where ohKey is a tuple of (shelf,slot,link) providing the mapping for uTCA shelf -> slot -> link mapping
 
     Here dacName are the values stored in the "nameX" TBranch of the input TTree.
 
@@ -39,13 +41,21 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     import root_numpy as rp
     import numpy as np
-    list_bNames = ['vfatN','link','dacValY','nameX']
+    list_bNames = ['dacValY','link','nameX','shelf','slot','vfatN']
     vfatArray = rp.tree2array(tree=dacScanTree,branches=list_bNames)
-    ohArray = np.unique(vfatArray['link'])
     dacNameArray = np.unique(vfatArray['nameX'])
+    
+    # make the crateMap
+    list_bNames.remove('dacValY')
+    list_bNames.remove('nameX')
+    list_bNames.remove('vfatN')
+    crateMap = np.unique(rp.tree2array(tree=dacScanTree,branches=list_bNames))
+
+    # get nonzero VFATs
     dict_nonzeroVFATs = {}
-    for ohN in ohArray:
-        dict_nonzeroVFATs[ohN] = np.unique(vfatArray[np.logical_and(vfatArray['dacValY'] > 0,vfatArray['link'] == ohN)]['vfatN'])
+    for entry in crateMap:
+        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[np.logical_and(vfatArray['dacValY'] > 0,vfatArray['link'] == ohKey)]['vfatN'])
 
     from gempython.utils.wrappers import envCheck
     envCheck("DATA_PATH")
@@ -56,15 +66,16 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     elogPath = os.getenv("ELOG_PATH") 
     
     from gempython.utils.wrappers import runCommand
-    for oh in ohArray:
+    for entry in crateMap:
+        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
         if scandate == 'noscandate':
-            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,chamber_config[oh])])
-            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,chamber_config[oh])])
+            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
+            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
         else:
-            runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
-            runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate)])
-            runCommand(["unlink", "{0}/{1}/dacScans/current".format(dataPath,chamber_config[oh])])
-            runCommand(["ln","-s","{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[oh],scandate),"{0}/{1}/dacScans/current".format(dataPath,chamber_config[oh])])
+            runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate)])
+            runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate)])
+            runCommand(["unlink", "{0}/{1}/dacScans/current".format(dataPath,chamber_config[ohKey])])
+            runCommand(["ln","-s","{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate),"{0}/{1}/dacScans/current".format(dataPath,chamber_config[ohKey])])
             pass
             
     # Determine which DAC was scanned and against which ADC
@@ -116,28 +127,34 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             if line[0] == "#":
                 continue
             dataEntry = (line.strip()).split()
-            link = dataEntry[0]
-            calFile = dataEntry[1]
+            shelf   = dataEntry[0]
+            slot    = dataEntry[1]
+            link    = dataEntry[2]
+            calFile = dataEntry[3]
+            ohKey = tuple(int(shelf),int(slot),int(link))
             tuple_calInfo = parseCalFile(calFile)
-            calInfo[int(link)] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
+            calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
 
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
-    for oh in ohArray:
-        if oh not in calInfo.keys():
-            calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[oh],adcName)
+    for idx,entry in enumerate(crateMap):
+        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        if ohKey not in calInfo.keys():
+            calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[ohKey],adcName)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
             if calAdcCalFileExists:
                 tuple_calInfo = parseCalFile(calAdcCalFile)
-                calInfo[oh] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
+                calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
             else:    
-                print("Skipping OH{0}, detector {1}, missing {2} calibration file:\n\t{3}".format(
-                    oh,
-                    chamber_config[oh],
+                print("Skipping Shelf{0}, Slot{1}, OH{2}, detector {3}, missing {4} calibration file:\n\t{5}".format(
+                    ohKey[0],
+                    ohKey[1],
+                    ohKey[2],
+                    chamber_config[ohKey],
                     adcName,
                     calAdcCalFile))
-                ohArray = np.delete(ohArray,(oh))
+                crateMap = np.delete(crateMap,(idx))
 
-    if len(ohArray) == 0:
+    if len(crateMap) == 0:
         raise Exception(colormsg('No OHs with a calFile, exiting.',logging.ERROR),os.EX_DATAERR)
            
     # Initialize nested dictionaries
@@ -151,45 +168,47 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # Initialize a TGraphErrors and a TF1 for each vfat
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
-        for oh in ohArray:
+        for entry in crateMap:
+            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
             for vfat in range(0,24):
-                dict_RawADCvsDAC_Graphs[dacName][oh][vfat] = r.TGraphErrors()
-                dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetXaxis().SetTitle(dacName)
-                dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetYaxis().SetTitle(adcName)
-                dict_DACvsADC_Graphs[dacName][oh][vfat] = r.TGraphErrors()
-                dict_DACvsADC_Graphs[dacName][oh][vfat].SetTitle("VFAT{}".format(vfat))
-                dict_DACvsADC_Graphs[dacName][oh][vfat].SetMarkerSize(5)
+                dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat] = r.TGraphErrors()
+                dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetXaxis().SetTitle(dacName)
+                dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetYaxis().SetTitle(adcName)
+                dict_DACvsADC_Graphs[dacName][ohKey][vfat] = r.TGraphErrors()
+                dict_DACvsADC_Graphs[dacName][ohKey][vfat].SetTitle("VFAT{}".format(vfat))
+                dict_DACvsADC_Graphs[dacName][ohKey][vfat].SetMarkerSize(5)
                 #the reversal of x and y is intended - we want to plot the dacName variable on the y-axis and the adcName variable on the x-axis
-                dict_DACvsADC_Graphs[dacName][oh][vfat].GetYaxis().SetTitle(dacName)
+                dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetYaxis().SetTitle(dacName)
                 if nominalDacValues[dacName][1][len(nominalDacValues[dacName][1])-1] == 'A':
-                    dict_DACvsADC_Graphs[dacName][oh][vfat].GetXaxis().SetTitle(adcName + " (#muA)")
+                    dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetXaxis().SetTitle(adcName + " (#muA)")
                 else:
-                    dict_DACvsADC_Graphs[dacName][oh][vfat].GetXaxis().SetTitle(adcName + " (mV)")
+                    dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetXaxis().SetTitle(adcName + " (mV)")
                 #we will use a fifth degree polynomial to do the fit
-                dict_DACvsADC_Funcs[dacName][oh][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
-                dict_DACvsADC_Funcs[dacName][oh][vfat].SetLineWidth(1)
-                dict_DACvsADC_Funcs[dacName][oh][vfat].SetLineStyle(3)
+                dict_DACvsADC_Funcs[dacName][ohKey][vfat] = r.TF1("DAC Scan Function","[0]*x^5+[1]*x^4+[2]*x^3+[3]*x^2+[4]*x+[5]")
+                dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineWidth(1)
+                dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineStyle(3)
 
     outputFiles = {}         
-    for oh in ohArray:
+    for entry in crateMap:
+        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
         if scandate == 'noscandate':
-            outputFiles[oh] = r.TFile(elogPath+"/"+chamber_config[oh]+"/"+args.outfilename,'recreate')
+            outputFiles[ohKey] = r.TFile(elogPath+"/"+chamber_config[ohKey]+"/"+args.outfilename,'recreate')
         else:    
-            outputFiles[oh] = r.TFile(dataPath+"/"+chamber_config[oh]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
+            outputFiles[ohKey] = r.TFile(dataPath+"/"+chamber_config[ohKey]+"/dacScans/"+scandate+"/"+args.outfilename,'recreate')
 
     print("Looping over stored events in dacScanTree")
 
     # Loop over events in the tree and fill plots
     for event in dacScanTree:
-        oh = event.link
+        ohKey = tuple(event.shelf,event.slot,event.link)
         vfat = event.vfatN
 
-        if vfat not in dict_nonzeroVFATs[oh]:
+        if vfat not in dict_nonzeroVFATs[ohKey]:
             continue
 
         #the output of the calibration is mV
-        calibrated_ADC_value=calInfo[oh]['slope'][vfat]*event.dacValY+calInfo[oh]['intercept'][vfat]
-        calibrated_ADC_error=calInfo[oh]['slope'][vfat]*event.dacValY_Err
+        calibrated_ADC_value=calInfo[ohKey]['slope'][vfat]*event.dacValY+calInfo[ohKey]['intercept'][vfat]
+        calibrated_ADC_error=calInfo[ohKey]['slope'][vfat]*event.dacValY_Err
 
         #Get the DAC Name in question
         dacName = str(event.nameX.data())
@@ -210,29 +229,30 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         #the reversal of x and y is intended - we want to plot the dacName variable on the y-axis and the adcName variable on the x-axis
         #the dacName variable is the DAC register that is scanned, and we want to determine its nominal value
         if args.assignXErrors:
-            dict_DACvsADC_Graphs[dacName][oh][vfat].SetPoint(dict_DACvsADC_Graphs[dacName][oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
-            dict_DACvsADC_Graphs[dacName][oh][vfat].SetPointError(dict_DACvsADC_Graphs[dacName][oh][vfat].GetN()-1,calibrated_ADC_error,event.dacValX_Err)
-            dict_RawADCvsDAC_Graphs[dacName][oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetN(),event.dacValX,event.dacValY)
-            dict_RawADCvsDAC_Graphs[dacName][oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetN()-1,event.dacValX_Err,0)
+            dict_DACvsADC_Graphs[dacName][ohKey][vfat].SetPoint(dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetN(),calibrated_ADC_value,event.dacValX)
+            dict_DACvsADC_Graphs[dacName][ohKey][vfat].SetPointError(dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetN()-1,calibrated_ADC_error,event.dacValX_Err)
+            dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].SetPoint(dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetN(),event.dacValX,event.dacValY)
+            dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].SetPointError(dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetN()-1,event.dacValX_Err,0)
         else:
-            dict_DACvsADC_Graphs[dacName][oh][vfat].SetPoint(dict_DACvsADC_Graphs[dacName][oh][vfat].GetN(),calibrated_ADC_value,event.dacValX)
-            dict_DACvsADC_Graphs[dacName][oh][vfat].SetPointError(dict_DACvsADC_Graphs[dacName][oh][vfat].GetN()-1,calibrated_ADC_error,0)
-            dict_RawADCvsDAC_Graphs[dacName][oh][vfat].SetPoint(dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetN(),event.dacValX,event.dacValY)
-            dict_RawADCvsDAC_Graphs[dacName][oh][vfat].SetPointError(dict_RawADCvsDAC_Graphs[dacName][oh][vfat].GetN()-1,0,0)
+            dict_DACvsADC_Graphs[dacName][ohKey][vfat].SetPoint(dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetN(),calibrated_ADC_value,event.dacValX)
+            dict_DACvsADC_Graphs[dacName][ohKey][vfat].SetPointError(dict_DACvsADC_Graphs[dacName][ohKey][vfat].GetN()-1,calibrated_ADC_error,0)
+            dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].SetPoint(dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetN(),event.dacValX,event.dacValY)
+            dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].SetPointError(dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetN()-1,0,0)
 
     print("fitting DAC vs. ADC distributions")
 
     # Fit the TGraphErrors objects
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
-        for oh in ohArray:
+        for entry in crateMap:
+            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
             for vfat in range(0,24):
-                if vfat not in dict_nonzeroVFATs[oh]:
+                if vfat not in dict_nonzeroVFATs[ohKey]:
                     #so that the output plots for these VFATs are completely empty
-                    dict_DACvsADC_Funcs[dacName][oh][vfat].SetLineColor(0)
+                    dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineColor(0)
                     continue
                 #the fits fail when the errors on dacValY (the x-axis variable) are used
-                dict_DACvsADC_Graphs[dacName][oh][vfat].Fit(dict_DACvsADC_Funcs[dacName][oh][vfat],"QEX0")
+                dict_DACvsADC_Graphs[dacName][ohKey][vfat].Fit(dict_DACvsADC_Funcs[dacName][ohKey][vfat],"QEX0")
 
     # Create Determine max DAC size
     dict_maxByDacName = {}
@@ -249,33 +269,36 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         dacName = np.asscalar(dacNameArray[idx])
         maxDacValue = dict_maxByDacName[dacName]
 
-        for oh in ohArray:
-            graph_dacVals[dacName][oh] = r.TGraph()
-            graph_dacVals[dacName][oh].SetMinimum(0)
-            graph_dacVals[dacName][oh].GetXaxis().SetTitle("VFATN")
-            graph_dacVals[dacName][oh].GetYaxis().SetTitle("nominal {} value".format(dacName))
+        for entry in crateMap:
+            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+            graph_dacVals[dacName][ohKey] = r.TGraph()
+            graph_dacVals[dacName][ohKey].SetMinimum(0)
+            graph_dacVals[dacName][ohKey].GetXaxis().SetTitle("VFATN")
+            graph_dacVals[dacName][ohKey].GetYaxis().SetTitle("nominal {} value".format(dacName))
 
             for vfat in range(0,24):
-                if vfat not in dict_nonzeroVFATs[oh]:
+                if vfat not in dict_nonzeroVFATs[ohKey]:
                     continue
 
                 #evaluate the fitted function at the nominal current or voltage value and convert to an integer
-                fittedDacValue = int(dict_DACvsADC_Funcs[dacName][oh][vfat].Eval(nominal[dacName]))
+                fittedDacValue = int(dict_DACvsADC_Funcs[dacName][ohKey][vfat].Eval(nominal[dacName]))
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
                 
                 if fittedDacValue != finalDacValue:
-                    errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
+                    errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (Shelf{7},Slot{8},OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
                             dacName,
                             fittedDacValue,
                             maxDacValue,
                             finalDacValue,
-                            oh,
+                            ohKey[2],
                             vfat,
-                            chamber_config[oh])
+                            chamber_config[ohKey],
+                            ohKey[0],
+                            ohKey[1])
                     print(colormsg(errorMsg,logging.ERROR))
                     
-                dict_dacVals[dacName][oh][vfat] = finalDacValue
-                graph_dacVals[dacName][oh].SetPoint(graph_dacVals[dacName][oh].GetN(),vfat,dict_dacVals[dacName][oh][vfat])
+                dict_dacVals[dacName][ohKey][vfat] = finalDacValue
+                graph_dacVals[dacName][ohKey].SetPoint(graph_dacVals[dacName][ohKey].GetN(),vfat,dict_dacVals[dacName][ohKey][vfat])
 
     print("Writing output data")
 
@@ -283,16 +306,18 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     outputTxtFiles_dacVals = ndict()
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
-        for oh in ohArray:
+        for entry in crateMap:
+            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
             if scandate == 'noscandate':
-                outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,chamber_config[oh],dacName),'w')
+                outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,chamber_config[ohKey],dacName),'w')
             else:
-                outputTxtFiles_dacVals[dacName][oh] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,chamber_config[oh],scandate,dacName),'w')
+                outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,chamber_config[ohKey],scandate,dacName),'w')
 
-    for oh in ohArray:
+    for entry in crateMap:
+        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
         # Per VFAT Poosition
         for vfat in range(0,24):
-            thisVFATDir = outputFiles[oh].mkdir("VFAT{0}".format(vfat))
+            thisVFATDir = outputFiles[ohKey].mkdir("VFAT{0}".format(vfat))
 
             for idx in range(len(dacNameArray)):
                 dacName = np.asscalar(dacNameArray[idx])
@@ -300,46 +325,49 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 thisDACDir = thisVFATDir.mkdir(dacName)
                 thisDACDir.cd()
 
-                dict_DACvsADC_Graphs[dacName][oh][vfat].Write("g_VFAT{0}_DACvsADC_{1}".format(vfat,dacName))
-                dict_DACvsADC_Funcs[dacName][oh][vfat].Write("func_VFAT{0}_DACvsADC_{1}".format(vfat,dacName))
-                dict_RawADCvsDAC_Graphs[dacName][oh][vfat].Write("g_VFAT{0}_RawADCvsDAC_{1}".format(vfat,dacName))
+                dict_DACvsADC_Graphs[dacName][ohKey][vfat].Write("g_VFAT{0}_DACvsADC_{1}".format(vfat,dacName))
+                dict_DACvsADC_Funcs[dacName][ohKey][vfat].Write("func_VFAT{0}_DACvsADC_{1}".format(vfat,dacName))
+                dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].Write("g_VFAT{0}_RawADCvsDAC_{1}".format(vfat,dacName))
 
-                if vfat in dict_nonzeroVFATs[oh]:
-                    outputTxtFiles_dacVals[dacName][oh].write("{0}\t{1}\n".format(vfat,dict_dacVals[dacName][oh][vfat]))
+                if vfat in dict_nonzeroVFATs[ohKey]:
+                    outputTxtFiles_dacVals[dacName][ohKey].write("{0}\t{1}\n".format(vfat,dict_dacVals[dacName][ohKey][vfat]))
 
         # Summary Case
-        dirSummary = outputFiles[oh].mkdir("Summary")
+        dirSummary = outputFiles[ohKey].mkdir("Summary")
         dirSummary.cd()
         for idx in range(len(dacNameArray)):
             dacName = np.asscalar(dacNameArray[idx])
 
             # Store summary graph
-            graph_dacVals[dacName][oh].Write("g_NominalvsVFATPos_{0}".format(dacName))
+            graph_dacVals[dacName][ohKey].Write("g_NominalvsVFATPos_{0}".format(dacName))
 
             # Store summary grid canvas and print images
-            canv_Summary = make3x8Canvas("canv_Summary_{0}".format(dacName),dict_DACvsADC_Graphs[dacName][oh],'APE1',dict_DACvsADC_Funcs[dacName][oh],'')
+            canv_Summary = make3x8Canvas("canv_Summary_{0}".format(dacName),dict_DACvsADC_Graphs[dacName][ohKey],'APE1',dict_DACvsADC_Funcs[dacName][ohKey],'')
             if scandate == 'noscandate':
-                canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,chamber_config[oh],dacName))
+                canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,chamber_config[ohKey],dacName))
             else:
-                canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{2}.png".format(dataPath,chamber_config[oh],scandate,dacName))
+                canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{2}.png".format(dataPath,chamber_config[ohKey],scandate,dacName))
 
     # Print Summary?
     if args.printSum:
-        print("| ohN | vfatN | dacName | Value |")
-        print("| :-: | :---: | :-----: | :---: |")
-        for oh in ohArray:
+        print("| shelf | slot | ohN | vfatN | dacName | Value |")
+        print("| :---: | :--: | :-: | :---: | :-----: | :---: |")
+        for entry in crateMap:
+            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
             for idx in range(len(dacNameArray)):
                 dacName = np.asscalar(dacNameArray[idx])
             
                 for vfat in range(0,24):
-                    if vfat not in dict_nonzeroVFATs[oh]:
+                    if vfat not in dict_nonzeroVFATs[ohKey]:
                         continue
 
-                    print("| {0} | {1} | {2} | {3} |".format(
-                        oh,
+                    print("| {0} | {1} | {2} | {3} | {4} | {5} |".format(
+                        ohKey[0],
+                        ohKey[1],
+                        ohKey[2],
                         vfat,
                         dacName,
-                        dict_dacVals[dacName][oh][vfat])
+                        dict_dacVals[dacName][ohKey][vfat])
                     )
                     pass
                 pass
