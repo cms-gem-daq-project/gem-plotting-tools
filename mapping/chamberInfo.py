@@ -215,6 +215,7 @@ chamber_vfatDACSettings = {
             #Comparator Mode - ZCC
             #"CFG_SEL_COMP_MODE":2,
             #"CFG_FORCE_EN_ZCC":1
+            },
         (2,5,0):{
             #Latency
             "CFG_LATENCY":43,
