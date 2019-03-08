@@ -54,7 +54,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # get nonzero VFATs
     dict_nonzeroVFATs = {}
     for entry in crateMap:
-        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
         dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[np.logical_and(vfatArray['dacValY'] > 0,vfatArray['link'] == ohKey)]['vfatN'])
 
     from gempython.utils.wrappers import envCheck
@@ -67,7 +67,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     
     from gempython.utils.wrappers import runCommand
     for entry in crateMap:
-        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
         if scandate == 'noscandate':
             runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
             runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
@@ -131,13 +131,13 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             slot    = dataEntry[1]
             link    = dataEntry[2]
             calFile = dataEntry[3]
-            ohKey = tuple(int(shelf),int(slot),int(link))
+            ohKey = (int(shelf),int(slot),int(link))
             tuple_calInfo = parseCalFile(calFile)
             calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
 
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
     for idx,entry in enumerate(crateMap):
-        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
         if ohKey not in calInfo.keys():
             calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,chamber_config[ohKey],adcName)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
@@ -169,7 +169,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
-            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+            ohKey = (entry['shelf'],entry['slot'],entry['link'])
             for vfat in range(0,24):
                 dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat] = r.TGraphErrors()
                 dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetXaxis().SetTitle(dacName)
@@ -190,7 +190,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     outputFiles = {}         
     for entry in crateMap:
-        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
         if scandate == 'noscandate':
             outputFiles[ohKey] = r.TFile(elogPath+"/"+chamber_config[ohKey]+"/"+args.outfilename,'recreate')
         else:    
@@ -200,7 +200,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     # Loop over events in the tree and fill plots
     for event in dacScanTree:
-        ohKey = tuple(event.shelf,event.slot,event.link)
+        ohKey = (event.shelf,event.slot,event.link)
         vfat = event.vfatN
 
         if vfat not in dict_nonzeroVFATs[ohKey]:
@@ -245,7 +245,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
-            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+            ohKey = (entry['shelf'],entry['slot'],entry['link'])
             for vfat in range(0,24):
                 if vfat not in dict_nonzeroVFATs[ohKey]:
                     #so that the output plots for these VFATs are completely empty
@@ -270,7 +270,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         maxDacValue = dict_maxByDacName[dacName]
 
         for entry in crateMap:
-            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+            ohKey = (entry['shelf'],entry['slot'],entry['link'])
             graph_dacVals[dacName][ohKey] = r.TGraph()
             graph_dacVals[dacName][ohKey].SetMinimum(0)
             graph_dacVals[dacName][ohKey].GetXaxis().SetTitle("VFATN")
@@ -307,14 +307,14 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
-            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+            ohKey = (entry['shelf'],entry['slot'],entry['link'])
             if scandate == 'noscandate':
                 outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,chamber_config[ohKey],dacName),'w')
             else:
                 outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,chamber_config[ohKey],scandate,dacName),'w')
 
     for entry in crateMap:
-        ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
         # Per VFAT Poosition
         for vfat in range(0,24):
             thisVFATDir = outputFiles[ohKey].mkdir("VFAT{0}".format(vfat))
@@ -353,7 +353,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         print("| shelf | slot | ohN | vfatN | dacName | Value |")
         print("| :---: | :--: | :-: | :---: | :-----: | :---: |")
         for entry in crateMap:
-            ohKey = tuple(entry['shelf'],entry['slot'],entry['link'])
+            ohKey = (entry['shelf'],entry['slot'],entry['link'])
             for idx in range(len(dacNameArray)):
                 dacName = np.asscalar(dacNameArray[idx])
             
