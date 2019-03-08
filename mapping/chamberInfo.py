@@ -45,24 +45,6 @@ GEBtype = {
     (2,5,4):"short"     #Update for connectivity testing
     }
 
-"""
-Keys should be a tuple of (shelf,slot,link)
-"""
-chamber_vfatMask = {
-    #Cosmic Stand
-    (1,4,11):0x1,
-    (1,4,10):0x0,
-    (1,4,6):0x8,
-    (1,4,4):0x0,
-    (1,4,3):0x0,
-    (1,4,2):0x0,
-    #Sustained Ops
-    (2,5,0):0x0,
-    (2,5,1):0x8020,
-    (2,5,3):0x0,
-    (2,5,4):0x0
-    }
-   
 # Matches CMS coordinates
 chamber_iEta2VFATPos = {
         1: { 7:1, 15:2, 23:3 }, #ieta: [ (vfat, iphi), (vfat, iphi), (vfat, iphi) ]
