@@ -31,8 +31,7 @@ def getGEMDBView(view, vfatList=None, debug=False):
         raise Exception("View {0} not in knownViews: {1}".format(view,knownViews),os.EX_USAGE)
 
     # Make base query
-    #query='select * from CMS_GEM_MUON_VIEW.{0} data'.format(view)
-    query='select * from CMS_GEM_MUON_VIEW.{0} data where RUN_NUMBER = ( select max(RUN_NUMBER) as RUN_NUMBER from CMS_GEM_MUON_VIEW.{0})'.format(view)
+    query='select * from CMS_GEM_MUON_VIEW.{0} data WHERE RUN_NUMBER = ( select max(RUN_NUMBER) as RUN_NUMBER from CMS_GEM_MUON_VIEW.{0})'.format(view)
     
     # Add a filter on VFAT serial number?
     if vfatList is not None:
@@ -115,7 +114,7 @@ def getVFATFilter(vfatList):
     vfatList - list of VFAT Chip ID's
     """
 
-    strRetFilter = " WHERE ("
+    strRetFilter = " AND ("
     for idx, vfatID in enumerate(vfatList):
         if idx == 0:
             strRetFilter += " data.VFAT3_SER_NUM='0x{:x}'".format(vfatID)
