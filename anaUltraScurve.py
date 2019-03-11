@@ -157,8 +157,8 @@ if __name__ == '__main__':
                       help="Physical filename of a custom, non-default, channel mapping (optional)", metavar="extChanMapping")
     parser.add_option("-f", "--fit", action="store_true", dest="performFit",
                       help="Fit scurves and save fit information to output TFile", metavar="performFit")
-    parser.add_option("--isVFAT3", action="store_true", dest="isVFAT3", default=False,
-                      help="Provide this argument if input data was acquired from vfat3", metavar="isVFAT3")
+    parser.add_option("--isVFAT2", action="store_true", dest="isVFAT2", default=False,
+                      help="Provide this argument if input data was acquired from vfat2", metavar="isVFAT2")
     parser.add_option("--IsTrimmed", action="store_true", dest="IsTrimmed",
                       help="If the data is from a trimmed scan, plot the value it tried aligning to", metavar="IsTrimmed")
     parser.add_option("--zscore", type="float", dest="zscore", default=3.5,
@@ -175,16 +175,32 @@ if __name__ == '__main__':
     chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
                       help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
                       metavar="highNoiseCut")
-    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=4.14E-02,
+    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow",
                       help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
                       metavar="deadChanCutLow")
-    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=1.09E-01,
+    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh",
                       help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
                       metavar="deadChanCutHigh")
     parser.add_option_group(chanMaskGroup)
 
     parser.set_defaults(outfilename="SCurveFitData.root")
     (options, args) = parser.parse_args()
+    
+    #Default isVFAT2=false, isVFAT3=true
+    isVFAT3 = (not options.isVFAT2)
+    
+    #if isVFAT2, deadChanCut are set to default for v2 electronics
+    if options.isVFAT2:
+        if options.deadChanCutLow is None:
+            options.deadChanCutLow = 4.14E-02
+        if options.deadChanCutHigh is None:
+            options.deadChanCutHigh = 1.09E-01
+    #if isVFAT3, deadChanCut are set to default for v3 electronics
+    if isVFAT3:
+        if options.deadChanCutLow is None:
+            options.deadChanCutLow = 1.0E-02
+        if options.deadChanCutHigh is None:
+            options.deadChanCutHigh = 5.0E-01
     
     print("Analyzing: '%s'"%options.filename)
     filename = options.filename[:-5]
@@ -219,7 +235,7 @@ if __name__ == '__main__':
 
     # Initialize distributions
     for vfat in range(0,24):
-        if options.isVFAT3:
+        if isVFAT3:
             yMin_Charge = calDAC2Q_Slope[vfat]*255.5+calDAC2Q_Intercept[vfat]
             yMax_Charge = calDAC2Q_Slope[vfat]*-0.5+calDAC2Q_Intercept[vfat]
         else:
@@ -271,7 +287,7 @@ if __name__ == '__main__':
         for chan in range (0,128):
             vthr_list[vfat].append(0)
             trim_list[vfat].append(0)
-            if options.isVFAT3:
+            if isVFAT3:
                 trimPolarity_list[vfat].append(0)
             else:
                 trimRange_list[vfat].append(0)
@@ -304,8 +320,7 @@ if __name__ == '__main__':
     if options.performFit:
         fitter = ScanDataFitter(
                 calDAC2Q_m=calDAC2Q_Slope, 
-                calDAC2Q_b=calDAC2Q_Intercept,
-                isVFAT3=options.isVFAT3
+                calDAC2Q_b=calDAC2Q_Intercept
                 )
         pass
 
@@ -321,7 +336,7 @@ if __name__ == '__main__':
             vthr_list[event.vfatN][event.vfatCH] = abs(event.vth2 - event.vth1)
             pass
         trim_list[event.vfatN][event.vfatCH] = event.trimDAC
-        if options.isVFAT3:
+        if isVFAT3:
             #placegolder
             trimPolarity_list[event.vfatN][event.vfatCH] = event.trimPolarity
         else:
@@ -475,7 +490,7 @@ if __name__ == '__main__':
         myT.Branch( 'trimDAC', trimDAC, 'trimDAC/I' )
         threshold = array( 'f', [ 0 ] )
         myT.Branch( 'threshold', threshold, 'threshold/F')
-        if options.isVFAT3:
+        if isVFAT3:
             trimPolarity = array( 'i', [ 0 ] )
             myT.Branch('trimPolarity', trimPolarity, 'trimPolarity/I' )
         else:
@@ -552,7 +567,7 @@ if __name__ == '__main__':
                 ROBstr[0] = dict_vfatChanLUT[vfat]["Strip"][chan]
                 threshold[0] = scanFitResults[0][vfat][chan]
                 trimDAC[0] = trim_list[vfat][chan]
-                if options.isVFAT3:
+                if isVFAT3:
                     trimPolarity[0] = trimPolarity_list[vfat][chan]
                 else:
                     trimRange[0] = trimRange_list[vfat][chan]
@@ -826,7 +841,7 @@ if __name__ == '__main__':
         saveSummaryByiEta(encSummaryPlotsByiEta, '%s/ScurveSigmaSummaryByiEta.png'%filename, None, drawOpt="AP")
 
         confF = open(filename+'/chConfig.txt','w')
-        if options.isVFAT3:
+        if isVFAT3:
             confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:trimPolarity/I:mask/I:maskReason/I\n')
             for vfat in range(0,24):
                 for chan in range(0, 128):
