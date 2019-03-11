@@ -126,7 +126,7 @@ if __name__ == '__main__':
             mapVFATPos2VFATSN = np.loadtxt(
                         fname = args.listOfVFATs,
                         dtype={'names':('vfatN', 'serialNum'),
-                                'formats':('i4', 'i4')},
+                                'formats':('u4', 'u4')},
                         skiprows=1,
                     )
         except Exception as e:
@@ -135,7 +135,7 @@ if __name__ == '__main__':
             exit(os.EX_NOINPUT)
             pass
     else:
-        mapVFATPos2VFATSN = np.zeros(24,dtype={'names':('vfatN', 'serialNum'),'formats':('i4', 'i4')})
+        mapVFATPos2VFATSN = np.zeros(24,dtype={'names':('vfatN', 'serialNum'),'formats':('u4', 'u4')})
 
     # Get list of THR DAC values
     listOfThrValues = []
@@ -400,7 +400,7 @@ if __name__ == '__main__':
     ###################
     # Make output ROOT file
     ###################
-    outFileName = "{0}/calFile_{1}_{2}.root".format(elogPath,chamberName,thrDacName)
+    outFileName = "{0}/calFile_{2}_{1}.root".format(elogPath,chamberName,thrDacName)
     outFile = r.TFile(outFileName,"RECREATE")
 
     # Plot Containers
@@ -572,7 +572,7 @@ if __name__ == '__main__':
     print("\n\t{0}/calFile_{2}_{1}.txt\n".format(elogPath,chamberName,thrDacName))
 
     print("You can find all ROOT objects in:")
-    print("\n\t{0}/calFile_{1}_{2}.root\n".format(elogPath,chamberName,thrDacName))
+    print("\n\t{0}/calFile_{2}_{1}.root\n".format(elogPath,chamberName,thrDacName))
 
     print("You can find all plots in:")
     print("\n\t{0}\n".format(elogPath))
