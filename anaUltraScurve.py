@@ -320,7 +320,8 @@ if __name__ == '__main__':
     if options.performFit:
         fitter = ScanDataFitter(
                 calDAC2Q_m=calDAC2Q_Slope, 
-                calDAC2Q_b=calDAC2Q_Intercept
+                calDAC2Q_b=calDAC2Q_Intercept,
+                isVFAT3=isVFAT3
                 )
         pass
 
