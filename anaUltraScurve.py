@@ -175,10 +175,10 @@ if __name__ == '__main__':
     chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
                       help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
                       metavar="highNoiseCut")
-    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow",
+    chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=None,
                       help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
                       metavar="deadChanCutLow")
-    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh",
+    chanMaskGroup.add_option("--deadChanCutHigh", type="float", dest="deadChanCutHigh", default=None,
                       help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set",
                       metavar="deadChanCutHigh")
     parser.add_option_group(chanMaskGroup)
