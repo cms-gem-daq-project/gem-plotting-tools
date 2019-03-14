@@ -213,9 +213,9 @@ if __name__ == '__main__':
 
   if options.series:
     print "Running jobs in serial mode"
-    for link in chamber_config.keys():
-      chamber = chamber_config[link]
-      GEB = GEBtype[link]
+    for ohKey in chamber_config.keys():
+      chamber = chamber_config[ohKey]
+      GEB = GEBtype[ohKey]
       launchAnaArgs(options.anaType,
                 chamber,
                 GEB,

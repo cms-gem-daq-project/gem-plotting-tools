@@ -194,7 +194,6 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.anautilities import parseListOfScanDatesFile
     from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.macros.plotoptions import parser
-    from gempython.gemplotting.mapping.chamberInfo import chamber_config, GEBtype
     
     import os
     
