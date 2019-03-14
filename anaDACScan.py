@@ -29,10 +29,10 @@ Arguments
 
 .. option:: --calFileList
   
-    Provide a file containing a list of calFiles.  The space character is used as a delimiter.  The first column is the link number.  The second is the calibration file (given with full physical filename) for that link number. Example::
+    Provide a file containing a list of calFiles.  The space character is used as a delimiter.  The first three columns are respectively shelf, slot and link number.  The fourth column is the calibration file (given with full physical filename) for that link number. Example::
 
-    0 /path/to/my/cal/file.txt
-    1 /path/to/my/cal/file.txt
+    1 4 0 /path/to/my/cal/file.txt
+    1 4 1 /path/to/my/cal/file.txt
     ...
     ...
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case).")
-    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: 0 /path/to/my/cal/file.txt<newline> 1 /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
+    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: <shelf> <slot> <link> /path/to/my/cal/file.txt<newline> <shelf> <slot> <link> /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
     parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
     parser.add_argument("-p","--print",dest="printSum", action="store_true", help="If provided prints a summary table to terminal for each DAC showing for each VFAT position the nominal value that was found")
     args = parser.parse_args()
