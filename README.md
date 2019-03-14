@@ -71,17 +71,18 @@ The `$SHELL` variable `$ELOG_PATH` should be defined:
 export ELOG_PATH=/your/favorite/elog/path
 ```
 
-Remove and download the setup script to ensure you have the most up-to-date version:
+Also a useful `$SHELL` variable is `$BUILD_HOME` which should be the directory at the start of your working directory.
+Checkout the `sw_utils` repository by executing:
 
 ```
-rm -f setup_gemdaq.sh
-wget https://raw.githubusercontent.com/cms-gem-daq-project/sw_utils/master/scripts/setup_gemdaq.sh
+cd $BUILD_HOME
+git clone https://github.com/cms-gem-daq-project/sw_utils.git
 ```
 
 Then execute:
 
 ```
-source setup.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional>
+source sw_utils/scripts/setup_gemdaq.sh -c <cmsgemos tag> -g <gem-plotting tag> -G <gem-plotting dev version optional>
 ```
 
 Tags for each of the repo's can be found:
@@ -113,7 +114,8 @@ deactivate
 To re-enable the python env, source the script again:
 
 ```
-source setup_gemdaq.sh
+cd $BUILD_HOME
+source sw_utils/scripts/setup_gemdaq.sh
 ```
 
 Note that you should always source the setup script from the same directory.
