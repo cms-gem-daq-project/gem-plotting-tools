@@ -1185,7 +1185,12 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 dict_Rate1DVsDACNameX[dacName][ohKey][vfat] = r.TGraphErrors()
                 dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetName("g1D_rate_vs_{0}_vfat{1}".format(dacName.replace("_","-"),vfat))
                 dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetXaxis().SetTitle(dacName)
+                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetYaxis().SetRangeUser(1e-1,1e8)
                 dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetYaxis().SetTitle("SBIT Rate #left(Hz#right)")
+                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetMarkerStyle(23)
+                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetMarkerSize(0.8)
+                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetLineWidth(2)
+
                 # 2D Distributions
                 dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat] = r.TGraph2D()
                 dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].SetName("g2D_vfatCH_vs_{0}_rate_vfat{1}".format(dacName.replace("_","-"),vfat))
@@ -1273,9 +1278,6 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
 
                 dict_dacValsBelowCutOff[dacName][ohKey][vfat] = 255 #default to max
                 for point in range(0,dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()):
-                    # place holder
-                    #dacValX = array( 'f', [0] )
-                    #rateVal = array( 'f', [0] )
                     dacValX = r.Double()
                     rateVal = r.Double()
                     dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetPoint(point,dacValX,rateVal)
@@ -1294,9 +1296,13 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         for idx in range(len(dacNameArray)):
             dacName = np.asscalar(dacNameArray[idx])
             if perchannel:
-                canv_Summary2D = make3x8Canvas("canv_Summary_Rate2D_vs_{0}".format(dacName),dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey],"APE1")
+                canv_Summary2D = make3x8Canvas("canv_Summary_Rate2D_vs_{0}".format(dacName),dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey],"TRI1")
+                for vfat in range(1,25):
+                    canv_Summary2D.cd(vfat).SetLogz()
             else:
                 canv_Summary1D = make3x8Canvas("canv_Summary_Rate1D_vs_{0}".format(dacName),dict_Rate1DVsDACNameX[dacName][ohKey],"APE1")
+                for vfat in range(1,25):
+                    canv_Summary1D.cd(vfat).SetLogy()
 
             if scandate == 'noscandate':
                 if perchannel:
@@ -1306,10 +1312,10 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
             else:
                 if perchannel:
                     strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
-                    canv_Summary2D.SaveAs("{0}/{1}/{2}.png".fromat(strDirName,scandate,canv_Summary2D.GetName()))
+                    canv_Summary2D.SaveAs("{0}/{1}/{2}.png".format(strDirName,scandate,canv_Summary2D.GetName()))
                 else:
                     strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
-                    canv_Summary1D.SaveAs("{0}/{1}/{2}.png".fromat(strDirName,scandate,canv_Summary1D.GetName()))
+                    canv_Summary1D.SaveAs("{0}/{1}/{2}.png".format(strDirName,scandate,canv_Summary1D.GetName()))
                     pass
                 pass
             pass
