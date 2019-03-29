@@ -55,7 +55,10 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     dict_nonzeroVFATs = {}
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[np.logical_and(vfatArray['dacValY'] > 0,vfatArray['link'] == ohKey)]['vfatN'])
+        arrayMask = np.logical_and(vfatArray['dacValY'] > 0, vfatArray['link'] == entry['link'])
+        arrayMask = np.logical_and(arrayMask, vfatArray['slot'] == entry['slot'])
+        arrayMask = np.logical_and(arrayMask, vfatArray['shelf'] == entry['shelf'])
+        dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[arrayMask]['vfatN'])
 
     from gempython.utils.wrappers import envCheck
     envCheck("DATA_PATH")
