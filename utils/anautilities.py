@@ -351,7 +351,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             if scandate == 'noscandate':
                 canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,chamber_config[ohKey],dacName))
             else:
-                canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{2}.png".format(dataPath,chamber_config[ohKey],scandate,dacName))
+                canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{3}.png".format(dataPath,chamber_config[ohKey],scandate,dacName))
 
     # Print Summary?
     if args.printSum:
