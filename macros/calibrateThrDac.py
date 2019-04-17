@@ -506,6 +506,10 @@ if __name__ == '__main__':
             tgraph_scurveMeanVsThrDacForFit.SetPoint(tgraph_scurveMeanVsThrDacForFit.GetN(),thrDacVal,scurveMean)
             tgraph_scurveMeanVsThrDacForFit.SetPointError(tgraph_scurveMeanVsThrDacForFit.GetN()-1,0,scurveMeanError)
 
+        #a 4th order polynomial expanded about the lower edge of the fit range    
+        def quartic(x,par):    
+            return (par[0]*pow((x[0]-min(fitRange)),4)+par[1]*pow((x[0]-min(fitRange)),3))+par[2]*pow((x[0]-min(fitRange)),2)+par[3]*(x[0]-min(fitRange))+par[4]    
+            
         # Mean vs CFG_THR_*_DAC
         dict_canvScurveMeanVsThrDac[vfat] = r.TCanvas("canvScurveMeanVsThrDac_{0}".format(suffix),"Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveMeanVsThrDac[vfat].cd()
@@ -513,7 +517,10 @@ if __name__ == '__main__':
         dict_ScurveMeanVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
         dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
-        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(fitRange), max(fitRange) )
+#        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(fitRange), max(fitRange) )
+        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),quartic,min(fitRange),max(fitRange),5)
+        #require the first derivative to be positive at the lower boundary of the fit range 
+        dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000) 
         tgraph_scurveMeanVsThrDacForFit.Fit(dict_funcScurveMeanVsThrDac[vfat],"QR")
         dict_ScurveMeanVsThrDac[vfat].Write()
         dict_funcScurveMeanVsThrDac[vfat].Write()
