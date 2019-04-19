@@ -412,6 +412,8 @@ if __name__ == '__main__':
 
     dict_canvScurveMeanVsThrDac_BoxPlot = {}
     dict_canvScurveSigmaVsThrDac_BoxPlot = {}
+
+    dict_funcScurveMeanVsThrDac = {}
     
     ###################
     # Now Make plots & Fit DAC Curves
@@ -456,6 +458,57 @@ if __name__ == '__main__':
         dict_mGraphScurveSigma[vfat].Draw("APE1")
         dict_mGraphScurveSigma[vfat].Write()
 
+        thrDacIndexPairs = []
+        for i in range(0,dict_ScurveMeanVsThrDac[vfat].GetN()):
+            thrDacVal = r.Double()
+            scurveMean = r.Double()
+            dict_ScurveMeanVsThrDac[vfat].GetPoint(i,thrDacVal,scurveMean)
+            thrDacIndexPairs.append([thrDacVal,i])
+
+        thrDacIndexPairs.sort()    
+        
+        #remove THR DAC values where there appear to be pedestal effects
+        tgraph_scurveSigmaHighThrDacVal=r.TGraphErrors(5)
+        scurveSigmaMeanHighThrDacVal = 0
+        for i in range(len(thrDacIndexPairs)-5,len(thrDacIndexPairs)):
+            thrDacVal = r.Double()
+            scurveSigma = r.Double()
+            dict_ScurveSigmaVsThrDac[vfat].GetPoint(thrDacIndexPairs[i][1],thrDacVal,scurveSigma)
+            scurveSigmaError = dict_ScurveSigmaVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
+            tgraph_scurveSigmaHighThrDacVal.SetPoint(i-(len(thrDacIndexPairs)-5),thrDacVal,scurveSigma)
+            tgraph_scurveSigmaHighThrDacVal.SetPointError(i-(len(thrDacIndexPairs)-5),0,scurveSigmaError)
+
+        tgraph_scurveSigmaHighThrDacVal.Fit("pol0","Q")    
+        sigmaHighThrDacPlusError = tgraph_scurveSigmaHighThrDacVal.GetFunction("pol0").GetParameter(0)+tgraph_scurveSigmaHighThrDacVal.GetFunction("pol0").GetParError(0)
+        sigmaHighThrDacChiSquaredOverNdof = tgraph_scurveSigmaHighThrDacVal.GetFunction("pol0").GetChisquare()/4.0
+
+        tgraph_scurveMeanVsThrDacForFit = r.TGraphErrors()
+
+        setLastUnremovedScurveMean = False
+        for i in range(0,len(thrDacIndexPairs)):
+            i = len(thrDacIndexPairs) - 1 - i
+            thrDacVal = r.Double()
+            scurveSigma = r.Double()
+            scurveMean = r.Double()
+            dict_ScurveSigmaVsThrDac[vfat].GetPoint(thrDacIndexPairs[i][1],thrDacVal,scurveSigma)
+            dict_ScurveMeanVsThrDac[vfat].GetPoint(thrDacIndexPairs[i][1],thrDacVal,scurveMean)
+            scurveSigmaError = dict_ScurveSigmaVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
+            scurveMeanError = dict_ScurveMeanVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
+            if scurveMean < 0.1:
+                continue
+            if not setLastUnremovedScurveMean:
+                lastUnremovedScurveMean = scurveMean
+                setLastUnremovedScurveMean = True
+            if (thrDacVal < 50 and sigmaHighThrDacChiSquaredOverNdof < 0.5 and scurveSigma - scurveSigmaError > sigmaHighThrDacPlusError and scurveMean > 6 and scurveMean > lastUnremovedScurveMean) or (scurveMean > 2*lastUnremovedScurveMean):
+                continue
+            lastUnremovedScurveMean = scurveMean
+            tgraph_scurveMeanVsThrDacForFit.SetPoint(tgraph_scurveMeanVsThrDacForFit.GetN(),thrDacVal,scurveMean)
+            tgraph_scurveMeanVsThrDacForFit.SetPointError(tgraph_scurveMeanVsThrDacForFit.GetN()-1,0,scurveMeanError)
+
+        #a 4th order polynomial expanded about the lower edge of the fit range    
+        def quartic(x,par):    
+            return (par[0]*pow((x[0]-min(fitRange)),4)+par[1]*pow((x[0]-min(fitRange)),3))+par[2]*pow((x[0]-min(fitRange)),2)+par[3]*(x[0]-min(fitRange))+par[4]    
+            
         # Mean vs CFG_THR_*_DAC
         dict_canvScurveMeanVsThrDac[vfat] = r.TCanvas("canvScurveMeanVsThrDac_{0}".format(suffix),"Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveMeanVsThrDac[vfat].cd()
@@ -463,10 +516,12 @@ if __name__ == '__main__':
         dict_ScurveMeanVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
         dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
-        func_ScurveMeanVsThrDac = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x+[1]",min(fitRange), max(fitRange) )
-        dict_ScurveMeanVsThrDac[vfat].Fit(func_ScurveMeanVsThrDac,"QR")
+        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),quartic,min(fitRange),max(fitRange),5)
+        #require the first derivative to be positive at the lower boundary of the fit range 
+        dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000) 
+        tgraph_scurveMeanVsThrDacForFit.Fit(dict_funcScurveMeanVsThrDac[vfat],"QR")
         dict_ScurveMeanVsThrDac[vfat].Write()
-        func_ScurveMeanVsThrDac.Write()
+        dict_funcScurveMeanVsThrDac[vfat].Write()
 
         # Mean vs CFG_THR_*_DAC - Box Plot
         dict_canvScurveMeanVsThrDac_BoxPlot[vfat] = r.TCanvas("canvScurveMeanVsThrDac_BoxPlot_{0}".format(suffix),"Box Plot: Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
@@ -495,8 +550,8 @@ if __name__ == '__main__':
         # Write CFG_THR_*_DAC calibration file
         calThrDacFile.write("{0}\t{1}\t{2}\n".format(
             vfat,
-            func_ScurveMeanVsThrDac.GetParameter(0),
-            func_ScurveMeanVsThrDac.GetParameter(1))
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(0),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(1))
             )
 
         # Draw Legend?
@@ -522,10 +577,10 @@ if __name__ == '__main__':
             vfatOrAll == "All"
         print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} |".format(
             vfatOrAll,
-            func_ScurveMeanVsThrDac.GetParameter(0),
-            func_ScurveMeanVsThrDac.GetParError(0),
-            func_ScurveMeanVsThrDac.GetParameter(1),
-            func_ScurveMeanVsThrDac.GetParError(1),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(0),
+            dict_funcScurveMeanVsThrDac[vfat].GetParError(0),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(1),
+            dict_funcScurveMeanVsThrDac[vfat].GetParError(1),
             func_ScurveSigmaVsThrDac.GetParameter(0),
             func_ScurveSigmaVsThrDac.GetParError(1))
             )
@@ -542,7 +597,7 @@ if __name__ == '__main__':
     # Make summary canvases, always save these
     canvScurveMeanByThrDac_Summary = make3x8Canvas("canvScurveMeanByThrDac_Summary",dict_mGraphScurveMean,"APE1")
     canvScurveSigmaByThrDac_Summary = make3x8Canvas("canvScurveSigmaByThrDac_Summary",dict_mGraphScurveSigma,"APE1")
-    canvScurveMeanVsThrDac_Summary = make3x8Canvas("canvScurveMeanVsThrDac_Summary",dict_ScurveMeanVsThrDac,"APE1")
+    canvScurveMeanVsThrDac_Summary = make3x8Canvas("canvScurveMeanVsThrDac_Summary",dict_ScurveMeanVsThrDac,"APE1",dict_funcScurveMeanVsThrDac)
     canvScurveSigmaVsThrDac_Summary = make3x8Canvas("canvScurveSigmaVsThrDac_Summary",dict_ScurveSigmaVsThrDac,"APE1")
     canvScurveMeanVsThrDac_BoxPlot_Summary = make3x8Canvas("canvScurveMeanVsThrDac_BoxPlot_Summary",dict_ScurveMeanVsThrDac_BoxPlot,"candle1")
     canvScurveSigmaVsThrDac_BoxPlot_Summary = make3x8Canvas("canvScurveSigmaVsThrDac_BoxPlot_Summary",dict_ScurveSigmaVsThrDac_BoxPlot,"candle1")
