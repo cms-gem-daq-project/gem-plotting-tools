@@ -500,7 +500,6 @@ if __name__ == '__main__':
                 lastUnremovedScurveMean = scurveMean
                 setLastUnremovedScurveMean = True
             if (thrDacVal < 50 and sigmaHighThrDacChiSquaredOverNdof < 0.5 and scurveSigma - scurveSigmaError > sigmaHighThrDacPlusError and scurveMean > 6 and scurveMean > lastUnremovedScurveMean) or (scurveMean > 2*lastUnremovedScurveMean):
-#            if (thrDacVal < 50 and sigmaHighThrDacChiSquaredOverNdof < 0.5 and scurveSigma - scurveSigmaError > sigmaHighThrDacPlusError and scurveMean > 6 and scurveMean > lastUnremovedScurveMean) or (thrDacVal < 60 and scurveMean > 45) or (scurveMean > 6 and scurveMean > 2*lastUnremovedScurveMean):
                 continue
             lastUnremovedScurveMean = scurveMean
             tgraph_scurveMeanVsThrDacForFit.SetPoint(tgraph_scurveMeanVsThrDacForFit.GetN(),thrDacVal,scurveMean)
@@ -517,7 +516,6 @@ if __name__ == '__main__':
         dict_ScurveMeanVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
         dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
-#        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(fitRange), max(fitRange) )
         dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),quartic,min(fitRange),max(fitRange),5)
         #require the first derivative to be positive at the lower boundary of the fit range 
         dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000) 
