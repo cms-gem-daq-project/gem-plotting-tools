@@ -14,7 +14,7 @@ Documentation
 -------------
 """
 
-from gempython.utils.gemlogger import printYellow
+from gempython.utils.gemlogger import printYellow, printRed
 
 def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     """
@@ -874,6 +874,56 @@ def parseCalFile(filename=None):
         pass
 
     return (calDAC2Q_m, calDAC2Q_b)
+
+def parseArmDacCalFile(filename):
+    """
+    Reads a text file and supplies the coefficients of the 
+    quartic polynomial used for used for converting between 
+    DAC units to charge units (in fC) for CFG_THR_ARM_DAC
+
+    Returns a tuple of numpy arrays where index i of the tuple
+    corresponds to the coefficient of x^(4-i).  The returned 
+    arrays are indexed by VFAT position.
+    
+    The structure of filename is expected to be:
+
+        vfatN/I:coef4/F:coef3/F:coef2/F:coef1/F:coef0/F
+        0 4.612e-8  -1.361e-5 0.001  0.092    -0.211
+        1 8.657e-8  -2.742e-5 0.003  2.936e-6 1.610
+        2 6.987e-8  -2.152e-5 0.002  0.042    4.880
+        3 -2.584e-8  1.127e-5 -0.001 0.204    -1.949
+        ...
+        ...
+
+    """
+    import numpy as np
+    import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
+    import ROOT as r
+
+    # Set the CAL DAC to fC conversion
+    coef4 = np.zeros(24)
+    coef3 = np.zeros(24)
+    coef2 = np.zeros(24)
+    coef1 = np.zeros(24)
+    coef0 = np.zeros(24)
+    list_bNames = ["vfatN","coef4","coef3","coef2","coef1","coef0"]
+    calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
+    try:
+        calTree.ReadFile(filename)
+    except IOError:
+        printRed("file {0} is not readable or does not exist, please cross-check".format(filename))
+        exit(os.EX_IOERR)
+    array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
+    
+    for dataPt in array_CalData:
+        coef4[dataPt['vfatN']] = dataPt['coef4']
+        coef3[dataPt['vfatN']] = dataPt['coef3']
+        coef2[dataPt['vfatN']] = dataPt['coef2']
+        coef1[dataPt['vfatN']] = dataPt['coef1']
+        coef0[dataPt['vfatN']] = dataPt['coef0']
+        pass
+    
+    return (coef4, coef3, coef2, coef1, coef0)
 
 def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     """

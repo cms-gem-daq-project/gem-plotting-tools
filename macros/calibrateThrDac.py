@@ -395,7 +395,7 @@ if __name__ == '__main__':
         print("Unabled to open file '{0}/calFile_{2}_{1}.txt'".format(elogPath,chamberName,thrDacName))
         print("Perhaps the path does not exist or you do not have write permissions?")
         exit(os.EX_IOERR)
-    calThrDacFile.write("vfatN/I:slope/F:intercept/F\n")
+    calThrDacFile.write("vfatN/I:coef4/F:coef3/F:coef2/F:coef1/F:coef0/F\n")
 
     ###################
     # Make output ROOT file
@@ -418,8 +418,8 @@ if __name__ == '__main__':
     ###################
     # Now Make plots & Fit DAC Curves
     ###################
-    print("| vfatN | cal_thr_m | cal_thr_m_err | cal_thr_b | cal_thr_b_err | noise | noise_err |")
-    print("| :---: | :-------: | :-----------: | :-------: | :-----------: | :---: | :-------: |")
+    print("| vfatN | coef4 | coef3 | coef2 | coef1 | coef0 | noise | noise_err |")
+    print("| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: |")
     fitRange = [int(item) for item in args.fitRange.split(",")]
     for vfat in range(-1,24):
         if vfat == -1:
@@ -505,10 +505,6 @@ if __name__ == '__main__':
             tgraph_scurveMeanVsThrDacForFit.SetPoint(tgraph_scurveMeanVsThrDacForFit.GetN(),thrDacVal,scurveMean)
             tgraph_scurveMeanVsThrDacForFit.SetPointError(tgraph_scurveMeanVsThrDacForFit.GetN()-1,0,scurveMeanError)
 
-        #a 4th order polynomial expanded about the lower edge of the fit range    
-        def quartic(x,par):    
-            return (par[0]*pow((x[0]-min(fitRange)),4)+par[1]*pow((x[0]-min(fitRange)),3))+par[2]*pow((x[0]-min(fitRange)),2)+par[3]*(x[0]-min(fitRange))+par[4]    
-            
         # Mean vs CFG_THR_*_DAC
         dict_canvScurveMeanVsThrDac[vfat] = r.TCanvas("canvScurveMeanVsThrDac_{0}".format(suffix),"Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveMeanVsThrDac[vfat].cd()
@@ -516,7 +512,7 @@ if __name__ == '__main__':
         dict_ScurveMeanVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
         dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
-        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),quartic,min(fitRange),max(fitRange),5)
+        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(fitRange),max(fitRange))
         #require the first derivative to be positive at the lower boundary of the fit range 
         dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000) 
         tgraph_scurveMeanVsThrDacForFit.Fit(dict_funcScurveMeanVsThrDac[vfat],"QR")
@@ -548,10 +544,13 @@ if __name__ == '__main__':
         dict_ScurveSigmaVsThrDac_BoxPlot[vfat].Write()
 
         # Write CFG_THR_*_DAC calibration file
-        calThrDacFile.write("{0}\t{1}\t{2}\n".format(
+        calThrDacFile.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n".format(
             vfat,
             dict_funcScurveMeanVsThrDac[vfat].GetParameter(0),
-            dict_funcScurveMeanVsThrDac[vfat].GetParameter(1))
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(1),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(2),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(3),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(4))
             )
 
         # Draw Legend?
@@ -575,12 +574,13 @@ if __name__ == '__main__':
         vfatOrAll = vfat
         if vfat == -1:
             vfatOrAll == "All"
-        print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} |".format(
+        print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} |".format(
             vfatOrAll,
             dict_funcScurveMeanVsThrDac[vfat].GetParameter(0),
-            dict_funcScurveMeanVsThrDac[vfat].GetParError(0),
             dict_funcScurveMeanVsThrDac[vfat].GetParameter(1),
-            dict_funcScurveMeanVsThrDac[vfat].GetParError(1),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(2),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(3),
+            dict_funcScurveMeanVsThrDac[vfat].GetParameter(4),
             func_ScurveSigmaVsThrDac.GetParameter(0),
             func_ScurveSigmaVsThrDac.GetParError(1))
             )
