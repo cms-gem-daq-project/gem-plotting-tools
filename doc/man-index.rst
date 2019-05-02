@@ -44,6 +44,7 @@ Miscellaneous
     :maxdepth: 1
 
     man/clusterAnaScurve
+    man/makePhaseScanPlots
     man/packageFiles4Docker
     man/plotChanLossRate
 

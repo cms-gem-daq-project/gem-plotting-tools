@@ -597,6 +597,230 @@ def getMapping(mappingFileName, isVFAT2=True):
 
     return ret_mapDict
 
+def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff,savePlots=True): 
+    """
+    Plots GBT phase scan data as a TH2F and the GBT phase set points as a TGraph for
+    each optohybrid found in the two input files.  Note it's assume that if OHX is in
+    one input file it's in the other.
+
+    Returns a tuple of dictionaries, the first element of the tuple is a dictionary
+    of TH2F objects with the phase scan data plotted; the second element of the tuple
+    is a dictionary of TGraph objects with the phase set points plotted.  Each of the
+    dictionaries uses ohN as the key value.
+
+    phaseScanFile   - file storing phase scan results, expected format to be what is 
+                      defined in xhal.reg_interface_gem.core.gbt_utils_extended function
+                      saveGBTPhaseScanResults
+    phaseSetPtsFile - file storing phase set points determined by testConnectivity.py
+    identifier      - String that will be inserted to all TObject Names, e.g. 'shelf02'
+    ohMask          - Optohybrids to consider, 12 bit number, a 1 in the N^th bit means
+                      plot this optohybrid
+    savePlots       - If true this will make a 4x3 grid plot showing the phase scan results
+                      and it will be stored under $ELOG_PATH
+    """
+    import numpy as np
+    import ROOT as r
+
+    # Create 2D plot showing phase scan results
+    # =========================================
+    # Load input data
+    arrayType = { 
+            'names':('ohN','vfatN','phase','nRepetitions','nSuccesses'), 
+            'formats':('i4','i4','i4','i4','i4') 
+            }
+    
+    from gempython.utils.gemlogger import printRed
+    import os
+    try:
+        phaseScanArray = np.loadtxt(phaseScanFile, dtype=arrayType, skiprows=1)
+    except IOError:
+        printRed("An exception has occurred\nProbably file:\n\t{0}\t\nDoes not exist or is not readable.".format(phaseScanFile))
+        exit(os.EX_IOERR)
+
+    # Strip all rows not found in ohMask
+    phaseScanArray = np.where( 
+            (ohMask >> phaseScanArray['ohN']) & 0x1,
+            phaseScanArray, 
+            np.array([(-1,-1,-1,-1,-1)],dtype=arrayType) 
+            )
+    index2Remove = np.where(phaseScanArray['ohN'] == -1)
+    phaseScanArray = np.delete(phaseScanArray,index2Remove)
+
+    # Make distributions
+    dict_phaseScanDists = {}
+    for ohN in range(12):
+        # Skip masked OH's
+        if( not ((ohMask >> ohN) & 0x1)):
+            continue
+
+        if identifier is not None:
+            name = "h2D_phaseScan_{0}_OH{1}".format(identifier,ohN)
+        else:
+            name = "h2D_phaseScan_OH{0}".format(ohN)
+            pass
+
+        dict_phaseScanDists[ohN] = r.TH2D(name,"",24,-0.5,23.5,16,-0.5,15.5)
+        dict_phaseScanDists[ohN].SetNdivisions(512,"X")
+        dict_phaseScanDists[ohN].GetXaxis().SetTitle("VFAT Position")
+        dict_phaseScanDists[ohN].GetYaxis().SetTitle("GBT Phase")
+        pass
+
+    # Fill distribution
+    for row in phaseScanArray:
+        dict_phaseScanDists[row['ohN']].SetBinContent(
+                    np.asscalar(row['vfatN'])+1,
+                    np.asscalar(row['phase'])+1,
+                    np.asscalar(row['nSuccesses'])
+                )
+        pass
+
+    # Create 1D plots showing selected phase set points
+    # =================================================
+    # Load input data
+    arrayType = { 'names':('link','vfatN','GBTPhase'), 'formats':('i4','i4','i4') }
+
+    try:
+        phaseSetPtsArray = np.loadtxt(phaseSetPtsFile, dtype=arrayType, skiprows=1)
+    except IOError:
+        printRed("An exception has occurred\nProbably file:\n\t{0}\t\nDoes not exist or is not readable.".format(phaseSetPtsFile))
+        exit(os.EX_IOERR)
+
+    # Strip all rows not found in ohMask
+    phaseSetPtsArray = np.where( 
+            (ohMask >> phaseSetPtsArray['link']) & 0x1,
+            phaseSetPtsArray, 
+            np.array([(-1,-1,-1)],dtype=arrayType) 
+            )
+    index2Remove = np.where(phaseSetPtsArray['link'] == -1)
+    phaseSetPtsArray = np.delete(phaseSetPtsArray,index2Remove)
+    
+    # Make distributions
+    dict_phaseSetPtDists = {}
+    for ohN in range(12):
+        # Skip masked OH's
+        if( not ((ohMask >> ohN) & 0x1)):
+            continue
+
+        dict_phaseSetPtDists[ohN] = r.TGraph(24)
+        dict_phaseSetPtDists[ohN].SetMarkerStyle(22)
+        dict_phaseSetPtDists[ohN].SetMarkerSize(1.0)
+        dict_phaseSetPtDists[ohN].SetMarkerColor(r.kGreen)
+        dict_phaseSetPtDists[ohN].GetXaxis().SetTitle("VFAT Position")
+        dict_phaseSetPtDists[ohN].GetYaxis().SetTitle("GBT Phase")
+
+        if identifier is not None:
+            name = "g_phaseSetPts_vs_vfatN_{0}_OH{1}".format(identifier,ohN)
+        else:
+            name = "g_phaseSetPts_vs_vfatN_OH{0}".format(ohN)
+            pass
+        dict_phaseSetPtDists[ohN].SetName(name)
+        pass
+
+    # Fill distributions
+    for row in phaseSetPtsArray:
+        dict_phaseSetPtDists[row['link']].SetPoint(
+                    np.asscalar(row['vfatN']),
+                    np.asscalar(row['vfatN']),
+                    np.asscalar(row['GBTPhase'])
+                )
+        pass
+
+    # Make an output canvas?
+    if savePlots:
+        from gempython.utils.wrappers import envCheck
+        envCheck('ELOG_PATH')
+        elogPath  = os.getenv('ELOG_PATH')
+
+        nPadX = 4
+        nPadY = 3
+        if identifier is not None:
+            name = "canv_GBTPhaseScanResults_{0}".format(identifier)
+        else:
+            name = "canv_GBTPhaseScanResults"
+
+        r.gROOT.SetBatch(True)
+        r.gStyle.SetOptStat(0)
+        thisCanv = r.TCanvas(name,"GBT Phase Scan Results",nPadX*600,nPadY*600)
+        thisCanv.Divide(nPadX,nPadY)
+        for ohN in range(12):
+            # Skip masked OH's
+            if( not ((ohMask >> ohN) & 0x1)):
+                continue
+
+            thisCanv.cd(ohN+1)
+            thisCanv.cd(ohN+1).SetGrid()
+            dict_phaseScanDists[ohN].Draw("COLZ")
+            dict_phaseSetPtDists[ohN].Draw("sameP")
+            thisLat = r.TLatex()
+            thisLat.SetTextSize(0.045)
+            thisLat.DrawLatexNDC(0.10,0.95,"OH{0}".format(ohN))
+            pass
+
+        thisCanv.SaveAs("{0}/{1}.png".format(elogPath,thisCanv.GetName()))
+        thisCanv.SaveAs("{0}/{1}.pdf".format(elogPath,thisCanv.GetName()))
+        pass
+
+    return (dict_phaseScanDists,dict_phaseSetPtDists)
+
+def getSinglePhaseScanPlot(ohN,phaseScanFile,phaseSetPtsFile,identifier=None,savePlots=True):
+    """
+    As getPhaseScanPlots but for a single optohybrid, defined by ohN, inside the input files.
+    Returns a tuple where elements are given by:
+    
+        [0] - TH2F object with the phase scan data plotted
+        [1] - TGraph object with the phase set points plotted
+
+    Arguments are defined as:
+
+    ohN             - Optohybrid number to make the plot for
+    phaseScanFile   - file storing phase scan results, expected format to be what is 
+                      defined in xhal.reg_interface_gem.core.gbt_utils_extended function
+                      saveGBTPhaseScanResults
+    phaseSetPtsFile - file storing phase set points determined by testConnectivity.py
+    identifier      - String that will be inserted to all TObject Names, e.g. 'shelf02'
+    savePlots       - If true will save the two output plots to disk
+    """
+
+    ohMask = (0x1 << ohN)
+    tuplePlotDicts = getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier,ohMask,False)
+    
+    phaseScanDist   = tuplePlotDicts[0][ohN]
+    phaseScanSetPts = tuplePlotDicts[1][ohN]
+
+    if savePlots:
+        from gempython.utils.wrappers import envCheck
+        envCheck('ELOG_PATH')
+        
+        import os
+        elogPath  = os.getenv('ELOG_PATH')
+        
+        if identifier is not None:
+            name = "canv_GBTPhaseScanResults_{0}".format(identifier)
+        else:
+            name = "canv_GBTPhaseScanResults"
+        pass
+
+        import ROOT as r
+        r.gROOT.SetBatch(True)
+        r.gStyle.SetOptStat(0)
+        canvPhaseScan = r.TCanvas(name,"GBT Phase Scan Results",600,600)
+        canvPhaseScan.cd()
+        canvPhaseScan.cd().SetGrid()
+        phaseScanDist.Draw("COLZ")
+        phaseScanSetPts.Draw("sameP")
+        thisLat = r.TLatex()
+        thisLat.SetTextSize(0.045)
+        if identifier is not None:
+            thisLat.DrawLatexNDC(0.10,0.95,"OH{0}: {1}".format(ohN,identifier))
+        else:
+            thisLat.DrawLatexNDC(0.10,0.95,"OH{0}".format(ohN))
+            pass
+
+        canvPhaseScan.SaveAs("{0}/{1}.png".format(elogPath,canvPhaseScan.GetName()))
+        canvPhaseScan.SaveAs("{0}/{1}.pdf".format(elogPath,canvPhaseScan.GetName()))
+
+    return (phaseScanDist, phaseScanSetPts)
+
 def getStringNoSpecials(inputStr):
     """
     returns a string without special characters
