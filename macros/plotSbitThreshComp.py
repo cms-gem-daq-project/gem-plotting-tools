@@ -43,7 +43,7 @@ executing the script:
 
 .. option:: -c,--calFileARM 
 
-    File specifying CFG_THR_ARM_DAC calibration per vfat.  If provided x-axis of each VFAT will be converted from DAC units to charge units (fC).  Format of file follows from TTree::ReadFile() with brnach names: 'vfatN/I:slope/F:intercept/F'
+    File specifying CFG_THR_ARM_DAC calibration per vfat.  If provided x-axis of each VFAT will be converted from DAC units to charge units (fC).  Format of file follows from TTree::ReadFile() with branch names: 'vfatN/I:coef4/F:coef3/F:coef2/F:coef1/F:coef0/F'
 
 .. option:: -n,--noLeg
 
@@ -75,7 +75,7 @@ def compareSBitThreshResults(args):
     elogPath = os.getenv('ELOG_PATH')
 
     # Get info from input file
-    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make3x8Canvas, parseCalFile, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make3x8Canvas, parseArmDacCalFile, parseListOfScanDatesFile
     parsedTuple = parseListOfScanDatesFile(args.filename,alphaLabels=args.alphaLabels)
     listChamberAndScanDate = parsedTuple[0]
     chamberName = listChamberAndScanDate[0][0]
@@ -84,7 +84,7 @@ def compareSBitThreshResults(args):
     # Parse calibration file if present
     arrayCalInfo = None 
     if args.calFileARM is not None:
-        arrayCalInfo = parseCalFile(args.calFileARM) # [0] -> Slope; [1] -> Intercept
+        arrayCalInfo = parseArmDacCalFile(args.calFileARM) # arrayCalInfo[i][vfatN] for coef of x^(4-i)
 
     legPlot = r.TLegend(0.5,0.5,0.9,0.9)
     
@@ -100,7 +100,7 @@ def compareSBitThreshResults(args):
             print 'Filepath %s/%s does not exist!'%(dirPath, infoTuple[1])
             print 'Please cross-check, exiting!'
             exit(os.EX_DATAERR)
-        filename = "%s/%s/SBitRateData/SBitRatePlots.root"%(dirPath, infoTuple[1])
+        filename = "%s/%s/SBitRatePlots.root"%(dirPath, infoTuple[1])
 
         # Load the file
         r.TH1.AddDirectory(False)
@@ -115,13 +115,8 @@ def compareSBitThreshResults(args):
         ###################
         # Get individual distributions
         ###################
-        for vfat in range(-1,24):
-            if vfat == -1:
-                suffix = "AllVFATs"
-            else:
-                suffix = "VFAT{0}".format(vfat)
-
-            dict_Histos[infoTuple[2]][vfat] = scanFile.Get("VFAT_Plots/Rate_Plots_1D/h_Rate_vs_vthr_{0}".format(suffix))
+        for vfat in range(24):
+            dict_Histos[infoTuple[2]][vfat] = scanFile.Get("VFAT{0}/THR_ARM_DAC/g1D_rate_vs_THR-ARM-DAC_vfat{0}".format(vfat))
             dict_Graphs[infoTuple[2]][vfat] = r.TGraph(dict_Histos[infoTuple[2]][vfat])
 
             # Do we convert x-axis to charge units?
@@ -130,14 +125,17 @@ def compareSBitThreshResults(args):
                     valX = r.Double()
                     valY = r.Double()
                     dict_Graphs[infoTuple[2]][vfat].GetPoint(pt, valX, valY)
-                    valX = arrayCalInfo[0][vfat] * valX + arrayCalInfo[1][vfat]
-                    dict_Graphs[infoTuple[2]][vfat].SetPoint(pt, valX, valY)
+                    valX_Q=0
+                    for coef in range(0,5):
+                        valX_Q+=arrayCalInfo[coef][vfat] * pow(valX,4-coef)
+                    dict_Graphs[infoTuple[2]][vfat].SetPoint(pt, valX_Q, valY)
                     pass
                 pass
 
             # Make the TMultiGraph Objects
+            suffix = "VFAT{0}".format(vfat)
             if idx == 0:
-                dict_MultiGraphs[vfat] = r.TMultiGraph("mGraph_RateVsThrDac_{0}".format(suffix),suffix)
+                dict_MultiGraphs[vfat] = r.TMultiGraph("mGraph_RateVsThrDac_vfat{0}".format(suffix),suffix)
 
             # Set Style of TGraph
             dict_Graphs[infoTuple[2]][vfat].SetLineColor(getCyclicColor(idx))
@@ -172,17 +170,9 @@ def compareSBitThreshResults(args):
     # Now Make plots
     ###################
 
-    for vfat in range(-1,24):
-        if vfat == -1:
-            directory = "Summary"
-            suffix = "AllVFats"
-        else:
-            directory = "VFAT{0}".format(vfat)
-            suffix = "VFAT{0}".format(vfat)
-            pass
-
+    for vfat in range(24):
         # Make Output Canvas
-        dict_canv[vfat] = r.TCanvas("canvSBitRate_{0}".format(suffix),"SBIT Rate by THR DAC",700,700)
+        dict_canv[vfat] = r.TCanvas("canvSBitRate_VFAT{0}".format(vfat),"SBIT Rate by THR DAC",700,700)
         dict_canv[vfat].cd()
         dict_canv[vfat].cd().SetLogy()
         dict_MultiGraphs[vfat].Draw("APE1")
@@ -209,7 +199,7 @@ def compareSBitThreshResults(args):
             pass
 
         # Store Output
-        thisDirectory = outFile.mkdir(directory)
+        thisDirectory = outFile.mkdir("VFAT{0}".format(vfat))
         thisDirectory.cd()
         dict_MultiGraphs[vfat].Write()
         dict_canv[vfat].Write()
@@ -250,7 +240,7 @@ if __name__ == '__main__':
 
     parser.add_argument("-a","--alphaLabels", action="store_true",help="Provide this argument if alphanumeric characters exist in the third column of the input file")
     parser.add_argument("-c","--calFileARM", type=str, 
-            help="File specifying CFG_THR_ARM_DAC calibration per vfat.  If provided x-axis of each VFAT will be converted from DAC units to charge units (fC).  Format of file follows from TTree::ReadFile() with brnach names: 'vfatN/I:slope/F:intercept/F'", default=None)
+            help="File specifying CFG_THR_ARM_DAC calibration per vfat.  If provided x-axis of each VFAT will be converted from DAC units to charge units (fC).  Format of file follows from TTree::ReadFile() with branch names: 'vfatN/I:coef4/F:coef3/F:coef2/F:coef1/F:coef0/F'", default=None)
     parser.add_argument("-n","--noLeg", action="store_true",
             help="Do not draw a TLegend on the output plots")
     parser.add_argument("-s","--savePlots", action="store_true",
