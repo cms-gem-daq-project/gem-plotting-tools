@@ -172,7 +172,7 @@ if __name__ == '__main__':
     chanMaskGroup.add_option("--maxEffPedPercent", type="float", dest="maxEffPedPercent", default=0.05,
                       help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set",
                       metavar="maxEffPedPercent")
-    chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=1.0,
+    chanMaskGroup.add_option("--highNoiseCut", type="float", dest="highNoiseCut", default=3.0,
                       help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set",
                       metavar="highNoiseCut")
     chanMaskGroup.add_option("--deadChanCutLow", type="float", dest="deadChanCutLow", default=None,
