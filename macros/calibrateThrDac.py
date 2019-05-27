@@ -494,7 +494,7 @@ if __name__ == '__main__':
             dict_ScurveMeanVsThrDac[vfat].GetPoint(thrDacIndexPairs[i][1],thrDacVal,scurveMean)
             scurveSigmaError = dict_ScurveSigmaVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
             scurveMeanError = dict_ScurveMeanVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
-            if scurveMean < 0.1:
+            if scurveMean < 0.1 or scurveMeanError/scurveMean < 0.001:
                 continue
             if not setLastUnremovedScurveMean:
                 lastUnremovedScurveMean = scurveMean
@@ -505,6 +505,18 @@ if __name__ == '__main__':
             tgraph_scurveMeanVsThrDacForFit.SetPoint(tgraph_scurveMeanVsThrDacForFit.GetN(),thrDacVal,scurveMean)
             tgraph_scurveMeanVsThrDacForFit.SetPointError(tgraph_scurveMeanVsThrDacForFit.GetN()-1,0,scurveMeanError)
 
+        #update the fit range
+        #this will not affect the fit, it is just for the output plots
+        thrDacVal = r.Double()
+        scurveMean = r.Double()
+        tgraph_scurveMeanVsThrDacForFit.GetPoint(tgraph_scurveMeanVsThrDacForFit.GetN()-1,thrDacVal,scurveMean)
+        perVfatFitRange = list(fitRange)
+        if thrDacVal > perVfatFitRange[0]:
+            perVfatFitRange[0] = float(thrDacVal)
+        tgraph_scurveMeanVsThrDacForFit.GetPoint(0,thrDacVal,scurveMean)
+        if thrDacVal < perVfatFitRange[1]:
+            perVfatFitRange[1] = float(thrDacVal)
+        
         # Mean vs CFG_THR_*_DAC
         dict_canvScurveMeanVsThrDac[vfat] = r.TCanvas("canvScurveMeanVsThrDac_{0}".format(suffix),"Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveMeanVsThrDac[vfat].cd()
@@ -512,7 +524,7 @@ if __name__ == '__main__':
         dict_ScurveMeanVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
         dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
-        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(fitRange),max(fitRange))
+        dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(perVfatFitRange),max(perVfatFitRange))
         #require the first derivative to be positive at the lower boundary of the fit range 
         dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000) 
         tgraph_scurveMeanVsThrDacForFit.Fit(dict_funcScurveMeanVsThrDac[vfat],"QR")
