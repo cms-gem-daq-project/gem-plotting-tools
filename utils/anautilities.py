@@ -1136,6 +1136,7 @@ def parseArmDacCalFile(filename):
         calTree.ReadFile(filename)
     except IOError:
         printRed("file {0} is not readable or does not exist, please cross-check".format(filename))
+        import os
         exit(os.EX_IOERR)
     array_CalData = rp.tree2array(tree=calTree, branches=list_bNames)
     
