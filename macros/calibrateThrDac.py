@@ -494,7 +494,8 @@ if __name__ == '__main__':
             dict_ScurveMeanVsThrDac[vfat].GetPoint(thrDacIndexPairs[i][1],thrDacVal,scurveMean)
             scurveSigmaError = dict_ScurveSigmaVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
             scurveMeanError = dict_ScurveMeanVsThrDac[vfat].GetErrorY(thrDacIndexPairs[i][1])
-            if scurveMean < 0.1 or scurveMeanError/scurveMean < 0.001:
+            from gempython.gemplotting.utils.anaInfo import scurveMeanMin, scurveMeanFracErrMin
+            if scurveMean < scurveMeanMin or scurveMeanError/scurveMean < scurveMeanFracErrMin:
                 continue
             if not setLastUnremovedScurveMean:
                 lastUnremovedScurveMean = scurveMean
