@@ -12,6 +12,11 @@ Documentation
 
 import string
 
+#: CFG_THR_ARM_DAC calibration parameters
+#: The CFG_THR_ARM_DAC calibration routine involves performing a fit of scurveMean vs CFG_THR_ARM_DAC in which some points with bad quality, defined by the parameters below, are removed
+scurveMeanMin = 0.1 #: points are removed if they satisfy scurveMean < scurveMeanMin
+scurveMeanFracErrMin = 0.001 #: points are removed if they satisfy scurveMeanError/scurveMean < scurveFracErrMin
+
 #: Nominal current and voltage values from Tables 9 and 10 of the VFAT3 manual
 #: The registers CFG_THR_ARM_DAC CFG_THR_ZCC_DAC may correspond to either a voltage or a current. Below I have used the voltage. Be careful if you have taken a current scan with these registers (dacSelect options 14 or 15).
 nominalDacValues = {
