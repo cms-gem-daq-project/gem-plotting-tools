@@ -580,7 +580,8 @@ if __name__ == '__main__':
                 # Set TObjects linked to TBranches
                 holder_curve = fitter.scanHistos[vfat][chan]
                 holder_curve.Copy(scurve_h)
-                scurve_fit = fitter.getFunc(vfat,chan).Clone('scurveFit_vfat%i_chan%i'%(vfat,chan))
+                holder_fit = fitter.getFunc(vfat,chan).Clone('scurveFit_vfat%i_chan%i'%(vfat,chan))
+                holder_fit.Copy(scurve_fit)
                 
                 # Filling the arrays for plotting later
                 if options.drawbad:
