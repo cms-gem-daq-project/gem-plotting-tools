@@ -470,6 +470,13 @@ def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
 def getCyclicColor(idx):
     return 30+4*idx
 
+def getDataPath():
+    from gempython.utils.wrappers import envCheck
+    envCheck("DATA_PATH")
+
+    import os
+    return os.getenv("DATA_PATH")
+
 def getDirByAnaType(anaType, cName, ztrim=4):
     from anaInfo import ana_config
     
@@ -516,6 +523,13 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         dirPath = "%s/%s/trim/"%(dataPath,cName)
 
     return dirPath
+
+def getElogPath():
+    from gempython.utils.wrappers import envCheck
+    envCheck("ELOG_PATH")
+
+    import os
+    return os.getenv("ELOG_PATH")
 
 def getEmptyPerVFATList(n_vfat=24):
     """
