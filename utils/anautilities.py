@@ -25,6 +25,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     Where ohKey is a tuple of (shelf,slot,link) providing the mapping for uTCA shelf -> slot -> link mapping
 
+    Will raise a ValueError if one or more DAC's are found to need a DAC value that places the DAC out of its
+    range to hit the correct bias voltage/current required.
+
     Here dacName are the values stored in the "nameX" TBranch of the input TTree.
 
         dacScanTree - Instance of gemDacCalTreeStructure.  Note the "nameY" TBranch must be either "ADC0" or "ADC1"
