@@ -81,7 +81,12 @@ if __name__ == '__main__':
         scandate = 'noscandate'
 
     from gempython.gemplotting.utils.anautilities import dacAnalysis
-    dacAnalysis(args, dacScanFile.dacScanTree, chamber_config, scandate=scandate)
+    try:
+        dacAnalysis(args, dacScanFile.dacScanTree, chamber_config, scandate=scandate)
+    except ValueError as err:
+        from gempython.utils.gemlogger import printRed
+        printRed(err.message)
+        printRed("VFATs above may *NOT* be properly biased")
     dacScanFile.Close()
 
     print("\nAnalysis completed. Goodbye")
