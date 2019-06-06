@@ -395,7 +395,8 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         for ohKey,vfatDACtuple in dictOfDACsWithBadBias.iteritems():
             err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
             pass
-        raise ValueError(err_msg)
+        from gempython.gemplotting.utils.exceptions import VFATDACBiasCannotBeReached
+        raise VFATDACBiasCannotBeReached(err_msg)
 
     return dict_dacVals
 
