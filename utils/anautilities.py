@@ -25,6 +25,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     Where ohKey is a tuple of (shelf,slot,link) providing the mapping for uTCA shelf -> slot -> link mapping
 
+    Will raise a ValueError if one or more DAC's are found to need a DAC value that places the DAC out of its
+    range to hit the correct bias voltage/current required.
+
     Here dacName are the values stored in the "nameX" TBranch of the input TTree.
 
         dacScanTree - Instance of gemDacCalTreeStructure.  Note the "nameY" TBranch must be either "ADC0" or "ADC1"
@@ -43,9 +46,13 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     import root_numpy as rp
     import numpy as np
-    list_bNames = ['dacValY','link','nameX','shelf','slot','vfatN']
+    list_bNames = ['dacValY','link','nameX','shelf','slot','vfatID','vfatN']
     vfatArray = rp.tree2array(tree=dacScanTree,branches=list_bNames)
     dacNameArray = np.unique(vfatArray['nameX'])
+
+    # Get VFATID's
+    vfatIDArray = getSubArray(vfatArray, ['vfatID','vfatN'])
+    vfatIDArray = np.sort(vfatIDArray,order='vfatN')['vfatID'] # index now gauranteed to match vfatN
     
     # make the crateMap
     list_bNames.remove('dacValY')
@@ -92,14 +99,14 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     from gempython.utils.gemlogger import colormsg
     import logging
     if adcName not in ['ADC0', 'ADC1']:
-        raise Exception(colormsg("Error: unexpected value of adcName: '%s'"%adcName,logging.ERROR), os.EX_DATAERR)
+        raise ValueError(colormsg("Error: unexpected value of adcName: '%s'"%adcName,logging.ERROR), os.EX_DATAERR)
 
     from gempython.gemplotting.utils.anaInfo import nominalDacValues, nominalDacScalingFactors
     nominal = {}
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         if dacName not in nominalDacValues.keys():
-            raise Exception(colormsg("Error: unexpected DAC Name: '{}'".format(dacName),logging.ERROR), os.EX_DATAERR)
+            raise ValueError(colormsg("Error: unexpected DAC Name: '{}'".format(dacName),logging.ERROR), os.EX_DATAERR)
         else:
             nominal[dacName] = nominalDacValues[dacName][0]
 
@@ -121,7 +128,8 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             elif nominalDacValues[dacName][1] == 'nA':
                 nominal[dacName] *= pow(10.0,-3)
             else:
-                raise Exception(colormsg("Error: unexpected units: '%s'"%nominalDacValues[dacName][1],logging.ERROR), os.EX_DATAERR)
+                # Maybe a TypeError is more appropriate...?
+                raise ValueError(colormsg("Error: unexpected units: '%s'"%nominalDacValues[dacName][1],logging.ERROR), os.EX_DATAERR)
 
     #the nominal reference current is 10 uA and it has a scaling factor of 0.5   
     nominal_iref = 10*0.5
@@ -160,7 +168,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 crateMap = np.delete(crateMap,(idx))
 
     if len(crateMap) == 0:
-        raise Exception(colormsg('No OHs with a calFile, exiting.',logging.ERROR),os.EX_DATAERR)
+        raise RuntimeError(colormsg('No OHs with a calFile, exiting.',logging.ERROR),os.EX_DATAERR)
            
     # Initialize nested dictionaries
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -270,6 +278,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = ndict()
     dict_dacVals = ndict()
+    dictOfDACsWithBadBias = {} # [ohKey] = (vfatN,vfatID,dacName)
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         maxDacValue = dict_maxByDacName[dacName]
@@ -290,6 +299,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
                 
                 if fittedDacValue != finalDacValue:
+                    dictOfDACsWithBadBias[ohKey] = (vfat,vfatIDArray[vfat],dacName)
                     errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (Shelf{7},Slot{8},OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
                             dacName,
                             fittedDacValue,
@@ -378,6 +388,15 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 pass
             pass
         pass
+
+    # Raise a ValueError if a DAC is found to be out of range
+    if len(dictOfDACsWithBadBias):
+        err_msg = "The following (vfatN,DAC Names) where found to be out of range"
+        for ohKey,vfatDACtuple in dictOfDACsWithBadBias.iteritems():
+            err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
+            pass
+        from gempython.gemplotting.utils.exceptions import VFATDACBiasCannotBeReached
+        raise VFATDACBiasCannotBeReached(err_msg)
 
     return dict_dacVals
 
@@ -851,6 +870,19 @@ def getStringNoSpecials(inputStr):
     inputStr = inputStr.replace('#','')
 
     return inputStr
+
+def getSubArray(structArray, fields):
+    """
+    Taken from: https://stackoverflow.com/a/21819324
+
+    Returns a view of a structured numpy array
+
+    structArray - structured numpy array
+    fields - list of column names in the structure array
+    """
+
+    dtype2 = np.dtype({name:structArray.dtype.fields[name] for name in fields})
+    return np.ndarray(structArray.shape, dtype2, structArray, 0, structArray.strides)
 
 def initVFATArray(array_dtype, nstrips=128):
     import numpy as np
