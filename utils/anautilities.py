@@ -880,7 +880,7 @@ def getSubArray(structArray, fields):
     structArray - structured numpy array
     fields - list of column names in the structure array
     """
-
+    import numpy as np
     dtype2 = np.dtype({name:structArray.dtype.fields[name] for name in fields})
     return np.ndarray(structArray.shape, dtype2, structArray, 0, structArray.strides)
 
