@@ -57,6 +57,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # make the crateMap
     list_bNames.remove('dacValY')
     list_bNames.remove('nameX')
+    list_bNames.remove('vfatID')
     list_bNames.remove('vfatN')
     crateMap = np.unique(rp.tree2array(tree=dacScanTree,branches=list_bNames))
 
