@@ -40,7 +40,7 @@ nominalDacValues = {
 
 #: From Tables 12 and 13 from the VFAT3 manual
 nominalDacScalingFactors = {
-        "CFG_CAL_DAC":10,
+        "CFG_CAL_DAC":10, # Valid only for currentPulse; if voltageStep this is 1
         "CFG_BIAS_PRE_I_BIT":0.2,
         "CFG_BIAS_PRE_I_BLCC":100,
         "CFG_BIAS_PRE_I_BSF":0.25,
@@ -51,7 +51,7 @@ nominalDacScalingFactors = {
         "CFG_BIAS_SD_I_BSF":0.25,
         "CFG_BIAS_CFD_DAC_1":1,
         "CFG_BIAS_CFD_DAC_2":1,
-        "CFG_HYST":1,
+        "CFG_HYST":5,
         "CFG_THR_ARM_DAC":1,
         "CFG_THR_ZCC_DAC":4,
         "CFG_BIAS_PRE_VREF":1,
