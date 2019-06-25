@@ -47,6 +47,7 @@ Miscellaneous
     man/makePhaseScanPlots
     man/packageFiles4Docker
     man/plotChanLossRate
+    man/plotTimeSeriesHV
 
 Missing pages
 -------------
