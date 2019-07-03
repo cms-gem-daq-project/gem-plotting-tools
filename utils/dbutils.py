@@ -28,10 +28,13 @@ def getGEMDBView(view, vfatList=None, debug=False):
 
     import os
     if view not in knownViews:
-        raise Exception("View {0} not in knownViews: {1}".format(view,knownViews),os.EX_USAGE)
+        from gempython.gemplotting.utils.exceptions import DBViewNotFound
+        raise DBViewNotFound("{}View {} not in knownViews: {}{}".format(colors.RED,view,knownViews,colors.ENDC),os.EX_USAGE)
 
     # Make base query
-    query='select * from CMS_GEM_MUON_VIEW.{0} data WHERE RUN_NUMBER = ( select max(RUN_NUMBER) as RUN_NUMBER from CMS_GEM_MUON_VIEW.{0})'.format(view)
+    query=('SELECT data.* FROM CMS_GEM_MUON_VIEW.{0} data '
+            'INNER JOIN (SELECT vfat3_barcode, MAX(run_number) AS run_number FROM CMS_GEM_MUON_VIEW.{0} GROUP BY vfat3_barcode) data_select '
+            'ON data.vfat3_barcode = data_select.vfat3_barcode AND data.run_number = data_select.run_number').format(view)
     
     # Add a filter on VFAT serial number?
     if vfatList is not None:
