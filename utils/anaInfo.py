@@ -4,7 +4,7 @@ r"""
 
 .. code-block:: python
 
-    import gempython.gemplotting.utils.anahistory
+    import gempython.gemplotting.utils.anaInfo
 
 Documentation
 -------------
@@ -60,6 +60,7 @@ nominalDacScalingFactors = {
 
 #: Types of analysis and corresponding analysis tools
 ana_config = {
+        "armDacCal":"calibrateThrDac.py",
         "dacScanV3":"dacScanV3.py",
         "latency":"anaUltraLatency.py",
         "sbitMonInt":"anaSBitMonitor.py",
@@ -80,8 +81,13 @@ ana_config = {
 #:   [0] -> path of root file inside scandate/
 #:   [1] -> name of TTree inside root file
 tree_names = {
+        "armDacCal":("calFile_CFG_THR_ARM_DAC_{DETECTOR}.root",None), # here DETECTOR should be the detector serial number, e.g. "GE11-X-S-CERN-0002", there is no TTree presently stored in this TFile hence "None"
+        "dacScanV3":("dacScanV3.root","dacScanTree"),
         "latency":("LatencyScanData.root","latTree"),
         "latencyAna":("LatencyScanData/latencyAna.root","latFitTree"),
+        #FIXME add sbitMon
+        "sbitRatech":("SBitRateData.roo","rateTree"),
+        "sbitRateor":("SBitRateData.roo","rateTree"),
         "scurve":("SCurveData.root","scurveTree"),
         "scurveAna":("SCurveData/SCurveFitData.root","scurveFitTree"),
         "threshold":("ThresholdScanData.root","thrTree"),
@@ -90,6 +96,7 @@ tree_names = {
         "thresholdvftrk":("ThresholdScanData.root","thrTree"),
         "thresholdAna":("ThresholdScanData/ThresholdPlots.root","thrAnaTree"),
         "trim":("SCurveData_Trimmed.root","scurveTree"),
+        "trimV3":("SCurveData_{CONDITION}.root","scurveTree"), # here CONDITION should be {Trimmed, or trimdacXX_trimPolY} for XX the trimDac point and Y the trimPol {0,1}
         "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
         }
 

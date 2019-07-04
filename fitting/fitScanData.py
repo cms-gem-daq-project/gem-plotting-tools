@@ -375,8 +375,8 @@ class ScanDataFitter(DeadChannelFinder):
                     pass
                 if debug:
                     print("Converged fit results:")
-                    print "| stepN | vfatN | vfatCH | isVFAT3 | p0 | p1 | p2 | Chi2 | NDF | NormChi2"
-                    print "| ----- | ----- | ------ | ------- | -- | -- | -- | Chi2 | NDF | NormChi2"
+                    print "| stepN | vfatN | vfatCH | isVFAT3 | p0 | p1 | p2 | Chi2 | NDF | NormChi2 |"
+                    print "| :---: | :---: | :----: | :-----: | :-: | :-: | :-: | :--: | :-: | :------: |"
                     print "| %i | %i | %i | %i | %f | %f | %f | %f | %i | %f |"%(
                             stepN,
                             vfat,

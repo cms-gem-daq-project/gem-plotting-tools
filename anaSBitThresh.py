@@ -72,23 +72,20 @@ if __name__ == '__main__':
 
     from gempython.utils.wrappers import envCheck
     envCheck("DATA_PATH")
-    envCheck("ELOG_PATH")
 
-    import os
-    elogPath = os.getenv("ELOG_PATH")
+    from gempython.gemplotting.utils.anautilities import getElogPath
+    elogPath = getElogPath()
 
     # load input file
     import ROOT as r
     sbitThreshFile = r.TFile(args.infilename,"READ")
 
     # determine scandate
-    if len(args.infilename.split('/')) > 1 and len(args.infilename.split('/')[len(args.infilename.split('/')) - 2].split('.')) == 5:
-        scandate = args.infilename.split('/')[len(args.infilename.split('/')) - 2]
-    else:    
-        scandate = 'noscandate'
+    from gempython.gemplotting.utils.anautilities import getScandateFromFilename
+    scandate = getScandateFromFilename(args.infilename)
 
     from gempython.gemplotting.mapping.chamberInfo import chamber_config
-    from gempython.gemplotting.utils.anautilities import getDirByAnaType, sbitRateAnalysis
+    from gempython.gemplotting.utils.threshAlgos import sbitRateAnalysis
     anaResults = sbitRateAnalysis(
             chamber_config = chamber_config, 
             rateTree = sbitThreshFile.rateTree,
@@ -101,10 +98,11 @@ if __name__ == '__main__':
     dict_dacValsBelowCutOff = anaResults[1]
 
     from gempython.utils.gemlogger import printGreen
+    from gempython.gemplotting.utils.anautilities import getDirByAnaType
     for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
         if scandate == 'noscandate':
             vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,chamber_config[ohKey]),'w')
-            printGreen("Output Data for {0} can be found in:\n\t\{1}/{0}\n".format(chamber_config[ohKey],elogPath))
+            printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(chamber_config[ohKey],elogPath))
         else:
             if perchannel:
                 strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
@@ -112,7 +110,7 @@ if __name__ == '__main__':
                 strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
                 pass
             vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,scandate),'w')
-            printGreen("Output Data for {0} can be found in:\n\t\{1}/{2}\n".format(chamber_config[ohKey],strDirName,scandate))
+            printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(chamber_config[ohKey],strDirName,scandate))
             pass
 
         vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")

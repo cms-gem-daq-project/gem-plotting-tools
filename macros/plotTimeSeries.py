@@ -28,7 +28,6 @@ def makePlots(chamberName, anaType, vt1bump, elog_path):
 if __name__== '__main__':
     import os
     from optparse import OptionParser, OptionGroup
-    from gempython.utils.wrappers import envCheck
     from gempython.gemplotting.utils.anautilities import getDirByAnaType, makeListOfScanDatesFile
 
     parser = OptionParser()
@@ -56,10 +55,9 @@ if __name__== '__main__':
     
     from gempython.gemplotting.mapping.chamberInfo import chamber_config
     
-    envCheck('DATA_PATH')
-    envCheck('ELOG_PATH')
-    dataPath  = os.getenv('DATA_PATH')
-    elog_path = os.getenv("ELOG_PATH")
+    from gempython.gemplotting.utils.anautilities import getDataPath, getElogPath
+    dataPath = getDataPath()
+    elog_path = getElogPath()
     vt1bump = 'vt1bump'+str(options.vt1bump)
     anaType = options.anaType
    

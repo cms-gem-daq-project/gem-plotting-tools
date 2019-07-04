@@ -325,7 +325,7 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
             dataFile = r.TFile(filename, "READ")
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
-        except Exception as e:
+        except AttributeError as e:
             print '%s may not exist in %s'%(treeName,filename)
             print e
             if skipBad:
@@ -440,7 +440,7 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
             dataFile = r.TFile(filename, "READ")
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
-        except Exception as e:
+        except AttributeError as e:
             print '%s may not exist in %s'%(treeName,filename)
             print e
             if skipBad:

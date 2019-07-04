@@ -8,13 +8,40 @@ r"""
 
 .. moduleauthor:: Brian Dorney <brian.l.dorney@cern.ch>
 
-Utilities for vfatqc scans
+Utilities for gem-plotting-tools scripts/macros and vfatqc scans
 
 Documentation
 -------------
 """
 
 from gempython.utils.gemlogger import printYellow, printRed
+
+def cleanup(listOfFilePaths,listOfFileObjects=None,listOfTFiles=None,perm="g+rw"):
+    """
+    Typically used inside the 'finally' block of a try...except statement.
+    For each element of listOfFilePaths this will recursively set permissions 'perm'.
+    For each element of listOfFileObjects this will call file::close()
+    For each element of listOfTFiles this will call TFile::Close()
+    """
+
+    from gempython.utils.wrappers import runCommand
+    for element in listOfFilePaths:
+        runCommand(["chmod", "-R", perm, element])
+        pass
+
+    if listOfFileObjects is not None:
+        for element in listOfFileObjects:
+            element.close()
+            pass
+        pass
+
+    if listOfTFiles is not None:
+        for element in listOfTFiles:
+            element.Close()
+            pass
+        pass
+
+    return
 
 def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     """
@@ -70,13 +97,8 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         arrayMask = np.logical_and(arrayMask, vfatArray['shelf'] == entry['shelf'])
         dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[arrayMask]['vfatN'])
 
-    from gempython.utils.wrappers import envCheck
-    envCheck("DATA_PATH")
-    envCheck("ELOG_PATH")
-
-    import os
-    dataPath = os.getenv("DATA_PATH")
-    elogPath = os.getenv("ELOG_PATH") 
+    dataPath = getDataPath()
+    elogPath = getElogPath()
     
     from gempython.utils.wrappers import runCommand
     for entry in crateMap:
@@ -87,8 +109,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         else:
             runCommand(["mkdir", "-p", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate)])
             runCommand(["chmod", "g+rw", "{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate)])
-            runCommand(["unlink", "{0}/{1}/dacScans/current".format(dataPath,chamber_config[ohKey])])
-            runCommand(["ln","-s","{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate),"{0}/{1}/dacScans/current".format(dataPath,chamber_config[ohKey])])
+            if scandate != "current":
+                runCommand(["unlink", "{0}/{1}/dacScans/current".format(dataPath,chamber_config[ohKey])])
+                runCommand(["ln","-s","{0}/{1}/dacScans/{2}".format(dataPath,chamber_config[ohKey],scandate),"{0}/{1}/dacScans/current".format(dataPath,chamber_config[ohKey])])
             pass
             
     # Determine which DAC was scanned and against which ADC
@@ -150,6 +173,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
 
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
+    import os
     for idx,entry in enumerate(crateMap):
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
         if ohKey not in calInfo.keys():
@@ -159,6 +183,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 tuple_calInfo = parseCalFile(calAdcCalFile)
                 calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
             else:    
+                # FIXME should perform a DB query with chipID's in input dacScanTree to get calibration constants
                 print("Skipping Shelf{0}, Slot{1}, OH{2}, detector {3}, missing {4} calibration file:\n\t{5}".format(
                     ohKey[0],
                     ohKey[1],
@@ -487,6 +512,53 @@ def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
 
     return hRetMap
 
+def getChamberNameFromFilename(filename, returnType=False):
+    """
+    Determines ChamberName from filename
+
+    If returnType is False this function returns a string 
+    specifying the ChamberName. If the ChamberName cannot 
+    be determined from the input filename None is returned
+
+    If returnType is True this function will return a tuple
+    where the first element is a string specifying the 
+    ChamberName and the second element will be the gemType.
+    Here gemType is the key from the gemVariants dictionary
+    from gempython.tools.hw_constants that was found in
+    the ChamberName, e.g. returned tuple is:
+
+        (ChamberName, gemType)
+
+    filename - string delimited by "/" characters; expected to have a Detector Name in the path somewhere
+    """
+    if not (len(filename.split("/")) > 1):
+        raise RuntimeError("Could Not Determine Detector Name from Input Filename: {0}".format(filename))
+
+    dataPath = getDataPath()
+    
+    import copy
+    tmpName = copy.deepcopy(filename)
+    tmpName = tmpName.replace(dataPath,"")
+
+    from gempython.tools.hw_constants import gemVariants
+    cName = None
+    thisType = None
+    for el in tmpName.split("/"):
+        for gemType in gemVariants.keys():
+            if gemType in el.lower():
+                cName = el
+                thisType = gemType
+                break
+            pass
+        if cName is not None:
+            break
+        pass
+
+    if returnType:
+        return (cName, thisType)
+    else:
+        return cName
+
 def getCyclicColor(idx):
     return 30+4*idx
 
@@ -510,12 +582,12 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         pass
 
     # Check Paths
-    from ...utils.wrappers import envCheck
-    envCheck('DATA_PATH')
-    dataPath  = os.getenv('DATA_PATH')
+    dataPath = getDataPath()
 
     dirPath = ""
-    if anaType == "dacScanV3":
+    if anaType == "armDacCal":
+        dirPath = "%s/%s/%s"%(dataPath,cName,anaType)
+    elif anaType == "dacScanV3":
         dirPath = "%s/%s"%(dataPath,anaType)
     elif anaType == "latency":
         dirPath = "%s/%s/%s/trk/"%(dataPath,cName,anaType)
@@ -524,9 +596,15 @@ def getDirByAnaType(anaType, cName, ztrim=4):
     elif anaType == "sbitMonRO":
         dirPath = "%s/%s/sbitMonitor/readout/"%(dataPath,cName)
     elif anaType == "sbitRatech":
-        dirPath = "%s/%s/sbitRate/perchannel/"%(dataPath,cName)
+        if cName is None:
+            dirPath = "%s/sbitRate/perchannel"%(dataPath)
+        else:
+            dirPath = "%s/%s/sbitRate/perchannel/"%(dataPath,cName)
     elif anaType == "sbitRateor":
-        dirPath = "%s/%s/sbitRate/channelOR/"%(dataPath,cName)
+        if cName is None:
+            dirPath = "%s/sbitRate/channelOR"%(dataPath)
+        else:
+            dirPath = "%s/%s/sbitRate/channelOR/"%(dataPath,cName)
     elif anaType == "scurve":
         dirPath = "%s/%s/%s/"%(dataPath,cName,anaType)
     elif anaType == "temperature":
@@ -560,6 +638,36 @@ def getEmptyPerVFATList(n_vfat=24):
     """
 
     return [ [] for vfat in range(0,n_vfat) ]
+
+def getGEBTypeFromFilename(filename, cName=None):
+    """
+    Determines GEBtype from filename
+
+    Returns a string specifying the GEB type.
+    If the GEB type cannot be determined from the input
+    filename returns None
+    """
+    if not (len(filename.split("/")) > 1):
+        raise RuntimeError("Could Not Determine Detector/GEB Type from Input Filename: {0}".format(filename))
+
+    from gempython.tools.hw_constants import gemVariants
+    if cName is None:
+        infoTuple = getChamberNameFromFilename(filename,True)
+        cName = infoTuple[0]
+        thisType = infoTuple[1]
+    else:
+        for gemType in gemVariants.keys():
+            if gemType in cName.lower():
+                thisType = gemType
+                break
+    
+    if cName is not None:
+        for identifier in cName.split("-"):
+            for detType in gemVariants[thisType]:
+                if identifier.lower() in detType:
+                    return detType
+    else:
+        return None
 
 def getMapping(mappingFileName, isVFAT2=True):
     """
@@ -630,6 +738,41 @@ def getMapping(mappingFileName, isVFAT2=True):
             ret_mapDict[int(mapping[0])]['vfatCH'][int(mapping[2])] = int(mapping[2])
 
     return ret_mapDict
+
+def getNumCores2Use(args):
+    """
+    Determines the number of cpu cores to use for parallel processing
+
+    args - object returned by argparse.ArgumentParser.parse_args() 
+
+    args is expected to have the following boolean attributes:
+    
+        light - 25% of cores will be used; rounded down
+        medium - 50% of cores will be used; rounded down
+        heavy - 75% of cores will be used; rounded down
+    """
+    from multiprocessing import cpu_count
+    try:
+        availableCores = cpu_count() # Docs say this may raise following exception: see https://docs.python.org/2/library/multiprocessing.html#miscellaneous
+    except NotImplementedError as err:
+        from gempython.utils.wrappers import runCommandWithOutput
+        availableCores = int(runCommandWithOutput('nproc').strip('\n'))
+
+    # Don't bother catching the AttributeError that would be raised if args doesn't have these
+    if args.light:
+        usageFactor = 0.25
+    elif args.medium:
+        usageFactor = 0.5
+    elif args.heavy:
+        usageFactor = 0.75
+    else:
+        raise Runtime("getNumCores2Use() - at least one of the usage {'light','medium','heavy'} options must be True")
+
+    if availableCores < 4:
+        printYellow("Your machine is a dinosaur and only has {0} core; we will only use 1 Core.  Analysis might take awhile...".format(availableCores))
+        return 1
+
+    return int(usageFactor*availableCores)
 
 def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff,savePlots=True): 
     """
@@ -796,6 +939,24 @@ def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff
 
     return (dict_phaseScanDists,dict_phaseSetPtDists)
 
+def getScandateFromFilename(infilename):
+    """
+    Searches an infilename for a substring of the form 'YYYY.MM.DD.hh.mm'.  If this 
+    is found the substring is returned as the scandate; otherwise the string
+    'noscandate' is returned.
+
+    Example infilename would be something like:
+
+        /your/dataPath/env/var/detectorName/scanType/YYYY.MM.DD.hh.mm/someTFile.root
+    """
+
+    if "current" in infilename:
+        return "current"
+    elif len(infilename.split('/')) > 1 and len(infilename.split('/')[len(infilename.split('/')) - 2].split('.')) == 5:
+        return infilename.split('/')[len(infilename.split('/')) - 2]
+    else:    
+        return 'noscandate'
+
 def getSinglePhaseScanPlot(ohN,phaseScanFile,phaseSetPtsFile,identifier=None,savePlots=True):
     """
     As getPhaseScanPlots but for a single optohybrid, defined by ohN, inside the input files.
@@ -884,6 +1045,15 @@ def getSubArray(structArray, fields):
     import numpy as np
     dtype2 = np.dtype({name:structArray.dtype.fields[name] for name in fields})
     return np.ndarray(structArray.shape, dtype2, structArray, 0, structArray.strides)
+
+def init_worker():
+    """
+    If used as the initializer argument for multiprocessing.Pool object
+    this will ignore KeyboardInterrupt exceptions in the worker processes
+    and let the parent process handle the exception
+    """
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def initVFATArray(array_dtype, nstrips=128):
     import numpy as np
@@ -1017,11 +1187,17 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     if initialContent is not None:
         for vfat in range(24):
             canv.cd(chamber_vfatPos2PadIdx[vfat])
-            initialContent[vfat].Draw(initialDrawOpt)
+            try:
+                initialContent[vfat].Draw(initialDrawOpt)
+            except KeyError as err:
+                continue
     if secondaryContent is not None:
         for vfat in range(24):
             canv.cd(chamber_vfatPos2PadIdx[vfat])
-            secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
+            try:
+                secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
+            except KeyError as err:
+                continue
     canv.Update()
     return canv
 
@@ -1073,8 +1249,8 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
     
     listOfScanDatesFile.write('ChamberName%sscandate\n'%delim)
     for scandate in listOfScanDates:
-	if "current" == scandate:
-	    continue
+        if "current" == scandate:
+            continue
         try:
             scandateInfo = [ int(info) for info in scandate.split('.') ]
         except ValueError as e:
@@ -1228,7 +1404,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     alphaLabels - True (False): the optional third column is understood as alphanumeric (floating point)
 
     The return value is a tuple:
-        [0] -> updated parsedListOfScanDates
+        [0] -> parsedListOfScanDates, a list of tuples of the form: (cName, scandate, indepVarValue)
         [1] -> indepVarName if present (empty string if not)
     """
 
@@ -1273,7 +1449,7 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
             else:
                 try:
                     indepVar = float(analysisList[2])
-                except Exception as e:
+                except ValueError as e:
                     print("Non-numeric input given, maybe you ment to call with option 'alphaLabels=True'?")
                     print("Exiting")
                     exit(os.EX_USAGE)
@@ -1392,256 +1568,3 @@ def saveSummaryByiEta(dictSummary, name='Summary', trimPt=None, drawOpt="colz"):
     canv.SaveAs(name)
 
     return
-
-def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outfilename='SBitRatePlots.root', scandate='noscandate'):
-    """
-    Analyzes a scan taken with sbitRateScanAllLinks(...) from gempython.vfatqc.utils.scanUtils
-    
-    Returns a tuple (boolean,dictionary) where the dictionary returned is:
-
-        dict_dacValsBelowCutOff[dacName][ohKey][vfat] = value
-
-    Where ohKey is a tuple of (shelf,slot,link) providing the mapping for uTCA shelf -> slot -> link mapping.
-    Here dacName are the values stored in the "nameX" TBranch of the input TTree.
-    And value is the value of dacName for which the SBIT rate is below the cutOffRate.
-
-    The boolean returned states whether the channelOR (false) or perchannel (true) analysis was performed
-
-    Additional input parameters are:
-
-        chamber_config  - chamber_config dictionary
-        debug           - Prints additional debugging information
-        rateTree        - instance of gemSbitRateTreeStructure
-        cutOffRate      - Theshold rate (in Hz) described above
-        outfilename     - Name of output TFile to be created
-        scandate        - Either a string 'noscandate' or an a datetime object formated as YYYY.MM.DD.hh.mm, e.g
-                          returned from "datetime.datetime.now().strftime("%Y.%m.%d.%H.%M")"
-    """
-
-    # Check $ENV
-    from gempython.utils.wrappers import envCheck
-    envCheck("DATA_PATH")
-    envCheck("ELOG_PATH")
-
-    import os
-    dataPath = os.getenv("DATA_PATH")
-    elogPath = os.getenv("ELOG_PATH") 
-
-    # Set default histogram behavior
-    import ROOT as r
-    r.TH1.SetDefaultSumw2(False)
-    r.gROOT.SetBatch(True)
-    r.gStyle.SetOptStat(1111111)
-
-    print("Loading info from input TTree")
-
-    # Get the data
-    import root_numpy as rp
-    import numpy as np
-    list_bNames = ['dacValX','link','nameX','rate','shelf','slot','vfatCH','vfatN']
-
-    vfatArray = rp.tree2array(tree=rateTree,branches=list_bNames)
-    dacNameArray = np.unique(vfatArray['nameX'])
-
-    # channelOR or perchannel?
-    vfatChannels = np.unique(vfatArray['vfatCH'])
-    if len(vfatChannels) == 1:
-        perchannel = False
-    else:
-        perchannel = True
-        pass
-
-    # make the crateMap
-    list_bNames.remove('dacValX')
-    list_bNames.remove('nameX')
-    list_bNames.remove('rate')
-    list_bNames.remove('vfatCH')
-    list_bNames.remove('vfatN')
-    crateMap = np.unique(rp.tree2array(tree=rateTree,branches=list_bNames))
-
-    # get nonzero VFATs
-    dict_nonzeroVFATs = {}
-    for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        arrayMask = np.logical_and(vfatArray['rate'] > 0, vfatArray['link'] == entry['link'])
-        arrayMask = np.logical_and(arrayMask, vfatArray['slot'] == entry['slot'])
-        arrayMask = np.logical_and(arrayMask, vfatArray['shelf'] == entry['shelf'])
-        dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[arrayMask]['vfatN'])
-
-    if debug:
-        printYellow("crateMap:\n{0}".format(crateMap))
-        printYellow("dacNameArray:\n{0}".format(dacNameArray))
-
-    # make output directories
-    from gempython.utils.wrappers import runCommand
-    for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        if scandate == 'noscandate':
-            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
-            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
-        else:
-            if perchannel:
-                strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
-            else:
-                strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
-                pass
-            runCommand(["mkdir", "-p", "{0}/{1}".format(strDirName,scandate)])
-            runCommand(["chmod", "g+rw", "{0}/{1}".format(strDirName,scandate)])
-            runCommand(["unlink", "{0}/current".format(strDirName)])
-            runCommand(["ln","-s","{0}/{1}".format(strDirName,scandate),"{0}/current".format(strDirName)])
-            pass
-        pass
-
-    # make nested dictionaries
-    from gempython.utils.nesteddict import nesteddict as ndict
-    dict_Rate1DVsDACNameX = ndict() #[dacName][ohKey][vfat] = TGraphErrors
-    dict_vfatCHVsDACNameX_Rate2D = ndict() #[dacName][ohKey][vfat] = TGraph2D
-    
-    # initialize a TGraphErrors and a TF1 for each vfat
-    for idx in range(len(dacNameArray)):
-        dacName = np.asscalar(dacNameArray[idx])
-        for entry in crateMap:
-            ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            for vfat in range(0,25): #24th VFAT represents "overall case"
-                # 1D Distributions
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat] = r.TGraphErrors()
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetName("g1D_rate_vs_{0}_vfat{1}".format(dacName.replace("_","-"),vfat))
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetXaxis().SetTitle(dacName)
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetYaxis().SetRangeUser(1e-1,1e8)
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetYaxis().SetTitle("SBIT Rate #left(Hz#right)")
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetMarkerStyle(23)
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetMarkerSize(0.8)
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetLineWidth(2)
-
-                # 2D Distributions
-                dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat] = r.TGraph2D()
-                dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].SetName("g2D_vfatCH_vs_{0}_rate_vfat{1}".format(dacName.replace("_","-"),vfat))
-                dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].GetXaxis().SetTitle(dacName)
-                dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].GetYaxis().SetTitle("VFAT Channel")
-                dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].GetZaxis().SetTitle("SBIT Rate #left(Hz#right)")
-                pass
-            pass
-        pass
-
-    # create output TFiles
-    outputFiles = {}         
-    for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        if scandate == 'noscandate':
-            outputFiles[ohKey] = r.TFile(elogPath+"/"+chamber_config[ohKey]+"/"+outfilename,'recreate')
-        else:    
-            if perchannel:
-                strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
-            else:
-                strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
-                pass
-            outputFiles[ohKey] = r.TFile(strDirName+scandate+"/"+outfilename,'recreate')
-            pass
-        pass
-
-    # Loop over events the tree and fill plots
-    print("Looping over stored events in rateTree")
-    from math import sqrt 
-    for event in rateTree:
-        ohKey = (event.shelf,event.slot,event.link)
-        vfat = event.vfatN
-
-        if vfat not in dict_nonzeroVFATs[ohKey]:
-            continue
-
-        #Get the DAC Name in question
-        dacName = str(event.nameX.data())
-
-        try:
-            if event.vfatCH == 128:
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetPoint(
-                        dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN(),
-                        event.dacValX,
-                        event.rate)
-                dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetPointError(
-                        dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()-1,
-                        0,
-                        sqrt(event.rate))
-            else:
-                dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].SetPoint(
-                        dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].GetN(),
-                        event.dacValX,
-                        event.vfatCH,
-                        event.rate)
-        except AttributeError:
-            print("Point Number: ", counter)
-            print("event.vfatCH = ", event.vfatCH)
-            print("dacName = ", dacName)
-            print("ohKey = ", ohKey)
-            print("vfat = ", vfat)
-            print("dict_Rate1DVsDACNameX[dacName].keys() = ", dict_Rate1DVsDACNameX.keys() )
-            print("dict_Rate1DVsDACNameX[dacName][ohKey].keys() = ", dict_Rate1DVsDACNameX[dacName][ohKey].keys() )
-            print("dict_Rate1DVsDACNameX[dacName][ohKey][vfat] = ", dict_Rate1DVsDACNameX[dacName][ohKey][vfat] )
-            print("dict_Rate1DVsDACNameX = ", dict_Rate1DVsDACNameX)
-            exit()
-
-            pass
-        pass
-
-    print("Determine when SBIT rate falls below {0} Hz and writing output data".format(cutOffRate))
-    #from array import array
-    dict_dacValsBelowCutOff = ndict()
-    for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])
-        # Per VFAT Poosition
-        for vfat in range(0,24):
-            thisVFATDir = outputFiles[ohKey].mkdir("VFAT{0}".format(vfat))
-
-            for idx in range(len(dacNameArray)):
-                dacName = np.asscalar(dacNameArray[idx])
-
-                thisDACDir = thisVFATDir.mkdir(dacName)
-                thisDACDir.cd()
-
-                dict_dacValsBelowCutOff[dacName][ohKey][vfat] = 255 #default to max
-                for point in range(0,dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()):
-                    dacValX = r.Double()
-                    rateVal = r.Double()
-                    dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetPoint(point,dacValX,rateVal)
-                    if rateVal <= cutOffRate:
-                        dict_dacValsBelowCutOff[dacName][ohKey][vfat] = int(dacValX)
-                        break
-                    pass
-
-                if perchannel:
-                    dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey][vfat].Write()
-                else:
-                    dict_Rate1DVsDACNameX[dacName][ohKey][vfat].Write()
-                    pass
-                pass
-            pass
-        for idx in range(len(dacNameArray)):
-            dacName = np.asscalar(dacNameArray[idx])
-            if perchannel:
-                canv_Summary2D = make3x8Canvas("canv_Summary_Rate2D_vs_{0}".format(dacName),dict_vfatCHVsDACNameX_Rate2D[dacName][ohKey],"TRI1")
-                for vfat in range(1,25):
-                    canv_Summary2D.cd(vfat).SetLogz()
-            else:
-                canv_Summary1D = make3x8Canvas("canv_Summary_Rate1D_vs_{0}".format(dacName),dict_Rate1DVsDACNameX[dacName][ohKey],"APE1")
-                for vfat in range(1,25):
-                    canv_Summary1D.cd(vfat).SetLogy()
-
-            if scandate == 'noscandate':
-                if perchannel:
-                    canv_Summary2D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,chamber_config[ohKey],canv_Summary2D.GetName()))
-                else:
-                    canv_Summary1D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,chamber_config[ohKey],canv_Summary1D.GetName()))
-            else:
-                if perchannel:
-                    strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
-                    canv_Summary2D.SaveAs("{0}/{1}/{2}.png".format(strDirName,scandate,canv_Summary2D.GetName()))
-                else:
-                    strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
-                    canv_Summary1D.SaveAs("{0}/{1}/{2}.png".format(strDirName,scandate,canv_Summary1D.GetName()))
-                    pass
-                pass
-            pass
-        outputFiles[ohKey].Close()
-        pass
-
-    return (perchannel, dict_dacValsBelowCutOff)

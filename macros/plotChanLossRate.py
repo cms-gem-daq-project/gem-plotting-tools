@@ -242,7 +242,7 @@ def getChanLossPlot(args, chamberName, infilename, startingTime):
     # Check infilename input file
     try:
         infilename = open(infilename, 'r')  
-    except Exception as e:
+    except IOError as e:
         print( '%s does not seem to exist or is not readable'%(infilename) )
         print( e )
         exit(os.EX_NOINPUT)
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         try:
             with open(args.fileObsData) as fileObsData:
                 obsDataList = fileObsData.readlines()
-        except Exception as e:
+        except IOError as e:
             print( '%s does not seem to exist or is not readable'%(fileObsData) )
             print( e )
             exit(os.EX_NOINPUT)

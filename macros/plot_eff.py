@@ -152,7 +152,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     try:
         array_VFATData = rp.root2array(filename_RAW,"latTree",list_bNames)
         pass
-    except Exception as e:
+    except IOError as e:
         print '%s does not seem to exist'%filename_RAW
         print e
         exit(os.EX_NOINPUT)
@@ -161,7 +161,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
     import ROOT as r
     try:
         anaFile = r.TFile(filename_ANA,"READ")
-    except Exception as e:
+    except IOError as e:
         print '%s does not seem to exist'%filename_ANA
         print e
         exit(os.EX_NOINPUT)
@@ -177,7 +177,7 @@ def calcEff(cName, scandate, vfatList, latBin, bkgSub=False):
                 vfatPos = r.Double()
                 gSignalNoBkg.GetPoint(vfat,vfatPos,vfatHits)
                 nHits += vfatHits
-            except Exception as e:
+            except AttributeError as e:
                 print "grVFATNSignalNoBkg not present in TFile %s"%filename_ANA
                 print "Maybe you forgot to analyze with the --fit, --latSigRange, and --latNoiseRange options?"
                 print e

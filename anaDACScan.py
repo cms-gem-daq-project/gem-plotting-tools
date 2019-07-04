@@ -58,10 +58,10 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Arguments to supply to anaDACScan.py')
 
-    parser.add_argument('infilename', type=str, help="Filename from which input information is read", metavar='infilename')
+    parser.add_argument('infilename', type=str, help="Filename from which input information is read")
     parser.add_argument('--assignXErrors', dest='assignXErrors', action='store_true', help="If this flag is set then an uncertain on the DAC register value is assumed, otherwise the DAC register value is assumed to be a fixed unchanging value (almost always the case).")
-    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format: <shelf> <slot> <link> /path/to/my/cal/file.txt<newline> <shelf> <slot> <link> /path/to/my/cal/file.txt<newline>...", metavar="calFileList")
-    parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written", metavar='outfilename')
+    parser.add_argument("--calFileList", type=str, help="File specifying which calFile to use for each OH. Format of each line: <shelf> <slot> <link> /path/to/my/cal/file.txt")
+    parser.add_argument('-o','--outfilename', dest='outfilename', type=str, default="DACFitData.root", help="Filename to which output information is written")
     parser.add_argument("-p","--print",dest="printSum", action="store_true", help="If provided prints a summary table to terminal for each DAC showing for each VFAT position the nominal value that was found")
     args = parser.parse_args()
 

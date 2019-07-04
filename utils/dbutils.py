@@ -1,3 +1,19 @@
+r"""
+``dbutils`` --- Database utilities
+============================================
+
+.. code-block:: python
+
+    import gempython.gemplotting.utils.dbutils
+
+.. moduleauthor:: Brian Dorney <brian.l.dorney@cern.ch>
+
+Database utilities for gem-plotting-tools scripts/macros and vfatqc scans
+
+Documentation
+-------------
+"""
+
 from gempython.utils.gemlogger import colors, getGEMLogger, printYellow
 from gempython.utils.wrappers import envCheck
 

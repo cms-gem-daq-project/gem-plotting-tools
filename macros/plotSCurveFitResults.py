@@ -167,6 +167,9 @@ if __name__ == '__main__':
 
     dict_ScurveMeanByiEta = ndict()
     dict_ScurveSigmaByiEta = ndict()
+
+    dict_ScurveEffPed_boxPlot = {}  # key: (chamberName,scandate)
+    dict_ScurveThresh_boxPlot = {}  # key: (chamberName,scandate)
     dict_ScurveSigma_boxPlot = {}  # key: (chamberName,scandate)
 
     # Get the plots from all files
@@ -284,6 +287,22 @@ if __name__ == '__main__':
         dict_ScurveEffPed[chamberAndScanDatePair][-1].SetMarkerColor(getCyclicColor(idx))
         dict_ScurveEffPed[chamberAndScanDatePair][-1].SetMarkerStyle(20+idx)
 
+        dict_ScurveEffPed_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveEffPed_All")
+        dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].SetName(
+                    "%s_%s_%s"%(
+                        dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].GetName(),
+                        chamberAndScanDatePair[0],
+                        chamberAndScanDatePair[1])
+                )
+
+        dict_ScurveThresh_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveMean_All")
+        dict_ScurveThresh_boxPlot[chamberAndScanDatePair].SetName(
+                    "%s_%s_%s"%(
+                        dict_ScurveThresh_boxPlot[chamberAndScanDatePair].GetName(),
+                        chamberAndScanDatePair[0],
+                        chamberAndScanDatePair[1])
+                )
+
         dict_ScurveSigma_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveSigma_All")
         dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetName(
                     "%s_%s_%s"%(
@@ -319,6 +338,8 @@ if __name__ == '__main__':
     canvScurveMean_DetSum = r.TCanvas("canvSCurveMeanDetSumAllScandates","Scurve Mean - Detector Summary",600,600)
     canvScurveSigma_DetSum = r.TCanvas("canvSCurveSigmaDetSumAllScandates","Scurve Sigma - Detector Summary",600,600)
     canvScurveEffPed_DetSum = r.TCanvas("canvSCurveEffPedDetSumAllScandates","Scurve EffPed - Detector Summary",600,600)
+    canvScurveEffPed_boxPlot = r.TCanvas("canvSCurveEffPed_boxPlot","Scurve EffPed - Detector Summary boxPlot",600,600)
+    canvScurveThresh_boxPlot = r.TCanvas("canvSCurveMean_boxPlot","Scurve Mean - Detector Summary boxPlot",600,600)
     canvScurveSigma_boxPlot = r.TCanvas("canvSCurveSigma_boxPlot","Scurve Sigma - Detector Summary boxPlot",600,600)
     plotLeg = r.TLegend(0.1,0.65,0.45,0.9)
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
@@ -397,16 +418,42 @@ if __name__ == '__main__':
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("E1")
         else:
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("sameE1")
-	
-	canvScurveSigma_boxPlot.cd()
-	dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
-	dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
-	if idx == 0:
+    
+        dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
+        dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
+
+        dict_ScurveThresh_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
+        dict_ScurveThresh_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
+
+        dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
+        dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
+        if idx == 0:
+            dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].GetXaxis().SetTitle("VFAT position")
+            dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].GetYaxis().SetTitle("Effective Pedestal #left(A.U.#right)")
+
+            dict_ScurveThresh_boxPlot[chamberAndScanDatePair].GetXaxis().SetTitle("VFAT position")
+            dict_ScurveThresh_boxPlot[chamberAndScanDatePair].GetYaxis().SetTitle("Threshold #left(fC#right)")
+
             dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetXaxis().SetTitle("VFAT position")
             dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetYaxis().SetTitle("Noise #left(fC#right)")
+
+            canvScurveEffPed_boxPlot.cd()
+            dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].Draw("candle1")
+            
+            canvScurveThresh_boxPlot.cd()
+            dict_ScurveThresh_boxPlot[chamberAndScanDatePair].Draw("candle1")
+            
+            canvScurveSigma_boxPlot.cd()
             dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1")
-	else:
-	    dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1 same")
+        else:
+            canvScurveEffPed_boxPlot.cd()
+            dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].Draw("candle1 same")
+            canvScurveThresh_boxPlot.cd()
+            dict_ScurveThresh_boxPlot[chamberAndScanDatePair].Draw("candle1 same")
+            canvScurveSigma_boxPlot.cd()
+            dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1 same")
+
+            pass
 
         # Fill Legend - use VFAT0 of each
         plotLeg.AddEntry(dict_fitSum[chamberAndScanDatePair][0],chamberAndScanDatePair[2],"LPE")
@@ -485,6 +532,12 @@ if __name__ == '__main__':
         canvScurveEffPed_DetSum.cd()
         plotLeg.Draw("same")
 
+        canvScurveEffPed_boxPlot.cd()
+        plotLeg.Draw("same")
+        
+        canvScurveThresh_boxPlot.cd()
+        plotLeg.Draw("same")
+        
         canvScurveSigma_boxPlot.cd()
         plotLeg.Draw("same")
         pass
@@ -500,6 +553,8 @@ if __name__ == '__main__':
     canvScurveMean_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_DetSum.GetName()))
     canvScurveSigma_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_DetSum.GetName()))
     canvScurveEffPed_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveEffPed_DetSum.GetName()))
+    canvScurveEffPed_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveEffPed_boxPlot.GetName()))
+    canvScurveThresh_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveThresh_boxPlot.GetName()))
     canvScurveSigma_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_boxPlot.GetName()))
 
     # Save summary canvas objects in output root file
@@ -542,6 +597,8 @@ if __name__ == '__main__':
     canvScurveSigma_DetSum.Write()
     dict_mGraph_ScurveSigma[-1].Write()
     canvScurveEffPed_DetSum.Write()
+    canvScurveEffPed_boxPlot.Write()
+    canvScurveThresh_boxPlot.Write()
     canvScurveSigma_boxPlot.Write()
 
     print "Your plots can be found in:"

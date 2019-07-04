@@ -225,10 +225,9 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
         dataFile = r.TFile(filename, "READ")
         dataTree = dataFile.Get(treeName)
         knownBranches = dataTree.GetListOfBranches()
-    except Exception as e:
+    except AttributeError as e:
         print 'getPlotFromTree() - %s may not exist in %s, please cross check'%(treeName,filename)
         print e
-        #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
         exit(os.EX_DATAERR)
         pass
 
@@ -264,7 +263,6 @@ def getPlotFromTree(filename, treeName, expression, selection=""):
         print("getPlotFromTree() - Please cross check and try again")
         print("")
         print(e)
-        #exit(os.EX_NOTFOUND) #Weird, not found but described in: https://docs.python.org/2/library/os.html#process-management
         exit(os.EX_DATAERR)
 
     # Get the plot and return it to the user

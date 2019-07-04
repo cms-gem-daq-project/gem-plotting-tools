@@ -9,17 +9,19 @@ if __name__ == '__main__':
     import os
     import sys
     
-    from gempython.gemplotting.utils.anaoptions import parser
-    parser.add_option("--checkInvalid",action="store_true", dest="checkInvalid",
-            help="If provided invalid sbits will be considered", metavar="checkInvalid")
+    import argparse
+    from gempython.gemplotting.utils.anaoptions import parent_parser
+    parser = argparse.ArgumentParser(description="Options to give to anaSBitMonitor.py", parents=[parent_parser])
+    parser.add_argument("--checkInvalid",action="store_true",help="If provided invalid sbits will be considered")
     
     parser.set_defaults(outfilename="SBitMonitorData.root")
-    (options, args) = parser.parse_args()
-    filename = options.filename[:-5]
-    os.system("mkdir " + options.filename[:-5])
+    args = parser.parse_args()
+    
+    filename = args.filename[:-5]
+    os.system("mkdir " + args.filename[:-5])
 
     print filename
-    outfilename = options.outfilename
+    outfilename = args.outfilename
 
     import ROOT as r
     #r.TH1.SetDefaultSumw2(True)
@@ -59,7 +61,7 @@ if __name__ == '__main__':
     rateMap = {}
     from gempython.gemplotting.utils.anautilities import formatSciNotation
     for isValid in isValidValues:
-        if not isValid and not options.checkInvalid:
+        if not isValid and not args.checkInvalid:
             continue
 
         if isValid:
@@ -191,7 +193,7 @@ if __name__ == '__main__':
             print("processed {0} events so far".format(entry.evtNum))
 
         # Skip this event because it's invaldi?
-        if not isValid and not options.checkInvalid:
+        if not isValid and not args.checkInvalid:
             continue
 
         # Summary Plots
@@ -270,7 +272,7 @@ if __name__ == '__main__':
 
     print("Filling multiplicity distributions")
     for isValid in isValidValues:
-        if not isValid and not options.checkInvalid:
+        if not isValid and not args.checkInvalid:
             continue
         
         for calEnable in calEnableValues:
@@ -285,7 +287,7 @@ if __name__ == '__main__':
     print("Making summary plots")
     from gempython.gemplotting.utils.anautilities import make3x8Canvas, saveSummary
     for isValid in isValidValues:
-        if not isValid and not options.checkInvalid:
+        if not isValid and not args.checkInvalid:
             continue
         
         if isValid:
@@ -387,7 +389,7 @@ if __name__ == '__main__':
         dirVFAT = outF.mkdir("VFAT{0}".format(vfat))
 
         for isValid in isValidValues:
-            if not isValid and not options.checkInvalid:
+            if not isValid and not args.checkInvalid:
                 continue
 
             if isValid:
@@ -428,7 +430,7 @@ if __name__ == '__main__':
     # Summary Plots
     dirSummary = outF.mkdir("Summary")
     for isValid in isValidValues:
-        if not isValid and not options.checkInvalid:
+        if not isValid and not args.checkInvalid:
             continue
 
         if isValid:
