@@ -131,4 +131,4 @@ if __name__ == '__main__':
         printGreen("Analysis completed successfully")
     finally:
         from gempython.gemplotting.utils.anautilities import cleanup
-        cleanup( [filePath] )
+        cleanup( [outputDir] )
