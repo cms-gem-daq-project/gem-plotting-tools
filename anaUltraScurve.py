@@ -27,9 +27,9 @@ if __name__ == '__main__':
     chanMaskGroup = parser.add_argument_group(
             title="Options for channel mask decisions", 
             description="Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
-    chanMaskGroup.add_argument("--maxEffPedPercent", type=float, default=0.05,
+    chanMaskGroup.add_argument("--maxEffPedPercent", type=float, default=0.02,
                       help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set")
-    chanMaskGroup.add_argument("--highNoiseCut", type=float, default=3.0,
+    chanMaskGroup.add_argument("--highNoiseCut", type=float, default=1.5,
             help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set")
     chanMaskGroup.add_argument("--deadChanCutLow", type=float, default=None,
                       help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set")
