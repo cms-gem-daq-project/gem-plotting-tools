@@ -169,7 +169,7 @@ def calArmDACParallelAna(args):
     from gempython.gemplotting.utils.anautilities import getDirByAnaType, getGEBTypeFromFilename, parseListOfScanDatesFile
     from gempython.gemplotting.utils.anaInfo import tree_names
     for geoAddr,calInfoTuple in dictOfFiles.iteritems():
-        listOfScandatesFile = calInfoTuple[0]
+        listOfScandatesFile = calInfoTuple[0].format(DETECTOR=chamber_config[geoAddr])
         listOfScurveTuples = parseListOfScanDatesFile(listOfScandatesFile,False,args.delimiter)[0]
 
         for scurveTuple in listOfScurveTuples:
@@ -177,7 +177,7 @@ def calArmDACParallelAna(args):
             thisScandate = scurveTuple[1]
 
             # Make assumption here that cName matches chamber_config[geoAddr]
-            if cName is not chamber_config[geoAddr]:
+            if cName != chamber_config[geoAddr]:
                 printRed("calibrateArmDAC() {0} is not found in chamber_config, skipping scandate {1} of input file {2}".format(
                     cName,
                     thisScandate,
@@ -195,7 +195,8 @@ def calArmDACParallelAna(args):
                     tree_names["scurve"][0]) # Better readability?
             if not os.path.isfile(fullPath2File) and os.path.isfile(fullPath2FileNoAna):
                 gebType = getGEBTypeFromFilename(fullPath2FileNoAna,cName)
-                dictOfScurvesWithoutAna[geoAddr] = (fullPath2FileNoAna,cName,gebType)
+                newGeoAddr = (geoAddr[0], geoAddr[1], geoAddr[2], thisScandate)
+                dictOfScurvesWithoutAna[newGeoAddr] = (fullPath2FileNoAna,cName,gebType)
             elif not os.path.isfile(fullPath2File) and not os.path.isfile(fullPath2FileNoAna):
                 printRed("calibrateArmDAC() - I did not find a valid raw scurve or analyzed scurve file for {0} scandate {1} from input file {2}".format(
                     cName,
@@ -208,6 +209,13 @@ def calArmDACParallelAna(args):
     # Analyze any raw scurve files needing analysis
     from gempython.utils.wrappers import runCommand
     if len(dictOfScurvesWithoutAna) > 0:
+        if args.debug:
+            msg="Following scurve files need analysis:\n"
+            for geoAddr,infoTuple in dictOfScurvesWithoutAna.iteritems():
+                msg="{0}\n\t{1}{2}{3}".format(msg,colors.GREEN,infoTuple[0],colors.ENDC)
+            print("{0}\n".format(msg))
+            pass
+
         # Make output directories and set permissions
         makeOutDirectories(dictOfScurvesWithoutAna)
 
@@ -228,13 +236,13 @@ def calArmDACParallelAna(args):
         print("Calibration CFG_THR_ARM_DAC; please be patient")
         pool.map_async(calibrateThrDACStar,
                 itertools.izip(
-                    [calInfoTuple[0] for calInfoTuple in dictOfFiles.vales()],                                  #inputFile
-                    ["0,255" for calInfoTuple in dictOfFiles.vales()],                                          #fitRange
-                    [None for calInfoTuple in dictOfFiles.vales()],                                             #listOfVFATs
-                    [args.noLeg for calInfoTuple in dictOfFiles.vales()],                                       #noLeg
-                    [calInfoTuple[0][0:calInfoTuple[0].rfind("/")+1] for calInfoTuple in dictOfFiles.vales()],  #outputDir
-                    [not args.doNotSavePlots for calInfoTuple in dictOfFiles.vales()],                          #savePlots
-                    [args.debug for calInfoTuple in dictOfFiles.vales()]                                        # debug
+                    [calInfoTuple[0].format(DETECTOR=calInfoTuple[1]) for calInfoTuple in dictOfFiles.values()], #inputFile
+                    ["0,255" for calInfoTuple in dictOfFiles.values()],                                          #fitRange
+                    [None for calInfoTuple in dictOfFiles.values()],                                             #listOfVFATs
+                    [args.noLeg for calInfoTuple in dictOfFiles.values()],                                       #noLeg
+                    [calInfoTuple[0][0:calInfoTuple[0].rfind("/")+1] for calInfoTuple in dictOfFiles.values()],  #outputDir
+                    [args.savePlots for calInfoTuple in dictOfFiles.values()],                                   #savePlots
+                    [args.debug for calInfoTuple in dictOfFiles.values()]                                        # debug
                     )
                 ).get(1800) # wait at most 30 minutes, this should be "relatively" quick
     except KeyboardInterrupt:
@@ -373,9 +381,9 @@ def getFileList(anaType,chamber_config,scandate,debug=False,GEBtype=None,inputfi
                     infoTuple = (filename,cName,None)
                     pass
                 
-                # If anaType is trimV3 or armDacCal check if the path, excluding file, is valid
+                # If anaType is trimV3, armDacCal or armDacCalAna check if the path, excluding file, is valid
                 # For all other anaTypes check if the file is valid
-                if (((anaType == "trimV3") or (anaType == "armDacCal")) and os.path.isdir(thisPath)):
+                if (((anaType == "trimV3") or ("armDacCal" in anaType)) and os.path.isdir(thisPath)):
                     fileDict[geoAddr]=infoTuple
                     listOfFoundFiles.append(filename)
                 elif os.path.isfile(filename):
@@ -400,7 +408,7 @@ def getFileList(anaType,chamber_config,scandate,debug=False,GEBtype=None,inputfi
 
         fileDict[geoAddr]=(inputfilename,cName,detType)
     elif listOfScandatesFile is not None:
-        listOfUnsupportedTypes = ["armDacCal","dacScanV3","sbitRatech","sbitRateor"]
+        listOfUnsupportedTypes = ["armDacCal","armDacCalAna","dacScanV3","sbitRatech","sbitRateor"]
         if anaType in listOfUnsupportedTypes:
             raise RuntimeError("getFileList() does not support listOfScandatesFile input with anaType {0}".format(anaType)) 
 
@@ -421,9 +429,9 @@ def getFileList(anaType,chamber_config,scandate,debug=False,GEBtype=None,inputfi
                 thisPath = "{0}/{1}".format(getDirByAnaType(anaType,cName),scandate)
             filename = "{0}/{1}".format(thisPath,tree_names[anaType][0])
 
-            # If anaType is trimV3 or armDacCal check if the path, excluding file, is valid
+            # If anaType is trimV3, armDacCal or armDacCalAna check if the path, excluding file, is valid
             # For all other anaTypes check if the file is valid
-            if (((anaType == "trimV3") or (anaType == "armDacCal")) and (not os.path.isdir(thisPath))):
+            if (((anaType == "trimV3") or ("armDacCal" in anaType)) and (not os.path.isdir(thisPath))):
                 printYellow("Path {0} does not exist or is not readable; no matching path for entry ({1},{2},{3}). Skipping".format(thisPath,cName,scandate,anaType))
                 continue
             elif not os.path.isfile(filename):
@@ -591,21 +599,25 @@ def scurveMultiProcessing(args, dictOfFiles):
         printRed("Caught KeyboardInterrupt, terminating workers")
         pool.terminate()
         printRed("Analysis Failed")
+        sys.exit()
     except Exception as err:
         printRed("Caught {0}: {1}, terminating workers".format(type(err), err.message))
         pool.terminate()
         traceback.print_exc(file=sys.stdout)
         printRed("Analysis Failed")
+        sys.exit()
     except: # catch *all* exceptions
         e = sys.exc_info()[0]
         printRed("Caught non-Python Exception %s"%(e))
         pool.terminate()
         traceback.print_exc(file=sys.stdout)
         printRed("Analysis Failed")
+        sys.exit()
     else:
         printGreen("Analysis Completed Successfully")
         pool.close()
         pool.join()
+        analysisPassed = True
     finally:
         # Ensure permissions of all files in subdirectories have group read and write
         setPermissions(dictOfFiles)
@@ -857,7 +869,7 @@ if __name__ == '__main__':
     parser_armDacCal = subparserCmds.add_parser("armDacCal", help="Uses the anaUltraScurve.py and calibrateThrDac.py tools to analyze calibration data of CFG_THR_ARM_DAC.  This will first check if all scurves in the input listOfScandates files specified by the scandate or inputfilename option have been analyzed.  If not it will analyze them all in parallel.  Then it will perform all calibration analyses in parallel", parents = listOfParentParsers4Scurves)
 
     parser_armDacCal.add_argument("--delimiter",type=str,default="\t",help="Character used to delimit the listOfScandates files that will be analyzed with the scandate or inputfilename option")
-    parser_armDacCal.add_argument("--doNotSavePlots",action="store_true",help="Add this argument if you do *not* want to save all *.png files")
+    parser_armDacCal.add_argument("--savePlots",action="store_true",help="Add this argument if you want to save per VFAT output *.png files")
     parser_armDacCal.add_argument("-n","--noLeg",action="store_true", help="Add this option if you do not want output plots to have a legend drawn on them")
 
     parser_armDacCal.set_defaults(func=calArmDACParallelAna)

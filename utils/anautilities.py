@@ -304,7 +304,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # Determine DAC values to achieve recommended bias voltage and current settings
     graph_dacVals = ndict()
     dict_dacVals = ndict()
-    dictOfDACsWithBadBias = {} # [ohKey] = (vfatN,vfatID,dacName)
+    dictOfDACsWithBadBias = {} # [(shelf,slot,link,vfat)] = (vfatID,dacName)
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         maxDacValue = dict_maxByDacName[dacName]
@@ -325,7 +325,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
                 
                 if fittedDacValue != finalDacValue:
-                    dictOfDACsWithBadBias[ohKey] = (vfat,vfatIDArray[vfat],dacName)
+                    dictOfDACsWithBadBias[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
                     errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (Shelf{7},Slot{8},OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
                             dacName,
                             fittedDacValue,

@@ -283,7 +283,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         dict_vfatChanLUT = getMapping(args.extChanMapping)
     elif GEBtype == 'long':
         dict_vfatChanLUT = getMapping(MAPPING_PATH+'/longChannelMap.txt')
-    if GEBtype == 'short':
+    elif GEBtype == 'short':
         dict_vfatChanLUT = getMapping(MAPPING_PATH+'/shortChannelMap.txt')
     else:
         outF.Close()
@@ -814,8 +814,16 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         saveSummary(encSummaryPlots, None, '%s/ScurveSigmaSummary.png'%outputDir, None, drawOpt="AP")
 
         #BoxPlot
-        minThreshRange = np.nanmin(allThresh[allThresh != 0])*0.9
-        maxThreshRange = np.nanmax(allThresh[allThresh != 0])*1.1
+        try:
+            minThreshRange = np.nanmin(allThresh[allThresh != 0])*0.9
+        except ValueError:
+            minThreshRange = 0
+            pass
+        try:
+            maxThreshRange = np.nanmax(allThresh[allThresh != 0])*1.1
+        except ValueError:
+            maxThreshRange = 80
+            pass
         canvasBoxPlot_Thresh = r.TCanvas("h2Thresh","h2Thresh",0,0,1200,1000)
         h2DetThresh_All.SetStats(0)
         h2DetThresh_All.GetXaxis().SetTitle("VFAT position")

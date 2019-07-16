@@ -290,6 +290,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
         if not args.isVFAT2:
             list_bNames.append("trimPolarity")
 
+        from gempython.gemplotting.utils.anautilities import initVFATArray
         array_VFATSCurveData = rp.root2array(fileScurveFitTree,treename="scurveFitTree",branches=list_bNames)
         dict_vfatTrimMaskData = dict((idx,initVFATArray(array_VFATSCurveData.dtype)) for idx in np.unique(array_VFATSCurveData[list_bNames[0]]))
         for dataPt in array_VFATSCurveData:
@@ -377,7 +378,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     #Update channel registers configuration file
     if fileScurveFitTree is not None:
         confF = open(outputDir+'/chConfig_MasksUpdated.txt','w')
-        if args.isVFAT3:
+        if args.isVFAT2:
             confF.write('vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n')
             if args.debug:
                 print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
@@ -421,7 +422,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
                         chan,
                         dict_vfatTrimMaskData[vfat][chan]['trimDAC'],
                         dict_vfatTrimMaskData[vfat][chan]['trimPolarity'],
-                        int(isHotChan or dict_vfatTrimMaskData[vfat][j]['mask']),
+                        int(isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask']),
                         dict_vfatTrimMaskData[vfat][chan]['maskReason']))
 
         confF.close()
@@ -1238,6 +1239,8 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 canv_Summary1D = make3x8Canvas("canv_Summary_Rate1D_vs_{0}".format(dacName),dict_Rate1DVsDACNameX[dacName][ohKey],"APE1")
                 for vfat in range(1,25):
                     canv_Summary1D.cd(vfat).SetLogy()
+                    dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetYaxis().SetRangeUser(1e-1,1e8)
+                    canv_Summary1D.cd(vfat).Update()
 
             if scandate == 'noscandate':
                 if perchannel:

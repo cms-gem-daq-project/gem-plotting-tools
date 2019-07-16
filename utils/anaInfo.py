@@ -81,7 +81,8 @@ ana_config = {
 #:   [0] -> path of root file inside scandate/
 #:   [1] -> name of TTree inside root file
 tree_names = {
-        "armDacCal":("calFile_CFG_THR_ARM_DAC_{DETECTOR}.root",None), # here DETECTOR should be the detector serial number, e.g. "GE11-X-S-CERN-0002", there is no TTree presently stored in this TFile hence "None"
+        "armDacCal":("listOfScanDates_calibrateArmDac_{DETECTOR}.txt",None), # here DETECTOR should be the detector serial number, e.g. "GE11-X-S-CERN-0002", this is a text file; hence TTree is "None"
+        "armDacCalAna":("calFile_CFG_THR_ARM_DAC_{DETECTOR}.root",None), # here DETECTOR should be the detector serial number, e.g. "GE11-X-S-CERN-0002", there is no TTree presently stored in this TFile hence "None"
         "dacScanV3":("dacScanV3.root","dacScanTree"),
         "latency":("LatencyScanData.root","latTree"),
         "latencyAna":("LatencyScanData/latencyAna.root","latFitTree"),
