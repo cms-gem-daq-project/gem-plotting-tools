@@ -564,7 +564,8 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
                 Nhigh[0] = int(scanFitResults[4][vfat][chan])
                 noise[0] = scanFitResults[1][vfat][chan]
                 panPin[0] = dict_vfatChanLUT[vfat]["PanPin"][chan]
-                ped_eff[0] = effectivePedestals[vfat][chan]
+                if chan in fitter.Nev[vfat].keys():
+                    ped_eff[0] = effectivePedestals[vfat][chan]/fitter.Nev[vfat][chan]
                 pedestal[0] = scanFitResults[2][vfat][chan]
                 ROBstr[0] = dict_vfatChanLUT[vfat]["Strip"][chan]
                 threshold[0] = scanFitResults[0][vfat][chan]

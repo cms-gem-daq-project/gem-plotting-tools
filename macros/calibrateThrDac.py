@@ -83,15 +83,15 @@ Internals
 if __name__ == '__main__':
     # create the parser
     import argparse
-    parser = argparse.ArgumentParser(description='Arguments to supply to calibrateThrDac.py')
-    parser.add_argument("filename", type=str, 
-            help="Tab delimited file specifying the input list of scandates, in three column format, specifying chamberName, scandate, and either CFG_THR_ARM_DAC or CFG_THR_ZCC_DAC value")
-
+    from gempython.gemplotting.utils.anaoptions import parser_scurveChanMasks
+    parser = argparse.ArgumentParser(description='Arguments to supply to calibrateThrDac.py',parents=[parser_scurveChanMasks])
+    parser.add_argument("inputFile", type=str, help="Tab delimited file specifying the input list of scandates, in three column format, specifying chamberName, scandate, and either CFG_THR_ARM_DAC or CFG_THR_ZCC_DAC value")
     parser.add_argument("-d","--debug", action="store_true", help="Prints additional debugging information")
     parser.add_argument("--fitRange", type=str, default="0,255", 
             help="Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in fitting when deriving the calibration curve")
     parser.add_argument("--listOfVFATs", type=str, default=None,
             help="If provided the VFATID will be taken from this file rather than scurveTree.  Tab delimited file, first line is a column header, subsequent lines specify respectively VFAT position and VFAT serial number.  Lines beginning with the '#' character will be skipped")
+    parser.add_argument("--numOfGoodChansMin", type=int, default=10, help="Minimum number of channels that must be good (unmasked) for an armDacVal point to be use in the calibration procedure.")
     parser.add_argument("--noLeg", action="store_true", help="Do not draw a TLegend on the output plots")
     parser.add_argument("--savePlots", action="store_true", help="Make *.png file for all plots that will be saved in the output TFile")
     args = parser.parse_args()
@@ -102,8 +102,8 @@ if __name__ == '__main__':
     envCheck('ELOG_PATH')
 
     # Determine outputDir
-    if "/" in args.filename:
-        outputDir = args.filename[0:args.filename.rfind("/")+1]
+    if "/" in args.inputFile:
+        outputDir = args.inputFile[0:args.inputFile.rfind("/")+1]
     else:
         from gempython.gemplotting.utils.anautilities import getElogPath
         outputDir = getElogPath()
@@ -113,15 +113,9 @@ if __name__ == '__main__':
     from gempython.utils.gemlogger import printGreen, printRed
     from gempython.utils.wrappers import runCommand
     import os, sys, traceback
+    args.outputDir = outputDir
     try:
-        retCode = calibrateThrDAC(
-                inputFile=args.filename,
-                fitRange=args.fitRange,
-                listOfVFATs=args.listOfVFATs,
-                noLeg=args.noLeg,
-                outputDir=outputDir,
-                savePlots=args.savePlots,
-                debug=args.debug)
+        retCode = calibrateThrDAC(args)
     except IOError as err:
         printRed("IOError: {0}".format(err.message))
         printRed("Analysis failed with error code {0}".format(retCode))

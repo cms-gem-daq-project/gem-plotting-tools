@@ -8,8 +8,8 @@ anaUltraScurve
 if __name__ == '__main__':
     # Define the parser
     import argparse
-    from gempython.gemplotting.utils.anaoptions import parent_parser
-    parser = argparse.ArgumentParser(description="Options to give to anaUltraScurve.py", parents=[parent_parser])
+    from gempython.gemplotting.utils.anaoptions import parent_parser, parser_scurveChanMasks
+    parser = argparse.ArgumentParser(description="Options to give to anaUltraScurve.py", parents=[parent_parser,parser_scurveChanMasks])
     
     # Positional arguments
     parser.add_argument("GEBtype",type=str,help="Specify GEB type, options are 'long,short,m1,...,m8', if analyzing data from an ME0 detector write 'null'")
@@ -23,18 +23,6 @@ if __name__ == '__main__':
     parser.add_argument("--isVFAT2", action="store_true", help="Provide this argument if input data was acquired from vfat2")
     parser.add_argument("-v", "--vfatList", type=str, default=None, help="Comma separated list of VFAT positions to consider for analysis.  If not provided default will be all positions")
     parser.add_argument("-z", "--zscore", type=float, default=3.5, help="Z-Score for Outlier Identification in MAD Algo")
-
-    chanMaskGroup = parser.add_argument_group(
-            title="Options for channel mask decisions", 
-            description="Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
-    chanMaskGroup.add_argument("--maxEffPedPercent", type=float, default=0.02,
-                      help="Percentage, Threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set")
-    chanMaskGroup.add_argument("--highNoiseCut", type=float, default=1.5,
-            help="Threshold for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set")
-    chanMaskGroup.add_argument("--deadChanCutLow", type=float, default=None,
-                      help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set")
-    chanMaskGroup.add_argument("--deadChanCutHigh", type=float, default=None,
-                      help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set")
 
     from gempython.gemplotting.utils.scurveAlgos import anaUltraScurve 
     parser.set_defaults(func=anaUltraScurve, outfilename="SCurveFitData.root")

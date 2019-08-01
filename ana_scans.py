@@ -833,15 +833,6 @@ if __name__ == '__main__':
     cpuUsagee.add_argument("--light", action="store_true", help="Analysis uses only 25%% of available cores")
     cpuUsagee.add_argument("--medium", action="store_true", help="Analysis uses only 50%% of available cores")
     cpuUsagee.add_argument("--heavy", action="store_true", help="Analysis uses only 75%% of available cores")
-    
-    # create the parent parser for channel masks for scurve analysis
-    parser_scurveChanMasks = argparse.ArgumentParser(add_help = False)
-
-    chanMaskGroup = parser_scurveChanMasks.add_argument_group(title="Options for channel mask decisions", description="Parameters which specify how Dead, Noisy, and High Pedestal Channels are charaterized")
-    chanMaskGroup.add_argument("--maxEffPedPercent", type=float, default=0.02, help="Percentage, threshold for setting the HighEffPed mask reason, if channel (effPed > maxEffPedPercent * nevts) then HighEffPed is set")
-    chanMaskGroup.add_argument("--highNoiseCut", type=float, default=1.5, help="Threshold in fC for setting the HighNoise maskReason, if channel (scurve_sigma > highNoiseCut) then HighNoise is set")
-    chanMaskGroup.add_argument("--deadChanCutLow", type=float, default=0,help="If channel (deadChanCutLow < scurve_sigma < deadChanCutHigh) then DeadChannel is set")
-    chanMaskGroup.add_argument("--deadChanCutHigh", type=float, default=0, help="If channel (deadChanCutHigh < scurve_sigma < deadChanCutHigh) then DeadChannel is set")
 
     # create the parent parser for making output plots w.r.t ASIC channel or panasonic connector pin
     parser_stripChanOrPinType = argparse.ArgumentParser(add_help = False)
@@ -853,6 +844,8 @@ if __name__ == '__main__':
     parser_zscore = argparse.ArgumentParser(add_help = False)
     parser_zscore.add_argument("-z","--zscore", type=float, default=10,help="Z-Score for Outlier Identification in MAD Algo, used to set HotChannel bit")
 
+    from gempython.gemplotting.utils.anaoptions import parser_scurveChanMasks
+    
     # List of parent parsers specifically scurce analysis
     listOfParentParsers4Scurves = [parser_fileAndConfig, parser_parallelAna, parser_scurveChanMasks, parser_stripChanOrPinType, parser_zscore]
 

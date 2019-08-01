@@ -452,42 +452,88 @@ def calibrateThrDACStar(inputs):
     """
     return calibrateThrDAC(*inputs)
 
-def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outputDir=None,savePlots=False,debug=False):
+from anaInfo import maxEffPedPercentDefault, highNoiseCutDefault, deadChanCutLowDefault, deadChanCutHighDefault, numOfGoodChansMinDefault 
+
+def calibrateThrDAC(args):
     """
     Calibrates CFG_THR_X_DAC, for X = {ARM,ZCC}, in terms of charge units from a series of scurve measurements.
 
     Returns either 0 or an error code, see: https://docs.python.org/2/library/os.html#process-management
-    
-        inputFile     - Filename of a file in the "Three Column Format," see parseListOfScanDatesFile from
-                        gempython.gemplotting.utils.anautilities, where each entry after the column header
-                        is an analyzed scurve file taken at a different CFG_THR_X_DAC for a (shelf,slot,link).
-        fitRange      - Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in 
-                        fitting when deriving the calibration curve.
-        listOfVFATs   - If provided vfatID will be taken from this file rather than scurveFitTree in input
-                        analyzed scurve files defined in inputFile.  This is a tab delimited file, first line
-                        is a column header, subsequent lines specifying respectively VFAT position and chipID.
-                        Lines beginning with the "#" character will be skipped.
-        noLeg         - Do not draw a TLegend on the output plots.
-        outputDir     - String specifying location of output files, if None then $ELOG_PATH will be used
-        savePlots     - Make a '*.png' file for all plots that will be saved in the output TFile
+
+    The single argument "args" is intended to be a namespace which has attributes among those listed below.  
+
+        inputFile         - Filename of a file in the "Three Column Format," see parseListOfScanDatesFile from
+                                 gempython.gemplotting.utils.anautilities, where each entry after the column header
+                                 is an analyzed scurve file taken at a different CFG_THR_X_DAC for a (shelf,slot,link).
+        fitRange          - Two comma separated integers which specify the range of 'CFG_THR_*_DAC' to use in 
+                                 fitting when deriving the calibration curve.
+        listOfVFATs       - If provided vfatID will be taken from this file rather than scurveFitTree in input
+                                 analyzed scurve files defined in inputFile.  This is a tab delimited file, first line
+                                 is a column header, subsequent lines specifying respectively VFAT position and chipID.
+                                 Lines beginning with the "#" character will be skipped.
+        noLeg             - Do not draw a TLegend on the output plots.
+        outputDir         - String specifying location of output files, if None then $ELOG_PATH will be used
+        savePlots         - Make a '*.png' file for all plots that will be saved in the output TFile
+        numOfGoodChansMin - If the number of good channels associated with an armDacVal point is less than numOfGoodChansMin, 
+                                then that armDacVal point is not used. This is criterion is applied separately for each VFAT.
+        maxEffPedPercent  - If channel effPed > maxEffPedPercent, then the channel is marked as bad. 
+        highNoiseCut      - If scurve_sigma > highNoiseCut, then the channel is marked as bad.
+        deadChanCutLow    - If deadChanCutLow < scurve_sigma < deadChanCutHigh, then the channel is marked as bad.
+        deadChanHighLow   - If deadChanCutLow < scurve_sigma < deadChanCutHigh, then the channel is marked as bad.
     """
 
+    if not hasattr(args,"inputFile"):
+        print("No inputFile provided to calibrateThrDac")
+        import os
+        exit(os.EX_NOINPUT)
+
+    if not hasattr(args,"fitRange"):
+        args.fitRange = [0, 255]
+    else:
+        args.fitRange = [int(item) for item in args.fitRange.split(",")]        
+
+    if not hasattr(args,"listofVFATs"):
+        args.listOfVFATs = None
+
+    if not hasattr(args,"numOfGoodChansMin"):
+        args.numOfGoodChansMin=numOfGoodChansMinDefault 
+        
+    if not hasattr(args,"maxEffPedPercent"):
+        args.maxEffPedPercent=maxEffPedPercentDefault
+
+    if not hasattr(args,"highNoiseCut"):
+        args.highNoiseCut=HighNoiseCutDefault
+
+    if not hasattr(args,"deadChanCutLow"):
+        args.deadChanCutLow=deadChanCutLowDefault
+
+    if not hasattr(args,"deadChanCutHigh"):
+        args.deadChanCutHigh=deadChanCutHighDefault
+
+    if not hasattr(args,"noLeg"):
+        args.noLeg=False
+
+    if not hasattr(args,"outputDir"):
+        from gempython.gemplotting.utils.anautilities import getElogPath
+        args.outputDir = getElogPath()
+
+    if not hasattr(args,"savePlots"):
+        args.savePlots=False
+
+    if not hasattr(args,"debug"):
+        args.debug=False                        
+    
     # Suppress all pop-ups from ROOT
     import ROOT as r
     r.gROOT.SetBatch(True)
 
-    # Detemrine outputDir
-    from gempython.gemplotting.utils.anautilities import getElogPath
-    if outputDir is None:
-        outputDir = getElogPath()
-
     # Redirect sys.stdout and sys.stderr if necessary 
     from gempython.gemplotting.utils.multiprocUtils import redirectStdOutAndErr
-    redirectStdOutAndErr("anaUltraThreshold",outputDir)
+    redirectStdOutAndErr("anaUltraThreshold",args.outputDir)
 
     # Get info from input file
     from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make3x8Canvas, parseListOfScanDatesFile
-    parsedTuple = parseListOfScanDatesFile(inputFile)
+    parsedTuple = parseListOfScanDatesFile(args.inputFile)
     listChamberAndScanDate = parsedTuple[0]
     thrDacName = parsedTuple[1]
     chamberName = listChamberAndScanDate[0][0]
@@ -495,16 +541,16 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
     # Do we load an optional vfat serial number table? (e.g. chips did not have serial number in efuse burned in)
     import numpy as np
     import root_numpy as rp
-    if listOfVFATs is not None:
+    if args.listOfVFATs is not None:
         try:
             mapVFATPos2VFATSN = np.loadtxt(
-                        fname = listOfVFATs,
+                        fname = args.listOfVFATs,
                         dtype={'names':('vfatN', 'serialNum'),
                                 'formats':('u4', 'u4')},
                         skiprows=1,
                     )
         except IOError as err:
-            print('{0} does not seem to exist, is not readable, or does not have the right format'.format(listOfVFATs))
+            print('{0} does not seem to exist, is not readable, or does not have the right format'.format(args.listOfVFATs))
             print(type(err))
             return os.EX_NOINPUT
     else:
@@ -534,6 +580,8 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
     dict_funcScurveMean = ndict()
     dict_funcScurveSigma = ndict()
 
+    dict_nBadChannels = ndict() # Stores the number of bad channels for a VFAT
+    
     dict_mGraphScurveMean = {} # Key is VFAT position, stores the dict_gScurveMean[*][vfat] for a given vfat
     dict_mGraphScurveSigma = {}
     dict_ScurveMeanVsThrDac = {} # Key is VFAT position
@@ -568,9 +616,33 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
         
         import os
         # Get scurve data for this arm dac value (used for boxplots)
-        list_bNames = ['noise', 'threshold', 'vfatN', 'vthr']
+        list_bNames = ['noise', 'threshold', 'vfatN', 'vthr', 'ped_eff']
         scurveFitData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
 
+        #remove channels that fail quality cuts
+        scurveFitMask1 = np.logical_or(scurveFitData['noise'] < args.deadChanCutLow,scurveFitData['noise'] > args.deadChanCutHigh)
+        scurveFitMask2 = scurveFitData['noise'] < args.highNoiseCut
+        scurveFitMask3 = scurveFitData['ped_eff'] < args.maxEffPedPercent
+        #following what is done in the scurve analysis script, 
+        #we also remove scurve fits in which the noise or the threshold are equal to their initial values
+        scurveFitMask4 = np.logical_and(scurveFitData['noise'] != 0,scurveFitData['threshold'] != 0)
+
+        for vfat in range(-1,24):
+            if vfat == -1:
+                dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"] = len(scurveFitData[scurveFitMask1 == False])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"] = len(scurveFitData[scurveFitMask2 == False])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighEffPed"] = len(scurveFitData[scurveFitMask3 == False])
+                dict_nBadChannels[vfat][infoTuple[2]]["FitAtInitVal"] = len(scurveFitData[scurveFitMask4 == False])
+            else:
+                scurveFitMaskVfat = scurveFitData["vfatN"] == vfat
+                dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"] = 128-len(scurveFitData[np.logical_and(scurveFitMask1,scurveFitMaskVfat)])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"] = 128-len(scurveFitData[np.logical_and(scurveFitMask2,scurveFitMaskVfat)])
+                dict_nBadChannels[vfat][infoTuple[2]]["HighEffPed"] = 128-len(scurveFitData[np.logical_and(scurveFitMask3,scurveFitMaskVfat)])
+                dict_nBadChannels[vfat][infoTuple[2]]["FitAtInitVal"] = 128-len(scurveFitData[np.logical_and(scurveFitMask4,scurveFitMaskVfat)])
+
+        scurveFitMask = np.logical_and(np.logical_and(np.logical_and(scurveFitMask1,scurveFitMask2),scurveFitMask3),scurveFitMask4)
+        scurveFitData = scurveFitData[scurveFitMask] 
+        
         ###################
         # Get and fit individual distributions
         ###################
@@ -580,7 +652,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
                 loadPath = suffix
                 directory = "Summary"
             else:
-                if listOfVFATs is not None:
+                if args.listOfVFATs is not None:
                     vfatID = mapVFATPos2VFATSN[mapVFATPos2VFATSN['vfatN'] == vfat]
                 else:
                     if len(array_vfatData[array_vfatData['vfatN'] == vfat]) > 0:
@@ -598,7 +670,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
                 # Scurve Mean
                 dict_mGraphScurveMean[vfat] = r.TMultiGraph("mGraph_ScurveMeanByThrDac_{0}".format(suffix),suffix)
 
-                dict_ScurveMeanVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
+                dict_ScurveMeanVsThrDac[vfat] = r.TGraphErrors()
                 dict_ScurveMeanVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveMeanVsThrDac[vfat].SetName("gScurveMean_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveMeanVsThrDac[vfat].SetMarkerStyle(23)
@@ -614,7 +686,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
                 # Scurve Sigma
                 dict_mGraphScurveSigma[vfat] = r.TMultiGraph("mGraph_ScurveSigmaByThrDac_{0}".format(suffix),suffix)
 
-                dict_ScurveSigmaVsThrDac[vfat] = r.TGraphErrors(len(listChamberAndScanDate))
+                dict_ScurveSigmaVsThrDac[vfat] = r.TGraphErrors()
                 dict_ScurveSigmaVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveSigmaVsThrDac[vfat].SetName("gScurveSigma_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveSigmaVsThrDac[vfat].SetMarkerStyle(23)
@@ -626,10 +698,46 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
                 dict_ScurveSigmaVsThrDac_BoxPlot[vfat].SetXTitle(thrDacName)
                 dict_ScurveSigmaVsThrDac_BoxPlot[vfat].SetYTitle("Scurve Sigma #left(fC#right)")
 
+            if vfat > -1:    
+                scurveFitDataThisVfat = scurveFitData[scurveFitData["vfatN"] == vfat]
+            else:
+                scurveFitDataThisVfat = scurveFitData
+
+            #define histograms which will hold the per-VFAT scurve mean and scurve sigma distributions
+            #when there is no data, we create a dummy histogram which will not be filled with anything
+            if len(scurveFitDataThisVfat) != 0:
+                thisVFAT_ThreshMean = np.mean(scurveFitDataThisVfat["threshold"])
+                thisVFAT_ThreshStd = np.std(scurveFitDataThisVfat["threshold"])
+                thisVFAT_ENCMean = np.mean(scurveFitDataThisVfat["noise"])
+                thisVFAT_ENCStd = np.std(scurveFitDataThisVfat["noise"])
+            else:    
+                thisVFAT_ThreshMean = 0 #dummy value
+                thisVFAT_ThreshStd = 1 #dummy value
+                thisVFAT_ENCMean = 0 #dummy value
+                thisVFAT_ENCStd = 1 #dummy value
+                
+            histThresh = r.TH1F("scurveMean_vfat%i"%vfat,"VFAT %i;S-Curve Mean #left(fC#right);N"%vfat, 
+                                40, thisVFAT_ThreshMean - 5. * thisVFAT_ThreshStd, thisVFAT_ThreshMean + 5. * thisVFAT_ThreshStd )
+            histENC = r.TH1F("scurveSigma_vfat%i"%vfat,"VFAT %i;S-Curve Sigma #left(fC#right);N"%vfat,
+                                 40, thisVFAT_ENCMean - 5. * thisVFAT_ENCStd, thisVFAT_ENCMean + 5. * thisVFAT_ENCStd )
+
+            #discard armDacVal points with too few good channels
+            if len(scurveFitDataThisVfat) < args.numOfGoodChansMin:
+                continue
+
+            #fill histograms with the scurve means and the scurve sigmas that pass the quality cuts            
+            for idy in range(0,len(scurveFitDataThisVfat)):
+                scurveMean = scurveFitDataThisVfat[idy]['threshold']
+                scurveSigma = scurveFitDataThisVfat[idy]['noise']
+                histThresh.Fill(scurveMean)
+                histENC.Fill(scurveSigma)
+
             ###################
             ### Scurve Mean ###
             ###################
-            dict_gScurveMean[infoTuple[2]][vfat] = scanFile.Get("{0}/gScurveMeanDist_{1}".format(directory,loadPath))
+            #convert TH1F to TGraph for fitting           
+            dict_gScurveMean[infoTuple[2]][vfat] = r.TGraphErrors(histThresh)
+
             if vfat > -1:
                 dict_gScurveMean[infoTuple[2]][vfat].SetName("gScurveMeanDist_{0}_thrDAC{1}".format(suffix,infoTuple[2]))
             else:
@@ -663,18 +771,20 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
 
             # Add point to calibration curve
             dict_ScurveMeanVsThrDac[vfat].SetPoint(
-                    idx,
+                    dict_ScurveMeanVsThrDac[vfat].GetN(),
                     infoTuple[2],
                     dict_funcScurveMean[infoTuple[2]][vfat].GetParameter("Mean"))
             dict_ScurveMeanVsThrDac[vfat].SetPointError(
-                    idx,
+                    dict_ScurveMeanVsThrDac[vfat].GetN()-1,
                     0,
                     dict_funcScurveMean[infoTuple[2]][vfat].GetParameter("Sigma"))
 
             ####################
             ### Scurve Sigma ###
             ####################
-            dict_gScurveSigma[infoTuple[2]][vfat] = scanFile.Get("{0}/gScurveSigmaDist_{1}".format(directory,loadPath))
+            #convert TH1F to TGraphErrors for fitting                       
+            dict_gScurveSigma[infoTuple[2]][vfat] = r.TGraphErrors(histENC)
+
             if vfat > -1:
                 dict_gScurveSigma[infoTuple[2]][vfat].SetName("gScurveSigmaDist_{0}_thrDAC{1}".format(suffix,infoTuple[2]))
             else:
@@ -694,6 +804,9 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
                     np.min(arrayX),
                     np.max(arrayX))
 
+            #prevents the fit from going crazy and returning a mean of 10^300, which causes pyroot to crash later on
+            dict_funcScurveSigma[infoTuple[2]][vfat].SetParLimits(dict_funcScurveSigma[infoTuple[2]][vfat].GetParNumber("Mean"),np.min(arrayX),np.max(arrayX))
+            
             # Set style of TF1
             dict_funcScurveSigma[infoTuple[2]][vfat].SetLineColor(getCyclicColor(idx))
             dict_funcScurveSigma[infoTuple[2]][vfat].SetLineWidth(2)
@@ -707,11 +820,11 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
 
             # Add point to calibration curve
             dict_ScurveSigmaVsThrDac[vfat].SetPoint(
-                    idx,
+                    dict_ScurveSigmaVsThrDac[vfat].GetN(),
                     infoTuple[2],
                     dict_funcScurveSigma[infoTuple[2]][vfat].GetParameter("Mean"))
             dict_ScurveSigmaVsThrDac[vfat].SetPointError(
-                    idx,
+                    dict_ScurveSigmaVsThrDac[vfat].GetN()-1,
                     0,
                     dict_funcScurveSigma[infoTuple[2]][vfat].GetParameter("Sigma"))
 
@@ -745,10 +858,10 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
     # Make output calibration file
     ###################
     try:
-        calThrDacFile = open("{0}/calFile_{2}_{1}.txt".format(outputDir,chamberName,thrDacName),'w')
+        calThrDacFile = open("{0}/calFile_{2}_{1}.txt".format(args.outputDir,chamberName,thrDacName),'w')
     except IOError as e:
         print("Caught Exception: {0}".format(e))
-        print("Unabled to open file '{0}/calFile_{2}_{1}.txt'".format(outputDir,chamberName,thrDacName))
+        print("Unabled to open file '{0}/calFile_{2}_{1}.txt'".format(args.outputDir,chamberName,thrDacName))
         print("Perhaps the path does not exist or you do not have write permissions?")
         return os.EX_IOERR
     calThrDacFile.write("vfatN/I:coef4/F:coef3/F:coef2/F:coef1/F:coef0/F\n")
@@ -756,7 +869,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
     ###################
     # Make output ROOT file
     ###################
-    outFileName = "{0}/calFile_{2}_{1}.root".format(outputDir,chamberName,thrDacName)
+    outFileName = "{0}/calFile_{2}_{1}.root".format(args.outputDir,chamberName,thrDacName)
     outFile = r.TFile(outFileName,"RECREATE")
 
     # Plot Containers
@@ -770,14 +883,13 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
     dict_canvScurveSigmaVsThrDac_BoxPlot = {}
 
     dict_funcScurveMeanVsThrDac = {}
-    
+
     ###################
     # Now Make plots & Fit DAC Curves
     ###################
-    if debug:
+    if args.debug:
         print("| vfatN | coef4 | coef3 | coef2 | coef1 | coef0 | noise | noise_err |")
         print("| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: |")
-    fitRange = [int(item) for item in fitRange.split(",")]
     for vfat in range(-1,24):
         if vfat == -1:
             suffix = "All"
@@ -791,10 +903,12 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
         RawDataDirMean = RawDataDir.mkdir("ScurveMean")
         RawDataDirSigma = RawDataDir.mkdir("ScurveSigma")
         for idx,infoTuple in enumerate(listChamberAndScanDate):
-            RawDataDirMean.cd()
-            dict_gScurveMean[infoTuple[2]][vfat].Write()
-            RawDataDirSigma.cd()
-            dict_gScurveSigma[infoTuple[2]][vfat].Write()
+            if vfat in dict_gScurveMean[infoTuple[2]]:
+                RawDataDirMean.cd()
+                dict_gScurveMean[infoTuple[2]][vfat].Write()
+            if vfat in dict_gScurveSigma[infoTuple[2]]:    
+                RawDataDirSigma.cd()
+                dict_gScurveSigma[infoTuple[2]][vfat].Write()
         thisDirectory.cd()
 
         # Mean by CFG_THR_*_DAC
@@ -868,7 +982,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
         thrDacVal = r.Double()
         scurveMean = r.Double()
         tgraph_scurveMeanVsThrDacForFit.GetPoint(tgraph_scurveMeanVsThrDacForFit.GetN()-1,thrDacVal,scurveMean)
-        perVfatFitRange = list(fitRange)
+        perVfatFitRange = list(args.fitRange)
         if thrDacVal > perVfatFitRange[0]:
             perVfatFitRange[0] = float(thrDacVal)
         tgraph_scurveMeanVsThrDacForFit.GetPoint(0,thrDacVal,scurveMean)
@@ -902,7 +1016,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
         dict_ScurveSigmaVsThrDac[vfat].GetXaxis().SetTitle(thrDacName)
         dict_ScurveSigmaVsThrDac[vfat].GetYaxis().SetTitle("Scurve Sigma #left(fC#right)")
         dict_ScurveSigmaVsThrDac[vfat].Draw("APE1")
-        func_ScurveSigmaVsThrDac = r.TF1("func_{0}".format((dict_ScurveSigmaVsThrDac[vfat].GetName()).strip('g')),"[0]",min(fitRange), max(fitRange) )
+        func_ScurveSigmaVsThrDac = r.TF1("func_{0}".format((dict_ScurveSigmaVsThrDac[vfat].GetName()).strip('g')),"[0]",min(args.fitRange), max(args.fitRange) )
         dict_ScurveSigmaVsThrDac[vfat].Fit(func_ScurveSigmaVsThrDac,"QR")
         dict_ScurveSigmaVsThrDac[vfat].Write()
         func_ScurveSigmaVsThrDac.Write()
@@ -924,7 +1038,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
             )
 
         # Draw Legend?
-        if not noLeg:
+        if not args.noLeg:
             dict_canvScurveMeanByThrDac[vfat].cd()
             legArmDacValues.Draw("same")
 
@@ -941,7 +1055,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
         dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].Write()
 
         # Print info to user
-        if debug:
+        if args.debug:
             vfatOrAll = vfat
             if vfat == -1:
                 vfatOrAll == "All"
@@ -956,14 +1070,32 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
                 func_ScurveSigmaVsThrDac.GetParError(1))
                 )
 
-    if savePlots:
+    print "| vfatN | armDacVal | Dead Chan | High Noise | High Eff Ped | Fit At Init Val |"
+    print "| :---: | :-------: | :-------: | :--------: | :----------: | :-------------: |"        
+
+    for vfat in range(-1,24):
+        for infoTuple in listChamberAndScanDate:
+            if vfat not in dict_nBadChannels or infoTuple[2] not in dict_nBadChannels[vfat]:
+                continue
+            vfatnOrAll = str(vfat)
+            if vfatnOrAll == "-1":
+                vfatnOrAll = "All"
+            print '| %s | %i | %i | %i | %i | %i |'%(
+                vfatnOrAll,
+                infoTuple[2],
+                dict_nBadChannels[vfat][infoTuple[2]]["DeadChannel"],
+                dict_nBadChannels[vfat][infoTuple[2]]["HighNoise"],
+                dict_nBadChannels[vfat][infoTuple[2]]["HighEffPed"],
+                dict_nBadChannels[vfat][infoTuple[2]]["FitAtInitVal"])
+
+    if args.savePlots:
         for vfat in range(-1,24):
-            dict_canvScurveMeanByThrDac[vfat].SaveAs("{0}/{1}.png".format(outputDir,dict_canvScurveMeanByThrDac[vfat].GetName()))
-            dict_canvScurveSigmaByThrDac[vfat].SaveAs("{0}/{1}.png".format(outputDir,dict_canvScurveSigmaByThrDac[vfat].GetName()))
-            dict_canvScurveMeanVsThrDac[vfat].SaveAs("{0}/{1}.png".format(outputDir,dict_canvScurveMeanVsThrDac[vfat].GetName()))
-            dict_canvScurveSigmaVsThrDac[vfat].SaveAs("{0}/{1}.png".format(outputDir,dict_canvScurveSigmaVsThrDac[vfat].GetName()))
-            dict_canvScurveMeanVsThrDac_BoxPlot[vfat].SaveAs("{0}/{1}.png".format(outputDir,dict_canvScurveMeanVsThrDac_BoxPlot[vfat].GetName()))
-            dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].SaveAs("{0}/{1}.png".format(outputDir,dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].GetName()))
+            dict_canvScurveMeanByThrDac[vfat].SaveAs("{0}/{1}.png".format(args.outputDir,dict_canvScurveMeanByThrDac[vfat].GetName()))
+            dict_canvScurveSigmaByThrDac[vfat].SaveAs("{0}/{1}.png".format(args.outputDir,dict_canvScurveSigmaByThrDac[vfat].GetName()))
+            dict_canvScurveMeanVsThrDac[vfat].SaveAs("{0}/{1}.png".format(args.outputDir,dict_canvScurveMeanVsThrDac[vfat].GetName()))
+            dict_canvScurveSigmaVsThrDac[vfat].SaveAs("{0}/{1}.png".format(args.outputDir,dict_canvScurveSigmaVsThrDac[vfat].GetName()))
+            dict_canvScurveMeanVsThrDac_BoxPlot[vfat].SaveAs("{0}/{1}.png".format(args.outputDir,dict_canvScurveMeanVsThrDac_BoxPlot[vfat].GetName()))
+            dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].SaveAs("{0}/{1}.png".format(args.outputDir,dict_canvScurveSigmaVsThrDac_BoxPlot[vfat].GetName()))
     
     # Make summary canvases, always save these
     canvScurveMeanByThrDac_Summary = make3x8Canvas("canvScurveMeanByThrDac_Summary",dict_mGraphScurveMean,"APE1")
@@ -974,7 +1106,7 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
     canvScurveSigmaVsThrDac_BoxPlot_Summary = make3x8Canvas("canvScurveSigmaVsThrDac_BoxPlot_Summary",dict_ScurveSigmaVsThrDac_BoxPlot,"candle1")
 
     # Draw Legend?
-    if not noLeg:
+    if not args.noLeg:
         canvScurveMeanByThrDac_Summary.cd(1)
         legArmDacValues.Draw("same")
 
@@ -983,25 +1115,25 @@ def calibrateThrDAC(inputFile,fitRange="0,255",listOfVFATs=None,noLeg=False,outp
 
     # Save summary canvases (alwasys)
     print("\nSaving Summary TCanvas Objects")
-    canvScurveMeanByThrDac_Summary.SaveAs("{0}/{1}.png".format(outputDir,canvScurveMeanByThrDac_Summary.GetName()))
-    canvScurveSigmaByThrDac_Summary.SaveAs("{0}/{1}.png".format(outputDir,canvScurveSigmaByThrDac_Summary.GetName()))
-    canvScurveMeanVsThrDac_Summary.SaveAs("{0}/{1}.png".format(outputDir,canvScurveMeanVsThrDac_Summary.GetName()))
-    canvScurveSigmaVsThrDac_Summary.SaveAs("{0}/{1}.png".format(outputDir,canvScurveSigmaVsThrDac_Summary.GetName()))
-    canvScurveMeanVsThrDac_BoxPlot_Summary.SaveAs("{0}/{1}.png".format(outputDir,canvScurveMeanVsThrDac_BoxPlot_Summary.GetName()))
-    canvScurveSigmaVsThrDac_BoxPlot_Summary.SaveAs("{0}/{1}.png".format(outputDir,canvScurveSigmaVsThrDac_BoxPlot_Summary.GetName()))
+    canvScurveMeanByThrDac_Summary.SaveAs("{0}/{1}.png".format(args.outputDir,canvScurveMeanByThrDac_Summary.GetName()))
+    canvScurveSigmaByThrDac_Summary.SaveAs("{0}/{1}.png".format(args.outputDir,canvScurveSigmaByThrDac_Summary.GetName()))
+    canvScurveMeanVsThrDac_Summary.SaveAs("{0}/{1}.png".format(args.outputDir,canvScurveMeanVsThrDac_Summary.GetName()))
+    canvScurveSigmaVsThrDac_Summary.SaveAs("{0}/{1}.png".format(args.outputDir,canvScurveSigmaVsThrDac_Summary.GetName()))
+    canvScurveMeanVsThrDac_BoxPlot_Summary.SaveAs("{0}/{1}.png".format(args.outputDir,canvScurveMeanVsThrDac_BoxPlot_Summary.GetName()))
+    canvScurveSigmaVsThrDac_BoxPlot_Summary.SaveAs("{0}/{1}.png".format(args.outputDir,canvScurveSigmaVsThrDac_BoxPlot_Summary.GetName()))
 
     # Close output files
     outFile.Close()
     calThrDacFile.close()
 
     print("\nYour calibration file is located in:")
-    print("\n\t{0}/calFile_{2}_{1}.txt\n".format(outputDir,chamberName,thrDacName))
+    print("\n\t{0}/calFile_{2}_{1}.txt\n".format(args.outputDir,chamberName,thrDacName))
 
     print("You can find all ROOT objects in:")
-    print("\n\t{0}/calFile_{2}_{1}.root\n".format(outputDir,chamberName,thrDacName))
+    print("\n\t{0}/calFile_{2}_{1}.root\n".format(args.outputDir,chamberName,thrDacName))
 
     print("You can find all plots in:")
-    print("\n\t{0}\n".format(outputDir))
+    print("\n\t{0}\n".format(args.outputDir))
 
     return 0
 
