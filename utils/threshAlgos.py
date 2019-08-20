@@ -34,11 +34,11 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     extChanMapping - Name of externally supplied file that specifies the ROBstr:PanPin:vfatCH mapping
     isVFAT2 - True (False) if data is coming from VFAT2(3)
     PanPin - If true output plots are made vs. PanPin
-    pervfat - If true only 1D plots are made 
+    pervfat - If true only 1D plots are made
     zscore - selection criterion to use in median absolute deviation outlier identifion algorithm
-    
-    Returns a TTree storing the analysis results if the calling process is the main process; if the 
-    calling process is a child process nothing is returned.  
+
+    Returns a TTree storing the analysis results if the calling process is the main process; if the
+    calling process is a child process nothing is returned.
 
     Other arguments are:
 
@@ -76,7 +76,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
         outputDir = getElogPath()
         pass
 
-    # Redirect sys.stdout and sys.stderr if necessary 
+    # Redirect sys.stdout and sys.stderr if necessary
     from gempython.gemplotting.utils.multiprocUtils import redirectStdOutAndErr
     redirectStdOutAndErr("anaUltraLatency",outputDir)
 
@@ -103,7 +103,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     else:
         dacName = "CFG_THR_ARM_DAC"
         pass
-    
+
     from gempython.gemplotting.utils.anaInfo import mappingNames
     if ((not args.channels) and (not args.PanPin)):
         stripChanOrPinName = ("ROBstr","Strip")
@@ -178,7 +178,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
         stripPinOrChan = dict_vfatChanLUT[event.vfatN][stripChanOrPinType][event.vfatCH]
         dict_h2D_thrDAC[event.vfatN].Fill(stripPinOrChan,event.vth1,event.Nhits)
         pass
-    
+
     # Make output TTree
     from array import array
     thrAnaTree = r.TTree('thrAnaTree','Tree Holding Analyzed Threshold Data')
@@ -198,7 +198,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     thrAnaTree.Branch( 'vfatN', vfatN, 'vfatN/I' )
     vthr = array( 'i', [ 0 ] )
     thrAnaTree.Branch( 'vthr', vthr, 'vthr/I' )
-    
+
     #Determine Hot Channels
     print 'Determining hot channels'
 
@@ -433,12 +433,11 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     # Do we return analyzed TTree?
     from multiprocessing import current_process
     if (current_process().name == 'MainProcess'):
-        return 
         return thrAnaTree
     else:
         # multiprocessing cannot handle the thrAnaTree object to be passed back
-        # raises a MaybeEncodingError exception; this is because multiprocessing 
-        # encodes data in 32 bit words.  Seems like TTree objects are encoded with 
+        # raises a MaybeEncodingError exception; this is because multiprocessing
+        # encodes data in 32 bit words.  Seems like TTree objects are encoded with
         # 64 bit words; see: https://bugs.python.org/issue17560
         return
 
@@ -446,7 +445,7 @@ def calibrateThrDACStar(inputs):
     """
     Wrapper to be used with multiprocessing.Pool methods
     See: https://stackoverflow.com/questions/5442910/python-multiprocessing-pool-map-for-multiple-arguments
-    
+
     When moving to python 3.X we should use the Pool::starmap function and not this wrapper:
     see: https://stackoverflow.com/a/5442981
     """
@@ -571,7 +570,7 @@ def calibrateThrDAC(args):
         binMin = min(listOfThrValues)-stepSize*0.5
         binMax = max(listOfThrValues)+stepSize*0.5
         nBins = len(listOfThrValues)
-    
+
     # Make containers
     # In each case where vfat position is used as a key, the value of -1 is the sum over the entire detector
     from gempython.utils.nesteddict import nesteddict as ndict
@@ -613,7 +612,7 @@ def calibrateThrDAC(args):
         list_bNames = ['vfatN','vfatID']
         array_vfatData = rp.tree2array(tree=scanFile.scurveFitTree, branches=list_bNames)
         array_vfatData = np.unique(array_vfatData)
-        
+
         import os
         # Get scurve data for this arm dac value (used for boxplots)
         list_bNames = ['noise', 'threshold', 'vfatN', 'vthr', 'ped_eff']
@@ -674,7 +673,7 @@ def calibrateThrDAC(args):
                 dict_ScurveMeanVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveMeanVsThrDac[vfat].SetName("gScurveMean_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveMeanVsThrDac[vfat].SetMarkerStyle(23)
-                
+
                 if len(uniqueDeltas) == 1:
                     #placeholder
                     dict_ScurveMeanVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveMean_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binMin,binMax,1002,-0.1,100.1)
@@ -690,7 +689,7 @@ def calibrateThrDAC(args):
                 dict_ScurveSigmaVsThrDac[vfat].SetTitle(suffix)
                 dict_ScurveSigmaVsThrDac[vfat].SetName("gScurveSigma_vs_{0}_{1}".format(thrDacName,suffix))
                 dict_ScurveSigmaVsThrDac[vfat].SetMarkerStyle(23)
-                
+
                 if len(uniqueDeltas) == 1:
                     dict_ScurveSigmaVsThrDac_BoxPlot[vfat] = r.TH2F("h_ScurveSigma_vs_{0}_{1}".format(thrDacName,suffix),suffix,nBins,binMin,binMax,504,-0.1,25.1)
                 else:
@@ -936,8 +935,8 @@ def calibrateThrDAC(args):
             dict_ScurveMeanVsThrDac[vfat].GetPoint(i,thrDacVal,scurveMean)
             thrDacIndexPairs.append([thrDacVal,i])
 
-        thrDacIndexPairs.sort()    
-        
+        thrDacIndexPairs.sort()
+
         #remove THR DAC values where there appear to be pedestal effects
         tgraph_scurveSigmaHighThrDacVal=r.TGraphErrors(5)
         scurveSigmaMeanHighThrDacVal = 0
@@ -949,7 +948,7 @@ def calibrateThrDAC(args):
             tgraph_scurveSigmaHighThrDacVal.SetPoint(i-(len(thrDacIndexPairs)-5),thrDacVal,scurveSigma)
             tgraph_scurveSigmaHighThrDacVal.SetPointError(i-(len(thrDacIndexPairs)-5),0,scurveSigmaError)
 
-        tgraph_scurveSigmaHighThrDacVal.Fit("pol0","Q")    
+        tgraph_scurveSigmaHighThrDacVal.Fit("pol0","Q")
         sigmaHighThrDacPlusError = tgraph_scurveSigmaHighThrDacVal.GetFunction("pol0").GetParameter(0)+tgraph_scurveSigmaHighThrDacVal.GetFunction("pol0").GetParError(0)
         sigmaHighThrDacChiSquaredOverNdof = tgraph_scurveSigmaHighThrDacVal.GetFunction("pol0").GetChisquare()/4.0
 
@@ -988,7 +987,7 @@ def calibrateThrDAC(args):
         tgraph_scurveMeanVsThrDacForFit.GetPoint(0,thrDacVal,scurveMean)
         if thrDacVal < perVfatFitRange[1]:
             perVfatFitRange[1] = float(thrDacVal)
-        
+
         # Mean vs CFG_THR_*_DAC
         dict_canvScurveMeanVsThrDac[vfat] = r.TCanvas("canvScurveMeanVsThrDac_{0}".format(suffix),"Scurve Mean vs. THR DAC - {0}".format(suffix),700,700)
         dict_canvScurveMeanVsThrDac[vfat].cd()
@@ -997,8 +996,8 @@ def calibrateThrDAC(args):
         dict_ScurveMeanVsThrDac[vfat].GetYaxis().SetTitle("Scurve Mean #left(fC#right)")
         dict_ScurveMeanVsThrDac[vfat].Draw("APE1")
         dict_funcScurveMeanVsThrDac[vfat] = r.TF1("func_{0}".format((dict_ScurveMeanVsThrDac[vfat].GetName()).strip('g')),"[0]*x^4+[1]*x^3+[2]*x^2+[3]*x+[4]",min(perVfatFitRange),max(perVfatFitRange))
-        #require the first derivative to be positive at the lower boundary of the fit range 
-        dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000) 
+        #require the first derivative to be positive at the lower boundary of the fit range
+        dict_funcScurveMeanVsThrDac[vfat].SetParLimits(3,0,1000000)
         tgraph_scurveMeanVsThrDacForFit.Fit(dict_funcScurveMeanVsThrDac[vfat],"QR")
         dict_ScurveMeanVsThrDac[vfat].Write()
         dict_funcScurveMeanVsThrDac[vfat].Write()
@@ -1140,7 +1139,7 @@ def calibrateThrDAC(args):
 def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outfilename='SBitRatePlots.root', scandate='noscandate'):
     """
     Analyzes a scan taken with sbitRateScanAllLinks(...) from gempython.vfatqc.utils.scanUtils
-    
+
     Returns a tuple (boolean,dictionary) where the dictionary returned is:
 
         dict_dacValsBelowCutOff[dacName][ohKey][vfat] = value
@@ -1166,6 +1165,16 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     from gempython.gemplotting.utils.anautilities import getDataPath, getElogPath
     dataPath = getDataPath()
     elogPath = getElogPath()
+
+    # Map TPad to correct vfat
+    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
+    from tabulate import tabulate
+
+    from gempython.gemplotting.utils.anautilities import findInflectionPts
+    from gempython.gemplotting.utils.anautilities import make3x8Canvas
+
+    # Allow for yellow warning color
+    from gempython.utils.gemlogger import printYellow
 
     # Set default histogram behavior
     import ROOT as r
@@ -1209,7 +1218,6 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         dict_nonzeroVFATs[ohKey] = np.unique(vfatArray[arrayMask]['vfatN'])
 
     if debug:
-        from gempython.utils.gemlogger import printYellow
         printYellow("crateMap:\n{0}".format(crateMap))
         printYellow("dacNameArray:\n{0}".format(dacNameArray))
 
@@ -1235,11 +1243,12 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
             pass
         pass
 
+
     # make nested dictionaries
     from gempython.utils.nesteddict import nesteddict as ndict
     dict_Rate1DVsDACNameX = ndict() #[dacName][ohKey][vfat] = TGraphErrors
     dict_vfatCHVsDACNameX_Rate2D = ndict() #[dacName][ohKey][vfat] = TGraph2D
-    
+
     # initialize a TGraphErrors and a TF1 for each vfat
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
@@ -1267,12 +1276,12 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         pass
 
     # create output TFiles
-    outputFiles = {}         
+    outputFiles = {}
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
         if scandate == 'noscandate':
             outputFiles[ohKey] = r.TFile(elogPath+"/"+chamber_config[ohKey]+"/"+outfilename,'recreate')
-        else:    
+        else:
             if perchannel:
                 strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
             else:
@@ -1284,7 +1293,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
 
     # Loop over events the tree and fill plots
     print("Looping over stored events in rateTree")
-    from math import sqrt 
+    from math import sqrt
     for event in rateTree:
         ohKey = (event.shelf,event.slot,event.link)
         vfat = event.vfatN
@@ -1295,7 +1304,6 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         #Get the DAC Name in question
         dacName = str(event.nameX.data())
 
-        import os, sys, traceback
         try:
             if event.vfatCH == 128:
                 dict_Rate1DVsDACNameX[dacName][ohKey][vfat].SetPoint(
@@ -1331,9 +1339,14 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     print("Determine when SBIT rate falls below {0} Hz and writing output data".format(cutOffRate))
     #from array import array
     dict_dacValsBelowCutOff = ndict()
-    from gempython.gemplotting.utils.anautilities import make3x8Canvas
+
+    # make a named dictionary to store inflection pts
+    dict_dacInflectPts = ndict()
+
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
+        # clear the inflection point table for each new link
+        inflectTable = []
         # Per VFAT Poosition
         for vfat in range(0,24):
             thisVFATDir = outputFiles[ohKey].mkdir("VFAT{0}".format(vfat))
@@ -1343,6 +1356,18 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
 
                 thisDACDir = thisVFATDir.mkdir(dacName)
                 thisDACDir.cd()
+
+                # Get Inflection Points /////////////////////////////////////////////////
+                #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                # perchannel case is not supported provide warning
+		if perchannel == True :
+                    printYellow("WARNING: perchannel case is not supported for knee finding!   Skipping knee finding" )
+
+                # channelor case
+                if perchannel == False :
+	            dict_dacInflectPts[dacName][ohKey][vfat] = findInflectionPts(dict_Rate1DVsDACNameX[dacName][ohKey][vfat])
+                    inflectTable.append([ohKey, vfat, dict_dacInflectPts[dacName][ohKey][vfat][0][0] ])
 
                 dict_dacValsBelowCutOff[dacName][ohKey][vfat] = 255 #default to max
                 for point in range(0,dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()):
@@ -1361,6 +1386,20 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                     pass
                 pass
             pass
+
+        # put inflection points in a table for each different ohKey 
+        if perchannel == False:
+            print(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
+            if scandate == 'noscandate':
+                inflectTableFile = file("{0}/{1}/inflectionPointTable.txt".format(elogPath,chamber_config[ohKey]), "w")
+                inflectTableFile.write(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
+            else: 
+                inflectTableFile = file("{0}/{1}/inflectionPointTable.txt".format(strDirName,scandate ), "w")
+                inflectTableFile.write(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
+
+        # Make Graphs /////////////////////////////////////////////////////////////////////////////
+        #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
         for idx in range(len(dacNameArray)):
             dacName = np.asscalar(dacNameArray[idx])
             if perchannel:
@@ -1368,12 +1407,31 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 for vfat in range(1,25):
                     canv_Summary2D.cd(vfat).SetLogz()
             else:
-                canv_Summary1D = make3x8Canvas("canv_Summary_Rate1D_vs_{0}".format(dacName),dict_Rate1DVsDACNameX[dacName][ohKey],"APE1")
-                for vfat in range(1,25):
-                    canv_Summary1D.cd(vfat).SetLogy()
-                    dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetYaxis().SetRangeUser(1e-1,1e8)
-                    canv_Summary1D.cd(vfat).Update()
+                canv_Summary1D = make3x8Canvas("canv_Summary_Rate1D_vs_{0}".format(dacName),dict_Rate1DVsDACNameX[dacName][ohKey],"APE1" )
+                # make 24 TLines
+                kneeLine= []
+                for vfat in range(0,24):
+                    canv_Summary1D.cd(vfat + 1).SetLogy()
 
+                    # make TH1F into TGraph
+                    graph = dict_Rate1DVsDACNameX[dacName][ohKey][vfat]
+                    if type(graph) == r.TH1F :
+                        graph = r.TGraph(graph)
+
+                    # get maximum y value
+                    y = graph.GetY()
+                    y = np.array(y)
+                    ymax = np.amax(y)
+
+                    # Draw a line on the graphs
+                    kneeLine.append(r.TLine(dict_dacInflectPts[dacName][ohKey][vfat][0], 10.0, dict_dacInflectPts[dacName][ohKey][vfat][0], ymax) )
+                    kneeLine[vfat].SetLineColor(2)
+                    kneeLine[vfat].SetVertical()
+                    canv_Summary1D.cd(chamber_vfatPos2PadIdx[vfat] )
+                    kneeLine[vfat].Draw()
+                canv_Summary1D.Update()
+
+            # Save the graphs
             if scandate == 'noscandate':
                 if perchannel:
                     canv_Summary2D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,chamber_config[ohKey],canv_Summary2D.GetName()))

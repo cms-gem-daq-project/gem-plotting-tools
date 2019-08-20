@@ -442,6 +442,75 @@ def filePathExists(searchPath, subPath=None, debug=False):
             print "Found %s"%s(testPath)
         return True
 
+# Find Inflection Point /////////////////////////////////////////////////////////////////
+#----------------------------------------------------------------------------------------
+
+def findInflectionPts(graph):
+    '''
+    Find and return the "knee", inflection point, of the SBit Rate scan
+    graph should be a TGraph or TH1F of the SBit Rate scan for 1 vfat 
+    '''
+
+
+    import ROOT as root
+    import numpy as np
+    from itertools import groupby
+
+    # Allow for yellow and red warning colors
+    from gempython.utils.gemlogger import printYellow, printRed
+
+    # make TH1F into TGraph
+    if type(graph) == root.TH1F :
+        graph = root.TGraph(graph)
+
+    # make arrays out of the x and y components
+    x = graph.GetX()
+    y = graph.GetY()
+    x = np.array(x, dtype=float)
+    y = np.array(y, dtype=float)
+
+    # Calculate the gradient of y as a function of x
+    # Documentation here: https://docs.scipy.org/doc/numpy/reference/generated/numpy.gradient.html
+    grad = np.gradient(y, x)
+
+    # Split the array when the slope changes sign and store the partitions of gradients
+    posGrad = [list(g) for k, g in groupby(grad, lambda x: x > 0) if k]
+    negGrad = [list(g) for k, g in groupby(grad, lambda x: x < 0) if k]
+   
+    # Sum the split arrays and find the most negative sum
+    negSum = []
+    bigNegSum = 0
+    bigIdx = 0
+    for iNegArr in range(0, len(negGrad) ) :
+        tmpNegSum = sum(negGrad[iNegArr] )
+        negSum.append(tmpNegSum)
+        if tmpNegSum < bigNegSum :
+            bigNegSum = tmpNegSum
+            bigIdx =  iNegArr
+
+    # Get the inflection point
+    # We are defining the inflection point as the point where the most negative gradient sum begins
+    try:
+        inflxGrad = negGrad[bigIdx][0]
+        inflxIdx = np.where(grad == inflxGrad) #return the index at the specified value
+        inflxPnt = (x[inflxIdx], y[inflxIdx] )
+    # Error handling for problematic VFATs
+    except IndexError:
+        if bigIdx == 0:
+            printYellow("Warning: No values with negative slope, so no inflection point! Assigning 0")
+            inflxPnt = (0.0, 0.0)
+        else:
+            printYellow("Warning: There is no negative gradient value at the index (bigIdx) value {:f}, Assigning 0".format(bigIdx) )
+            inflxPnt = (0.0, 0.0)
+    except ValueError:
+        printYellow("Warning: the inflection point gradient (inflxGrad) value {:f} was not found in the gradient list. Assigning 0".format(inflxGrad) )
+        inflxPnt = (0.0, 0.0)
+    except NameError:
+        printYellow("Warning: The inflection point was not found (unqualified name). Assigning 0")
+        inflxPnt = (0.0, 0.0)
+
+    return inflxPnt
+
 def first_index_gt(data_list, value):
     """
     http://code.activestate.com/recipes/578071-fast-indexing-functions-greater-than-less-than-equ/
@@ -1165,7 +1234,7 @@ def make2x4Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
     canv.Update()
     return canv
 
-def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv=None):
+def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv = None ):
     """
     Creates a 3x8 canvas for summary plots.
 
@@ -1179,7 +1248,7 @@ def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryCon
 
     import ROOT as r
     from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
-    
+   
     if canv is None:
         canv = r.TCanvas(name,name,500*8,500*3)
         canv.Divide(8,3)
@@ -1568,3 +1637,4 @@ def saveSummaryByiEta(dictSummary, name='Summary', trimPt=None, drawOpt="colz"):
     canv.SaveAs(name)
 
     return
+
