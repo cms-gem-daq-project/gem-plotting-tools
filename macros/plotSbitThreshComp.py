@@ -27,7 +27,7 @@ the script:
 
 .. option:: filename <FILE>
 
-    Physical filename of the input file to be passed to :program:`plot_eff.py`.
+    Physical filename of the input file to be passed to :program:`plotSbitThreshComp.py`.
     The format of this input file should follow the :doc:`Three Column Format
     </scandate-list-formats>`.
 
@@ -68,7 +68,7 @@ def compareSBitThreshResults(args):
     r.gROOT.SetBatch(True)
     
     # Check Paths
-    import os
+    import os, sys
     from gempython.utils.wrappers import envCheck
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')
@@ -88,7 +88,6 @@ def compareSBitThreshResults(args):
 
     legPlot = r.TLegend(0.5,0.5,0.9,0.9)
     
-    from array import array
     from gempython.utils.nesteddict import nesteddict as ndict
     dict_Histos = ndict()
     dict_Graphs = ndict()
@@ -97,10 +96,10 @@ def compareSBitThreshResults(args):
         # Setup the path
         dirPath = getDirByAnaType("sbitRateor", infoTuple[0])
         if not filePathExists(dirPath, infoTuple[1]):
-            print 'Filepath %s/%s does not exist!'%(dirPath, infoTuple[1])
-            print 'Please cross-check, exiting!'
-            exit(os.EX_DATAERR)
-        filename = "%s/%s/SBitRatePlots.root"%(dirPath, infoTuple[1])
+            print('Filepath {:s}/{:s} does not exist!'.format(dirPath, infoTuple[1]))
+            print('Please cross-check, exiting!')
+            sys.exit(os.EX_NOINPUT)
+        filename = "{:s}/{:s}/SBitRatePlots.root".format(dirPath, infoTuple[1])
 
         # Load the file
         r.TH1.AddDirectory(False)
@@ -169,7 +168,6 @@ def compareSBitThreshResults(args):
     ###################
     # Now Make plots
     ###################
-
     for vfat in range(24):
         # Make Output Canvas
         dict_canv[vfat] = r.TCanvas("canvSBitRate_VFAT{0}".format(vfat),"SBIT Rate by THR DAC",700,700)
@@ -186,7 +184,6 @@ def compareSBitThreshResults(args):
             dict_MultiGraphs[vfat].GetXaxis().SetRangeUser(0,125)
             pass
         dict_MultiGraphs[vfat].Draw("APE1")
-        dict_canv
 
         # Draw Legend?
         if not args.noLeg:

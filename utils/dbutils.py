@@ -62,12 +62,16 @@ def getGEMDBView(view, vfatList=None, debug=False):
         pass
 
     # get a pandas data frame object containing the db query
+    import cx_Oracle
     dbName = os.getenv("GEM_ONLINE_DB_NAME")
     dbConn = os.getenv("GEM_ONLINE_DB_CONN")
-    dfGEMView = pd.read_sql(query, con=(dbConn+dbName))
+    gemdb = cx_Oracle.connect(dbConn+dbName)
+    dfGEMView = pd.read_sql(query,gemdb)
+    dfGEMView.columns = [ str.lower(col) for col in dfGEMView.columns ]
 
     if debug:
-        dfGEMView.info()
+        print(dfGEMView.info())
+        print("Columns = {}".format(dfGEMView.columns))
         print("Read {0} rows from view {1}".format(dfGEMView.shape[0],view))
         pass
 
