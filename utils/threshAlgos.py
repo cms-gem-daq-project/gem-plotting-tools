@@ -501,7 +501,7 @@ def calibrateThrDAC(args):
         args.maxEffPedPercent=maxEffPedPercentDefault
 
     if not hasattr(args,"highNoiseCut"):
-        args.highNoiseCut=HighNoiseCutDefault
+        args.highNoiseCut=highNoiseCutDefault
 
     if not hasattr(args,"deadChanCutLow"):
         args.deadChanCutLow=deadChanCutLowDefault
