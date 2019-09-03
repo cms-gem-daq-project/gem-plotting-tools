@@ -232,18 +232,24 @@ def calArmDACParallelAna(args):
     # Perform ARM DAC calibration analysis
     from gempython.gemplotting.utils.threshAlgos import calibrateThrDACStar
     import itertools, sys, traceback
+    from gempython.gemplotting.utils.namespace import Namespace
+
+    namespaces = []
+    for calInfoTuple in dictOfFiles.values():
+        namespaces.append(Namespace(
+            inputFile = calInfoTuple[0].format(DETECTOR=calInfoTuple[1]),
+            fitRange = "0,255",
+            listOfVFATs = None,
+            noLeg = args.noLeg,
+            outputDir = calInfoTuple[0][0:calInfoTuple[0].rfind("/")+1],
+            savePlots = args.savePlots,
+            debug = args.debug
+            ))
+
     try:
         print("Calibration CFG_THR_ARM_DAC; please be patient")
         pool.map_async(calibrateThrDACStar,
-                itertools.izip(
-                    [calInfoTuple[0].format(DETECTOR=calInfoTuple[1]) for calInfoTuple in dictOfFiles.values()], #inputFile
-                    ["0,255" for calInfoTuple in dictOfFiles.values()],                                          #fitRange
-                    [None for calInfoTuple in dictOfFiles.values()],                                             #listOfVFATs
-                    [args.noLeg for calInfoTuple in dictOfFiles.values()],                                       #noLeg
-                    [calInfoTuple[0][0:calInfoTuple[0].rfind("/")+1] for calInfoTuple in dictOfFiles.values()],  #outputDir
-                    [args.savePlots for calInfoTuple in dictOfFiles.values()],                                   #savePlots
-                    [args.debug for calInfoTuple in dictOfFiles.values()]                                        # debug
-                    )
+                itertools.izip(namespaces)
                 ).get(1800) # wait at most 30 minutes, this should be "relatively" quick
     except KeyboardInterrupt:
         printRed("Caught KeyboardInterrupt, terminating workers")

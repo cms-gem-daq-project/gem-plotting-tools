@@ -112,10 +112,23 @@ if __name__ == '__main__':
     from gempython.gemplotting.utils.threshAlgos import calibrateThrDAC
     from gempython.utils.gemlogger import printGreen, printRed
     from gempython.utils.wrappers import runCommand
+    from gempython.gemplotting.utils.namespace import Namespace
     import os, sys, traceback
-    args.outputDir = outputDir
+    ns = Namespace(
+        inputFile=args.inputFile,
+        fitRange=args.fitRange,
+        listOfVFATs=args.listOfVFATs,
+        maxEffPedPercent=args.maxEffPedPercent,
+        highNoiseCut=args.highNoiseCut,
+        deadChanCutLow=args.deadChanCutLow,
+        deadChanCutHigh=args.deadChanCutHigh,
+        noLeg=args.noLeg,
+        outputDir=outputDir,
+        savePlots=args.savePlots,
+        debug=args.debug
+    )
     try:
-        retCode = calibrateThrDAC(args)
+        retCode = calibrateThrDAC(ns)
     except IOError as err:
         printRed("IOError: {0}".format(err.message))
         printRed("Analysis failed with error code {0}".format(retCode))
