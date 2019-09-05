@@ -688,6 +688,8 @@ def getDirByAnaType(anaType, cName, ztrim=4):
         dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
     elif anaType == "trimV3":
         dirPath = "%s/%s/trim/"%(dataPath,cName)
+    elif anaType == "iterTrim":
+        dirPath = "%s/%s/itertrim/"%(dataPath,cName)
 
     return dirPath
 
