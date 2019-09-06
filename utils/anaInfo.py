@@ -80,7 +80,8 @@ ana_config = {
         "thresholdvftrk":"anaUltraThreshold.py",
         "thresholdvftrig":"anaUltraThreshold.py",
         "trim":"anaUltraScurve.py",
-        "trimV3":"anaUltraScurve.py"
+        "trimV3":"anaUltraScurve.py",
+        "iterTrim":"anaUltraScurve.py"
         }
 
 #: key values match ana_config (mostly...)
