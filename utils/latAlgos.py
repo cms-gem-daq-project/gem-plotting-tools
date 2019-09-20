@@ -163,6 +163,10 @@ def anaUltraLatency(infilename, debug=False, latSigMaskRange=None, latSigRange=N
     # Make output TFile and TTree
     from array import array
     dirVFATPlots = outF.mkdir("VFAT_Plots")
+    if 'detName' in listOfBranches:    
+        detName = r.vector('string')()
+        detName.push_back(rp.tree2array(inFile.latTree, branches = [ 'detName' ] )[0][0][0])
+        myT.Branch( 'detName', detName)
     vfatN = array( 'i', [ 0 ] )
     myT.Branch( 'vfatN', vfatN, 'vfatN/I' )
     vfatID = array( 'L', [0] )
@@ -199,7 +203,13 @@ def anaUltraLatency(infilename, debug=False, latSigMaskRange=None, latSigRange=N
     r.gStyle.SetOptStat(0)
     if debug and performFit:
         print("VFAT\tSignalHits\tSignal/Noise")
+
     for vfat in dict_hVFATHitsVsLat:
+        #if we don't have any data for this VFAT, we just need to initialize the TGraphAsymmErrors since it is drawn later
+        if vfat not in dict_chipID:
+            dict_grNHitsVFAT[vfat] = r.TGraphAsymmErrors()
+            continue
+        
         # Store VFAT info
         vfatN[0] = vfat
         vfatID[0] = dict_chipID[vfat]

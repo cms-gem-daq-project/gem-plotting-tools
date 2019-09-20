@@ -105,36 +105,12 @@ def anaSBITThresh(args):
         if args.scandate is None:
             args.scandate = getScandateFromFilename(fileTuple[0])
 
-        anaResults = sbitRateAnalysis(
-                chamber_config = chamber_config,
-                rateTree = sbitThreshFile.rateTree,
-                cutOffRate = args.maxNoiseRate,
-                debug = args.debug,
-                scandate = args.scandate)
-
-        dict_dacValsBelowCutOff = anaResults[1]
-
-        for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
-            if args.scandate == 'noscandate':
-                vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,chamber_config[ohKey]),'w')
-                printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(chamber_config[ohKey],elogPath))
-            else:
-                if args.perchannel:
-                    strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
-                else:
-                    strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
-                    pass
-                vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,args.scandate),'w')
-                printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(chamber_config[ohKey],strDirName,args.scandate))
-                pass
-
-            vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
-            for vfat,armDACVal in innerDictByVFATKey.iteritems():
-                vfatConfg.write('%i\t%i\t%i\n'%(vfat, armDACVal,0))
-                pass
-            vfatConfg.close()
-            pass
-        pass
+        sbitRateAnalysis(
+            chamber_config = chamber_config,
+            rateTree = sbitThreshFile.rateTree,
+            cutOffRate = args.maxNoiseRate,
+            debug = args.debug,
+            scandate = args.scandate)
 
     printGreen("Analysis Completed Successfully")
     return

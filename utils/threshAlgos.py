@@ -134,9 +134,11 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     listOfBranches = thrTree.GetListOfBranches()
     if 'vfatID' in listOfBranches:
         array_chipID = np.unique(rp.tree2array(thrTree, branches = [ 'vfatID','vfatN' ] ))
-        array_chipID = np.sort(array_chipID, order='vfatN')['vfatID']
+        dict_chipID = {}
+        for entry in array_chipID:
+            dict_chipID[entry['vfatN']]=entry['vfatID']
     else:
-        array_chipID = np.zeros(24)
+        dict_chipID = { vfat:0 for vfat in range(24) }
 
     r.TH1.SetDefaultSumw2(False)
     r.gROOT.SetBatch(True)
@@ -146,7 +148,11 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     dict_hMaxThrDAC_NoOutlier = {}
     dict_chanMaxThrDAC = {}
     for vfat in range(0,24):
-        chipID = array_chipID[vfat]
+        if vfat not in dict_chipID:
+            dict_h2D_thrDAC[vfat] = r.TH2D()
+            continue
+        
+        chipID = dict_chipID[vfat]
         dict_h2D_thrDAC[vfat] = r.TH2D(
                 'h_thrDAC_vs_ROBstr_VFAT{0}'.format(vfat),
                 'VFAT{0} chipID {1};{2};{3} [DAC units]'.format(vfat,chipID,stripChanOrPinName[1],dacName),
@@ -169,19 +175,18 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
         if args.isVFAT2:
             dict_trimRange[int(event.vfatN)] = int(event.dict_trimRange)
 
-        if not (array_chipID[event.vfatN] > 0):
-            if 'vfatID' in listOfBranches:
-                array_chipID[event.vfatN] = event.vfatID
-            else:
-                array_chipID[event.vfatN] = 0
-
         stripPinOrChan = dict_vfatChanLUT[event.vfatN][stripChanOrPinType][event.vfatCH]
         dict_h2D_thrDAC[event.vfatN].Fill(stripPinOrChan,event.vth1,event.Nhits)
         pass
 
-    # Make output TTree
+    # Make output TFile and make output TTree
     from array import array
+    outFile = r.TFile("{0}/{1}".format(outputDir,args.outfilename),"RECREATE")
     thrAnaTree = r.TTree('thrAnaTree','Tree Holding Analyzed Threshold Data')
+    if 'detName' in listOfBranches:
+        detName = r.vector('string')()
+        detName.push_back(rp.tree2array(thrTree, branches = [ 'detName' ] )[0][0][0])
+        thrAnaTree.Branch('detName', detName)
     mask = array( 'i', [ 0 ] )
     thrAnaTree.Branch( 'mask', mask, 'mask/I' )
     maskReason = array( 'i', [ 0 ] )
@@ -208,6 +213,9 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
     hot_channels = {}
     for vfat in range(0,24):
+        if vfat not in dict_chipID:
+            continue
+        
         #For each channel determine the maximum thresholds
         dict_chanMaxThrDAC[vfat] = -1 * np.ones((2,dict_h2D_thrDAC[vfat].GetNbinsX()))
         for chan in range(0,128):
@@ -242,7 +250,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
             if args.isVFAT2:
                 trimRange[0] = dict_trimRange[vfat]
             vfatCH[0] = chan
-            vfatID[0] = array_chipID[vfat]
+            vfatID[0] = dict_chipID[vfat]
             vfatN[0] = vfat
             vthr[0] = int(dict_chanMaxThrDAC[vfat][1][chan])
             thrAnaTree.Fill()
@@ -307,6 +315,8 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     if not args.pervfat:
         print("Subtracting off hot channels")
         for vfat in range(0,24):
+            if vfat not in dict_chipID:
+                continue
             vfatChanArray = hot_channels[ hot_channels['vfatN'] == vfat ]
             for chan in range(0,dict_h2D_thrDAC[vfat].GetNbinsX()):
                 isHotChan = vfatChanArray[ vfatChanArray['vfatCH'] == chan ]['mask']
@@ -325,12 +335,14 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
             pass
         pass
 
-    #Make output TFile and write data to it
-    outFile = r.TFile("{0}/{1}".format(outputDir,args.outfilename),"RECREATE")
     outFile.cd()
     thrAnaTree.Write()
     dict_h2D_thrDACProjPruned = {}
     for vfat in range(0,24):
+        #if we don't have any data for this VFAT, we just need to initialize the TH1D since it is drawn later
+        if vfat not in dict_chipID:
+            dict_h2D_thrDACProjPruned[vfat] = r.TH1D()
+            continue                
         thisDir = outFile.mkdir("VFAT{0}".format(vfat))
         thisDir.cd()
         dict_h2D_thrDAC[vfat].Write()
@@ -350,6 +362,8 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     print('Determining the thrDAC values for each VFAT')
     vt1 = dict((vfat,0) for vfat in range(0,24))
     for vfat in range(0,24):
+        if vfat not in dict_chipID:
+            continue        
         proj = dict_h2D_thrDAC[vfat].ProjectionY()
         proj.Draw()
         for thresh in range(THR_DAC_MAX+1,0,-1):
@@ -366,12 +380,16 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
     if args.isVFAT2:
         txt_vfat.write("vfatN/I:vfatID/I:vt1/I:trimRange/I\n")
         for vfat in range(0,24):
-            txt_vfat.write('%i\t%i\t%i\t%i\n'%(vfat,array_chipID[vfat],vt1[vfat],trimRange[vfat]))
+            if vfat not in dict_chipID:
+                continue
+            txt_vfat.write('%i\t%i\t%i\t%i\n'%(vfat,dict_chipID[vfat],vt1[vfat],trimRange[vfat]))
             pass
     else:
         txt_vfat.write("vfatN/I:vfatID/I:vt1/I\n")
         for vfat in range(0,24):
-            txt_vfat.write('%i\t%i\t%i\n'%(vfat,array_chipID[vfat],vt1[vfat]))
+            if vfat not in dict_chipID:
+                continue
+            txt_vfat.write('%i\t%i\t%i\n'%(vfat,dict_chipID[vfat],vt1[vfat]))
             pass
     txt_vfat.close()
 
@@ -383,19 +401,21 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
             if args.debug:
                 print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
             for vfat in range (0,24):
+                if vfat not in dict_chipID:
+                    continue                
                 vfatChanArray = hot_channels[ hot_channels['vfatN'] == vfat ]
                 for chan in range (0, 128):
                     isHotChan = vfatChanArray[ vfatChanArray['vfatCH'] == chan ]['mask']
                     if args.debug:
                         print('{0}\t{1}\t{2}\t{3}\t{4}\n'.format(
                             vfat,
-                            array_chipID[vfat],
+                            dict_chipID[vfat],
                             chan,
                             dict_vfatTrimMaskData[vfat][chan]['trimDAC'],
                             int(isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask'])))
                     confF.write('{0}\t{1}\t{2}\t{3}\t{4}\n'.format(
                         vfat,
-                        array_chipID[vfat],
+                        dict_chipID[vfat],
                         chan,
                         dict_vfatTrimMaskData[vfat][chan]['trimDAC'],
                         int(isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask'])))
@@ -404,13 +424,15 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
             if args.debug:
                 print 'vfatN/I:vfatID/I:vfatCH/I:trimDAC/I:mask/I\n'
             for vfat in range (0,24):
+                if vfat not in dict_chipID:
+                    continue
                 vfatChanArray = hot_channels[ hot_channels['vfatN'] == vfat ]
                 for chan in range(0,128):
                     isHotChan = vfatChanArray[ vfatChanArray['vfatCH'] == chan ]['mask']
                     if args.debug:
                         print('%i\t%i\t%i\t%i\t%i\t%i\t%i\n'%(
                             vfat,
-                            array_chipID[vfat],
+                            dict_chipID[vfat],
                             chan,
                             dict_vfatTrimMaskData[vfat][chan]['trimDAC'],
                             dict_vfatTrimMaskData[vfat][chan]['trimPolarity'],
@@ -418,7 +440,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
                             dict_vfatTrimMaskData[vfat][chan]['maskReason']))
                     confF.write('%i\t%i\t%i\t%i\t%i\t%i\t%i\n'%(
                         vfat,
-                        array_chipID[vfat],
+                        dict_chipID[vfat],
                         chan,
                         dict_vfatTrimMaskData[vfat][chan]['trimDAC'],
                         dict_vfatTrimMaskData[vfat][chan]['trimPolarity'],
@@ -1187,8 +1209,18 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     # Get the data
     import root_numpy as rp
     import numpy as np
-    list_bNames = ['dacValX','link','nameX','rate','shelf','slot','vfatCH','vfatN']
 
+    #for backwards compatibility, handle input trees that do not have a detName branch by finding the detName using the chamber_config
+    list_bNames = ['dacValX','link','nameX','rate','shelf','slot','vfatCH','vfatN','detName']
+    if not 'detName' in rateTree.GetListOfBranches():
+        list_bNames.remove('detName')
+
+    def getDetName(entry):
+        if "detName" in np.dtype(entry).names:
+            return entry['detName'][0]
+        else:
+            return chamber_config[(entry['shelf'],entry['slot'],entry['link'])]
+        
     vfatArray = rp.tree2array(tree=rateTree,branches=list_bNames)
     dacNameArray = np.unique(vfatArray['nameX'])
 
@@ -1208,6 +1240,13 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     list_bNames.remove('vfatN')
     crateMap = np.unique(rp.tree2array(tree=rateTree,branches=list_bNames))
 
+    #map to go from the ohKey to the detector serial number
+    detNamesMap = {}
+    
+    if "detName" in crateMap.dtype.names:
+        for entry in crateMap:
+            detNamesMap[(entry['shelf'],entry['slot'],entry['link'])] = entry['detName'][0]
+    
     # get nonzero VFATs
     dict_nonzeroVFATs = {}
     for entry in crateMap:
@@ -1225,15 +1264,15 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     from gempython.utils.wrappers import runCommand
     from gempython.gemplotting.utils.anautilities import getDirByAnaType
     for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])
+        detName = getDetName(entry)
         if scandate == 'noscandate':
-            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
-            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,chamber_config[ohKey])])
+            runCommand(["mkdir", "-p", "{0}/{1}".format(elogPath,detName)])
+            runCommand(["chmod", "g+rw", "{0}/{1}".format(elogPath,detName)])
         else:
             if perchannel:
-                strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
+                strDirName = getDirByAnaType("sbitRatech", detName)
             else:
-                strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
+                strDirName = getDirByAnaType("sbitRateor", detName)
                 pass
             runCommand(["mkdir", "-p", "{0}/{1}".format(strDirName,scandate)])
             runCommand(["chmod", "g+rw", "{0}/{1}".format(strDirName,scandate)])
@@ -1278,14 +1317,14 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     # create output TFiles
     outputFiles = {}
     for entry in crateMap:
-        ohKey = (entry['shelf'],entry['slot'],entry['link'])
+        detName = getDetName(entry)
         if scandate == 'noscandate':
-            outputFiles[ohKey] = r.TFile(elogPath+"/"+chamber_config[ohKey]+"/"+outfilename,'recreate')
+            outputFiles[ohKey] = r.TFile(elogPath+"/"+detName+"/"+outfilename,'recreate')
         else:
             if perchannel:
-                strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
+                strDirName = getDirByAnaType("sbitRatech", detName)
             else:
-                strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
+                strDirName = getDirByAnaType("sbitRateor", detName)
                 pass
             outputFiles[ohKey] = r.TFile(strDirName+scandate+"/"+outfilename,'recreate')
             pass
@@ -1345,6 +1384,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
 
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
+        detName = getDetName(entry)
         # clear the inflection point table for each new link
         inflectTable = []
         # Per VFAT Poosition
@@ -1391,7 +1431,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         if perchannel == False:
             print(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
             if scandate == 'noscandate':
-                inflectTableFile = file("{0}/{1}/inflectionPointTable.txt".format(elogPath,chamber_config[ohKey]), "w")
+                inflectTableFile = file("{0}/{1}/inflectionPointTable.txt".format(elogPath,detName), "w")
                 inflectTableFile.write(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
             else: 
                 inflectTableFile = file("{0}/{1}/inflectionPointTable.txt".format(strDirName,scandate ), "w")
@@ -1434,15 +1474,15 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
             # Save the graphs
             if scandate == 'noscandate':
                 if perchannel:
-                    canv_Summary2D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,chamber_config[ohKey],canv_Summary2D.GetName()))
+                    canv_Summary2D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,detName,canv_Summary2D.GetName()))
                 else:
-                    canv_Summary1D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,chamber_config[ohKey],canv_Summary1D.GetName()))
+                    canv_Summary1D.SaveAs("{0}/{1}/{2}_{1}.png".format(elogPath,detName,canv_Summary1D.GetName()))
             else:
                 if perchannel:
-                    strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
+                    strDirName = getDirByAnaType("sbitRatech", detName)
                     canv_Summary2D.SaveAs("{0}/{1}/{2}.png".format(strDirName,scandate,canv_Summary2D.GetName()))
                 else:
-                    strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
+                    strDirName = getDirByAnaType("sbitRateor", detName)
                     canv_Summary1D.SaveAs("{0}/{1}/{2}.png".format(strDirName,scandate,canv_Summary1D.GetName()))
                     pass
                 pass
@@ -1450,4 +1490,28 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         outputFiles[ohKey].Close()
         pass
 
-    return (perchannel, dict_dacValsBelowCutOff)
+    for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
+        if ohKey in detNamesMap:
+            detName = detNamesMap[ohKey]
+        else:
+            detName = chamber_config[ohKey]                            
+
+        from gempython.utils.gemlogger import printGreen    
+            
+        if scandate == 'noscandate':
+            vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,detName),'w')
+            printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(detName,elogPath))
+        else:    
+            if perchannel:
+                strDirName = getDirByAnaType("sbitRatech", detName)
+            else:
+                strDirName = getDirByAnaType("sbitRateor", detName)
+            vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,scandate),'w')
+            printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(detName,strDirName,scandate))
+            
+        vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
+        for vfat,armDACVal in innerDictByVFATKey.iteritems():
+            vfatConfg.write('%i\t%i\t%i\n'%(vfat, armDACVal,0))
+        vfatConfg.close()    
+        
+    return 

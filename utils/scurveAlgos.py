@@ -133,7 +133,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         inFile.Close()
         raise IOError("Input file {0} is a Zombie, check to make sure you have write permissions and file has expected size".format(scurveFilename))
     scurveTree = inFile.scurveTree
-    
+
     # Get ChipID's
     import numpy as np
     import root_numpy as rp
@@ -460,6 +460,10 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         #scurveFitTree = r.TTree('scurveFitTree','Tree Holding FitData')
 
         from array import array
+        if 'detName' in listOfBranches:
+            detName = r.vector('string')()
+            detName.push_back(rp.tree2array(scurveTree, branches = [ 'detName' ] )[0][0][0])
+            scurveFitTree.Branch( 'detName', detName)
         chi2 = array( 'f', [ 0 ] )
         scurveFitTree.Branch( 'chi2', chi2, 'chi2/F')
         mask = array( 'i', [ 0 ] )

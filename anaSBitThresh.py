@@ -86,38 +86,12 @@ if __name__ == '__main__':
 
     from gempython.gemplotting.mapping.chamberInfo import chamber_config
     from gempython.gemplotting.utils.threshAlgos import sbitRateAnalysis
-    anaResults = sbitRateAnalysis(
-            chamber_config = chamber_config, 
-            rateTree = sbitThreshFile.rateTree,
-            cutOffRate = args.maxNoiseRate,
-            debug = args.debug,
-            outfilename = args.outfilename,
-            scandate = scandate)
-
-    perchannel = anaResults[0]
-    dict_dacValsBelowCutOff = anaResults[1]
-
-    from gempython.utils.gemlogger import printGreen
-    from gempython.gemplotting.utils.anautilities import getDirByAnaType
-    for ohKey,innerDictByVFATKey in dict_dacValsBelowCutOff["THR_ARM_DAC"].iteritems():
-        if scandate == 'noscandate':
-            vfatConfg = open("{0}/{1}/vfatConfig.txt".format(elogPath,chamber_config[ohKey]),'w')
-            printGreen("Output Data for {0} can be found in:\n\t{1}/{0}\n".format(chamber_config[ohKey],elogPath))
-        else:
-            if perchannel:
-                strDirName = getDirByAnaType("sbitRatech", chamber_config[ohKey])
-            else:
-                strDirName = getDirByAnaType("sbitRateor", chamber_config[ohKey])
-                pass
-            vfatConfg = open("{0}/{1}/vfatConfig.txt".format(strDirName,scandate),'w')
-            printGreen("Output Data for {0} can be found in:\n\t{1}/{2}\n".format(chamber_config[ohKey],strDirName,scandate))
-            pass
-
-        vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
-        for vfat,armDACVal in innerDictByVFATKey.iteritems():
-            vfatConfg.write('%i\t%i\t%i\n'%(vfat, armDACVal,0))
-            pass
-        vfatConfg.close()
-        pass
+    sbitRateAnalysis(
+        chamber_config = chamber_config, 
+        rateTree = sbitThreshFile.rateTree,
+        cutOffRate = args.maxNoiseRate,
+        debug = args.debug,
+        outfilename = args.outfilename,
+        scandate = scandate)
 
     print('Analysis Completed Successfully')
