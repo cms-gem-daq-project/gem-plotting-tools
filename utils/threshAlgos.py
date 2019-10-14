@@ -1317,6 +1317,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
     # create output TFiles
     outputFiles = {}
     for entry in crateMap:
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])        
         detName = getDetName(entry)
         if scandate == 'noscandate':
             outputFiles[ohKey] = r.TFile(elogPath+"/"+detName+"/"+outfilename,'recreate')
