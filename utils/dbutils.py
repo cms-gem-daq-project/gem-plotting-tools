@@ -102,8 +102,21 @@ def getVFAT3CalInfo(vfatList, debug=False):
     debug       - Prints additional info if true
     """
 
-    df_vfatCalInfo = getVFAT3ProdSumView(vfatList, debug)
-
+    #When using multithreading, the threads pass information back in pickled format. Some exceptions in cx_Oracle cannot be pickled.
+    #Thus, we check here whether the exception can be pickled, and if not rethrow it as an exception that can be.
+    try:
+        df_vfatCalInfo = getVFAT3ProdSumView(vfatList, debug)
+    except Exception as err:
+        import pickle
+        try:
+            pickle.dumps(err)
+        except TypeError:
+            raise Exception("This is a rethrown exception. The original exception type was: "+str(type(err)) +". The original exception message was: "+str(err.message))
+        else:
+            raise err
+            
+            
+        
     return df_vfatCalInfo[['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']]
 
 def getVFAT3ConfView(vfatList, debug=False):
