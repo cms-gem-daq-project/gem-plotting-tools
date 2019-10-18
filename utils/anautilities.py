@@ -277,6 +277,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 calibrated_ADC_value -= nominal_iref 
 
             calibrated_ADC_value /= nominalDacScalingFactors[dacName]
+            calibrated_ADC_error /= nominalDacScalingFactors[dacName]
                 
         #the reversal of x and y is intended - we want to plot the dacName variable on the y-axis and the adcName variable on the x-axis
         #the dacName variable is the DAC register that is scanned, and we want to determine its nominal value
