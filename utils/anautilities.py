@@ -487,6 +487,12 @@ def findInflectionPts(graph):
     x = np.array(x, dtype=float)
     y = np.array(y, dtype=float)
 
+    if len(x) == 0 or len(y) == 0:
+        printRed("No data points were passed to the inflection point finder")
+        printRed("This could be due to missing VFATs on the detector, please make sure you expect this")
+        printRed("Returning None")
+        return (np.array([None]), np.array([None]) ) 
+
     # Calculate the gradient of y as a function of x
     # Documentation here: https://docs.scipy.org/doc/numpy/reference/generated/numpy.gradient.html
     grad = np.gradient(y, x)
@@ -516,16 +522,16 @@ def findInflectionPts(graph):
     except IndexError:
         if bigIdx == 0:
             printYellow("Warning: No values with negative slope, so no inflection point! Assigning 0")
-            inflxPnt = (0.0, 0.0)
+            inflxPnt = (np.array([0.0], dtype=float), np.array([0.0], dtype=float) )
         else:
             printYellow("Warning: There is no negative gradient value at the index (bigIdx) value {:f}, Assigning 0".format(bigIdx) )
-            inflxPnt = (0.0, 0.0)
+            inflxPnt = (np.array([0.0], dtype=float), np.array([0.0], dtype=float) )
     except ValueError:
         printYellow("Warning: the inflection point gradient (inflxGrad) value {:f} was not found in the gradient list. Assigning 0".format(inflxGrad) )
-        inflxPnt = (0.0, 0.0)
+        inflxPnt = (np.array([0.0], dtype=float), np.array([0.0], dtype=float) )
     except NameError:
         printYellow("Warning: The inflection point was not found (unqualified name). Assigning 0")
-        inflxPnt = (0.0, 0.0)
+        inflxPnt = (np.array([0.0], dtype=float), np.array([0.0], dtype=float) )
 
     return inflxPnt
 

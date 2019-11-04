@@ -1454,6 +1454,11 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 for vfat in range(0,24):
                     canv_Summary1D.cd(vfat + 1).SetLogy()
 
+                    # make sure the inflection point is there
+                    if dict_dacInflectPts[dacName][ohKey][vfat][0] == None:
+                        kneeLine.append(None)
+                        continue
+
                     # make TH1F into TGraph
                     graph = dict_Rate1DVsDACNameX[dacName][ohKey][vfat]
                     if type(graph) == r.TH1F :
