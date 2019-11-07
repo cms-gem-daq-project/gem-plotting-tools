@@ -29,6 +29,17 @@ class VFATDACBiasCannotBeReached(ValueError):
         self.errors = errors
         return
 
+class VFATDACFitLargeChisquare(ValueError):
+    """
+    This exception is raised when a DAC vs ADC fit returns a large chisquare value
+
+    """
+    def __init__(self, message, errors):
+        super(VFATDACFitLargeChisquare, self).__init__(message)
+
+        self.errors = errors
+        return
+
 class DBViewNotFound(KeyError):
     def __init__(self, message, errors):
         super(DBViewNotFound, self).__init__(message)

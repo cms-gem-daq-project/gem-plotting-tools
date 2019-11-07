@@ -12,6 +12,9 @@ Documentation
 
 import string
 
+#: If the chisquare value of the fit to DAC vs ADC is above this value, an exception will be raised
+dacScanFitChisquareMax = 100.
+
 #: CFG_THR_ARM_DAC calibration parameters
 #: The CFG_THR_ARM_DAC calibration routine involves performing a fit of scurveMean vs CFG_THR_ARM_DAC in which some points with bad quality, defined by the parameters below, are removed
 scurveMeanMin = 0.1 #: points are removed if they satisfy scurveMean < scurveMeanMin

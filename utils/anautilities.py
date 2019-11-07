@@ -304,6 +304,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     print("fitting DAC vs. ADC distributions")
 
     # Fit the TGraphErrors objects
+    dictOfDACsWithBadFit = {} # [(shelf,slot,link,vfat)] = (vfatID,dacName)
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
@@ -314,7 +315,20 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                     dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineColor(0)
                     continue
                 #the fits fail when the errors on dacValY (the x-axis variable) are used
-                dict_DACvsADC_Graphs[dacName][ohKey][vfat].Fit(dict_DACvsADC_Funcs[dacName][ohKey][vfat],"QEX0")
+                fitResult =  dict_DACvsADC_Graphs[dacName][ohKey][vfat].Fit(dict_DACvsADC_Funcs[dacName][ohKey][vfat],"SQEX0")
+
+                from anaInfo import dacScanFitChisquareMax
+                
+                if dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetChisquare() > dacScanFitChisquareMax:
+                    dictOfDACsWithBadFit[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
+                    errorMsg = "Warning: large chisquare for VFAT{2} of chamber {3} (Shelf{4},Slot{5},OH{1}) DAC {0}.".format(
+                            dacName,
+                            ohKey[2],
+                            vfat,
+                            detName, 
+                            ohKey[0],
+                            ohKey[1])
+                    print(colormsg(errorMsg,logging.ERROR))
 
     # Create Determine max DAC size
     dict_maxByDacName = {}
@@ -443,9 +457,18 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             pass
         pass
 
+
+    if len(dictOfDACsWithBadFit):
+        err_msg = "The following (vfatN,DAC Names) have large chisquare DAC vs ADC fits"
+        for ohKey,vfatDACtuple in dictOfDACsWithBadFit.iteritems():
+            err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
+            pass
+        from gempython.gemplotting.utils.exceptions import VFATDACFitLargeChisquare
+        raise VFATDACFitLargeChisquare(err_msg, os.EX_DATAERR)
+    
     # Raise a ValueError if a DAC is found to be out of range
     if len(dictOfDACsWithBadBias):
-        err_msg = "The following (vfatN,DAC Names) where found to be out of range"
+        err_msg = "The following (vfatN,DAC Names) were found to be out of range"
         for ohKey,vfatDACtuple in dictOfDACsWithBadBias.iteritems():
             err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
             pass
