@@ -170,10 +170,10 @@ def joinOnVFATSerNum(vfatList, dfGEMView):
     vfatList - A list of vfat ChipID's ordered by vfat position (sw)
     dfGEMView - A pandas dataframe containing the column name 'vfat3_ser_num'
     """
-
+    from gempython.tools.hw_constants import vfatsPerGemVariant
     if 'vfat3_ser_num' in dfGEMView.columns:
         dfVFATPos = pd.DataFrame(
-                    {   'vfatN':[vfat for vfat in range(24)], 
+                    {   'vfatN':[vfat for vfat in range(len(vfatList))], 
                         'vfat3_ser_num':["0x{:x}".format(id) for id in vfatList]}
                 )
 

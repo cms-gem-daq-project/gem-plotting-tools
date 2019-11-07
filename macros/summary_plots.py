@@ -8,7 +8,7 @@ summary\_plots
 if __name__ == '__main__':
     import os
 
-    from gempython.gemplotting.utils.anautilities import saveSummary
+    from gempython.gemplotting.utils.anautilities import getSummaryCanvas
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.gemplotting.macros.plotoptions import parser
 
@@ -35,13 +35,16 @@ if __name__ == '__main__':
     vNoiseTrim  = ndict()
     vPedestal   = ndict()
 
-    for vfat in range(0,24):
-        vNoise[vfat] = r.TH1D('Noise%i'%vfat,'Noise%i;Noise [DAC units]'%vfat,35,-0.5,34.5)
-        vPedestal[vfat] = r.TH1D('Pedestal%i'%vfat,'Pedestal%i;Pedestal [DAC units]'%vfat,256,-0.5,255.5)
-        vThreshold[vfat] = r.TH1D('Threshold%i'%vfat,'Threshold%i;Threshold [DAC units]'%vfat,60,-0.5,299.5)
-        vChi2[vfat] = r.TH1D('ChiSquared%i'%vfat,'ChiSquared%i;Chi2'%vfat,100,-0.5,999.5)
-        vComparison[vfat] = r.TH2D('vComparison%i'%vfat,'Fit Summary %i;Threshold [DAC units];Noise [DAC units]'%vfat,60,-0.5,299.5,70,-0.5,34.5)
-        vNoiseTrim[vfat] = r.TH2D('vNoiseTrim%i'%vfat,'Noise vs. Trim Summary %i;Trim [DAC units];Noise [DAC units]'%vfat,32,-0.5,31.5,70,-0.5,34.5)
+    gemType = "ge11"
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    
+    for vfat in range(0,vfatsPerGemVariant[gemType]):
+        vNoise[vfat] = r.TH1D('Noise{0}'.format(vfat),'Noise{0};Noise [DAC units]'.format(vfat),35,-0.5,34.5)
+        vPedestal[vfat] = r.TH1D('Pedestal{0}'.format(vfat),'Pedestal{0};Pedestal [DAC units]'.format(vfat),256,-0.5,255.5)
+        vThreshold[vfat] = r.TH1D('Threshold{0}'.format(vfat),'Threshold{0};Threshold [DAC units]'.format(vfat),60,-0.5,299.5)
+        vChi2[vfat] = r.TH1D('ChiSquared{0}'.format(vfat),'ChiSquared{0};Chi2'.format(vfat),100,-0.5,999.5)
+        vComparison[vfat] = r.TH2D('vComparison{0}'.format(vfat),'Fit Summary {0};Threshold [DAC units];Noise [DAC units]'.format(vfat),60,-0.5,299.5,70,-0.5,34.5)
+        vNoiseTrim[vfat] = r.TH2D('vNoiseTrim{0}'.format(vfat),'Noise vs. Trim Summary {0};Trim [DAC units];Noise [DAC units]'.format(vfat),32,-0.5,31.5,70,-0.5,34.5)
         vComparison[vfat].GetYaxis().SetTitleOffset(1.5)
         vNoiseTrim[vfat].GetYaxis().SetTitleOffset(1.5)
         pass
@@ -61,13 +64,13 @@ if __name__ == '__main__':
 
     if options.fit_plots or options.all_plots:
         r.gStyle.SetOptStat(111100)
-        saveSummary(dictSummary=vComparison, name=("%s_FitSummary.png"%filename),drawOpt="colz")
-        saveSummary(dictSummary=vNoiseTrim, name=("%s_TrimNoiseSummary.png"%filename),drawOpt="colz")
-        saveSummary(dictSummary=vThreshold, name=("%s_FitThreshSummary.png"%filename),drawOpt="")
-        saveSummary(dictSummary=vPedestal, name=("%s_FitPedestalSummary.png"%filename),drawOpt="")
-        saveSummary(dictSummary=vNoise, name=("%s_FitNoiseSummary.png"%filename),drawOpt="")
+        getSummmaryCanvas(dictSummary=vComparison, name=("{0}_FitSummary.png".format(filename)),drawOpt="colz", write2Disk=True)
+        getSummmaryCanvas(dictSummary=vNoiseTrim, name=("{0}_TrimNoiseSummary.png".format(filename)),drawOpt="colz", write2Disk=True)
+        getSummmaryCanvas(dictSummary=vThreshold, name=("{0}_FitThreshSummary.png".format(filename)),drawOpt="", write2Disk=True)
+        getSummmaryCanvas(dictSummary=vPedestal, name=("{0}_FitPedestalSummary.png".format(filename)),drawOpt="", write2Disk=True)
+        getSummmaryCanvas(dictSummary=vNoise, name=("{0}_FitNoiseSummary.png".format(filename)),drawOpt="", write2Disk=True)
         pass
 
     if options.chi2_plots or options.all_plots:
-        saveSummary(dictSummary=vChi2, name=("%s_FitChi2Summary.png"%filename),drawOpt="")
+        getSummmaryCanvas(dictSummary=vChi2, name=("{0}_FitChi2Summary.png".format(filename)),drawOpt="", write2Disk=True)
         pass

@@ -38,8 +38,8 @@ class DeadChannelFinder(object):
             ``[vfat][channel]``. Each entry is ``True`` if the channel is
             dead, ``False`` otherwise.
     """
-    def __init__(self):
-        self.isDead = [ np.ones(128, dtype=bool) for i in range(24) ]
+    def __init__(self, nVFats=24):
+        self.isDead = [ np.ones(128, dtype=bool) for i in range(nVFats) ]
 
     def feed(self, event):
         """
@@ -130,10 +130,11 @@ class ScanDataFitter(DeadChannelFinder):
         isVFAT3 (bool): Whether the detector under consideration uses VFAT3
     """
 
-    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False):
-        super(ScanDataFitter, self).__init__()
+    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False, nVFats=24):
+        super(ScanDataFitter, self).__init__(nVFats)
 
         from gempython.utils.nesteddict import nesteddict as ndict
+        from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
         r.gStyle.SetOptStat(0)
 
         self.Nev = ndict()
@@ -144,41 +145,42 @@ class ScanDataFitter(DeadChannelFinder):
         self.scanFitResults   = ndict()
 
         self.isVFAT3    = isVFAT3
-
-        self.calDAC2Q_m = np.ones(24)
+        self.nVFats     = nVFats
+        
+        self.calDAC2Q_m = np.ones(self.nVFats)
         if calDAC2Q_m is not None:
             self.calDAC2Q_m = calDAC2Q_m
 
-        self.calDAC2Q_b = np.zeros(24)
+        self.calDAC2Q_b = np.zeros(self.nVFats)
         if calDAC2Q_b is not None:
             self.calDAC2Q_b = calDAC2Q_b
 
-        for vfat in range(0,24):
-            self.scanFitResults[0][vfat] = np.zeros(128)
-            self.scanFitResults[1][vfat] = np.zeros(128)
-            self.scanFitResults[2][vfat] = np.zeros(128)
-            self.scanFitResults[3][vfat] = np.zeros(128)
-            self.scanFitResults[4][vfat] = np.zeros(128)
-            self.scanFitResults[5][vfat] = np.zeros(128)
-            self.scanFitResults[6][vfat] = np.zeros(128, dtype=bool)
-            for ch in range(0,128):
+        for vfat in range(0,self.nVFats):
+            self.scanFitResults[0][vfat] = np.zeros(maxChans)
+            self.scanFitResults[1][vfat] = np.zeros(maxChans)
+            self.scanFitResults[2][vfat] = np.zeros(maxChans)
+            self.scanFitResults[3][vfat] = np.zeros(maxChans)
+            self.scanFitResults[4][vfat] = np.zeros(maxChans)
+            self.scanFitResults[5][vfat] = np.zeros(maxChans)
+            self.scanFitResults[6][vfat] = np.zeros(maxChans, dtype=bool)
+            for ch in range(0,maxChans):
                 self.scanCount[vfat][ch] = 0
                 if self.isVFAT3:
-                    self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                    self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat{0}_chan{1}'.format(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
                             self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat])
-                    self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),
+                    self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat{0}_chan{1}_h'.format(vfat,ch),'scurve_vfat{0}_chan{1}_h'.format(vfat,ch),
                             254,self.calDAC2Q_m[vfat]*254.5+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*0.5+self.calDAC2Q_b[vfat])
                 else:
-                    self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat%i_chan%i'%(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
+                    self.scanFuncs[vfat][ch] = r.TF1('scurveFit_vfat{0}_chan{1}'.format(vfat,ch),'[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
                             self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat])
-                    self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat%i_chan%i_h'%(vfat,ch),'scurve_vfat%i_chan%i_h'%(vfat,ch),
+                    self.scanHistos[vfat][ch] = r.TH1D('scurve_vfat{0}_chan{1}_h'.format(vfat,ch),'scurve_vfat{0}_chan{1}_h'.format(vfat,ch),
                             254,self.calDAC2Q_m[vfat]*0.5+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*254.5+self.calDAC2Q_b[vfat])
                     pass
                 self.scanHistosChargeBins[vfat][ch] = [self.scanHistos[vfat][ch].GetXaxis().GetBinLowEdge(binX) for binX in range(1,self.scanHistos[vfat][ch].GetNbinsX()+2) ] #Include overflow
                 pass
             pass
 
-        self.fitValid = [ np.zeros(128, dtype=bool) for vfat in range(24) ]
+        self.fitValid = [ np.zeros(maxChans, dtype=bool) for vfat in range(self.nVFats) ]
 
         return
 
@@ -243,10 +245,11 @@ class ScanDataFitter(DeadChannelFinder):
 
         r.gROOT.SetBatch(True)
         r.gStyle.SetOptStat(0)
-
+        from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
+    
         random = r.TRandom3()
         random.SetSeed(0)
-        for vfat in range(0,24):
+        for vfat in range(0,self.nVFats):
             if self.isVFAT3:
                 fitTF1 = r.TF1('myERF','[3]*TMath::Erf((TMath::Max([2],x)-[0])/(TMath::Sqrt(2)*[1]))+[3]',
                             self.calDAC2Q_m[vfat]*253+self.calDAC2Q_b[vfat],self.calDAC2Q_m[vfat]*1+self.calDAC2Q_b[vfat])
@@ -256,11 +259,11 @@ class ScanDataFitter(DeadChannelFinder):
             fitTF1.SetLineColor(r.kBlack)
             
             if not debug:
-                print 'fitting vfat %i'%(vfat)
+                print('fitting vfat {0}'.format(vfat))
 
-            for ch in range(0,128):
+            for ch in range(0,maxChans):
                 if debug:
-                    print 'fitting vfat %i chan %i'%(vfat,ch)
+                    print('fitting vfat {0} chan {1}'.format(vfat,ch))
                 
                 if self.isDead[vfat][ch]:
                     fitTF1.SetLineColor(r.kGray)
@@ -274,8 +277,8 @@ class ScanDataFitter(DeadChannelFinder):
                 stepN = 0
                 
                 if debug:
-                    print "| stepN | vfatN | vfatCH | isVFAT3 | p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |"
-                    print "| ----- | ----- | ------ | ------- | ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |"
+                    print("| stepN | vfatN | vfatCH | isVFAT3 | p0_low | p0 | p0_high | p1_low | p1 | p1_high | p2_low | p2 | p2_high |")
+                    print("| ----- | ----- | ------ | ------- | ------ | -- | ------- | ------ | -- | ------- | ------ | -- | ------- |")
                 while(stepN < 30):
                     #rand = max(0.0, random.Gaus(10, 5)) # do not accept negative numbers
                     rand = abs(random.Gaus(10, 5)) # take positive definite numbers
@@ -313,7 +316,7 @@ class ScanDataFitter(DeadChannelFinder):
                     
                     if debug:
                         if self.isVFAT3:
-                            print "| %i | %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                            print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} | {9} | {10} | {11} | {12} |".format(
                                         stepN,
                                         vfat,
                                         ch,
@@ -327,9 +330,9 @@ class ScanDataFitter(DeadChannelFinder):
                                         -0.01,
                                         init_guess_p2,
                                         self.Nev[vfat][ch]
-                                    )
+                                    ))
                         else:
-                            print "| %i | %i | %i | %i | %f | %f | %f | %f | %f | %f | %f | %f | %f |"%(
+                            print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} | {9} | {10} | {11} | {12} |".format(
                                         stepN,
                                         vfat,
                                         ch,
@@ -343,8 +346,7 @@ class ScanDataFitter(DeadChannelFinder):
                                         -0.01,
                                         init_guess_p2,
                                         self.Nev[vfat][ch]
-                                    )
-
+                                    ))
                     # Fit
                     fitResult = self.scanHistos[vfat][ch].Fit('myERF','SQ')
                     fitEmpty = fitResult.IsEmpty()
@@ -359,7 +361,7 @@ class ScanDataFitter(DeadChannelFinder):
                     fitNDF = fitTF1.GetNDF()
                     stepN +=1
                     if (fitChi2 < MinChi2Temp and fitChi2 > 0.0):
-                        self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat%i_chan%i_h'%(vfat,ch))
+                        self.scanFuncs[vfat][ch] = fitTF1.Clone('scurveFit_vfat{0}_chan{1}_h'.format(vfat,ch))
                         self.scanFuncs[vfat][ch].SetLineColor(r.kBlue-2)
                         self.scanFitResults[0][vfat][ch] = fitTF1.GetParameter(0)
                         self.scanFitResults[1][vfat][ch] = fitTF1.GetParameter(1)
@@ -375,9 +377,9 @@ class ScanDataFitter(DeadChannelFinder):
                     pass
                 if debug:
                     print("Converged fit results:")
-                    print "| stepN | vfatN | vfatCH | isVFAT3 | p0 | p1 | p2 | Chi2 | NDF | NormChi2 |"
-                    print "| :---: | :---: | :----: | :-----: | :-: | :-: | :-: | :--: | :-: | :------: |"
-                    print "| %i | %i | %i | %i | %f | %f | %f | %f | %i | %f |"%(
+                    print("| stepN | vfatN | vfatCH | isVFAT3 | p0 | p1 | p2 | Chi2 | NDF | NormChi2 |")
+                    print("| :---: | :---: | :----: | :-----: | :-: | :-: | :-: | :--: | :-: | :------: |")
+                    print("| {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} | {9} |".format(
                             stepN,
                             vfat,
                             ch,
@@ -387,7 +389,7 @@ class ScanDataFitter(DeadChannelFinder):
                             self.scanFitResults[2][vfat][ch],
                             self.scanFitResults[3][vfat][ch],
                             self.scanFitResults[5][vfat][ch],
-                            self.scanFitResults[3][vfat][ch] / self.scanFitResults[5][vfat][ch])
+                            self.scanFitResults[3][vfat][ch] / self.scanFitResults[5][vfat][ch]))
                     pass
                 pass
             pass
@@ -407,7 +409,7 @@ class ScanDataFitter(DeadChannelFinder):
             self.feed(event)
         return
 
-def fitScanData(treeFileName, isVFAT3=False, calFileName=None, calTuple=None):
+def fitScanData(treeFileName, isVFAT3=False, calFileName=None, calTuple=None, gemType="ge11"):
     """
     Helper function to fit scan data. Creates a :py:class:`ScanDataFitter`,
     loads the data and returns the results of :py:meth:`ScanDataFitter.fit`.
@@ -424,23 +426,27 @@ def fitScanData(treeFileName, isVFAT3=False, calFileName=None, calTuple=None):
         format of the calibration file.
     """
     from gempython.gemplotting.utils.anautilities import parseCalFile
-    
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+
+    nVFATS = vfatsPerGemVariant[gemType]
     # Get the fitter
     if calFileName is not None:
-        tuple_calInfo = parseCalFile(calFileName)
+        tuple_calInfo = parseCalFile(calFileName, gemType)
         fitter = ScanDataFitter(
                 calDAC2Q_m = tuple_calInfo[0],
                 calDAC2Q_b = tuple_calInfo[1],
-                isVFAT3=isVFAT3
+                isVFAT3=isVFAT3,
+                nVFATS=nVFATS
                 )
     elif calTuple is not None:
         fitter = ScanDataFitter(
                 calDAC2Q_m = calTuple[0],
                 calDAC2Q_b = calTuple[1],
-                isVFAT3=isVFAT3
+                isVFAT3=isVFAT3,
+                nVFATS=nVFATS
                 )
     else:
-        fitter = ScanDataFitter(isVFAT3=isVFAT3)
+        fitter = ScanDataFitter(isVFAT3=isVFAT3, nVFATS=nVFATS)
         pass
 
     # Read the output data

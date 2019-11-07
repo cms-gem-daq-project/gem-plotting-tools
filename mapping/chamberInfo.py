@@ -34,8 +34,14 @@ except ImportError as e:
             #placeholder
         }
 
-# Matches CMS coordinates
-chamber_iEta2VFATPos = {
+##### FIXME
+gemTypeMapping = {0:"ge11", 1:"ge21"}
+##### END
+
+CHANNELS_PER_VFAT = 128
+
+chamber_iEta2VFATPos = {}
+chamber_iEta2VFATPos["ge11"] = {
         1: { 7:1, 15:2, 23:3 }, #ieta: [ (vfat, iphi), (vfat, iphi), (vfat, iphi) ]
         2: { 6:1, 14:2, 22:3 },
         3: { 5:1, 13:2, 21:3 },
@@ -45,13 +51,25 @@ chamber_iEta2VFATPos = {
         7: { 1:1,  9:2, 17:3 },
         8: { 0:1,  8:2, 16:3 }
         }
+chamber_iEta2VFATPos["ge21"] = {
+        1: { 3:1, 7:2, 11:3 },#ieta: [ (vfat, iphi), (vfat, iphi), (vfat, iphi) ]
+        2: { 2:1, 6:2, 10:3 },
+        3: { 1:1, 5:2,  9:3 },
+        4: { 0:1, 4:2,  8:3 }
+        }
 
 chamber_vfatPos2iEta = {}
 chamber_vfatPos2iEtaiPhi = {}
-for ieta, vfatRow in chamber_iEta2VFATPos.iteritems():
-    for vfat,phi in vfatRow.iteritems():
-        chamber_vfatPos2iEta[vfat] = ieta
-        chamber_vfatPos2iEtaiPhi[vfat] = (ieta,phi)
+chamber_maxiEtaiPhiPair = {}
+for key in chamber_iEta2VFATPos:
+    chamber_vfatPos2iEta[key] = {}
+    chamber_vfatPos2iEtaiPhi[key] = {}
+    chamber_maxiEtaiPhiPair[key] = (len(chamber_iEta2VFATPos[key]), len(chamber_iEta2VFATPos[key][1]))
+    for ieta, vfatRow in chamber_iEta2VFATPos[key].iteritems():
+        for vfat,phi in vfatRow.iteritems():
+            chamber_vfatPos2iEta[key][vfat] = ieta
+            chamber_vfatPos2iEtaiPhi[key][vfat] = (ieta,phi)
+            pass
         pass
     pass
 
@@ -95,13 +113,18 @@ except ImportError as e:
         }
 
 # Canvas to VFAT Position Mapping
-chamber_vfatPos2PadIdx = { }
-for vfat in range(0,24):
-    if (0 <= vfat and vfat < 8):
-        chamber_vfatPos2PadIdx[vfat] = vfat+17
-    elif (8 <= vfat and vfat < 16):
-        chamber_vfatPos2PadIdx[vfat] = vfat+1
-    elif (16 <= vfat and vfat < 24):
-        chamber_vfatPos2PadIdx[vfat] = vfat-15
-        pass # end if-elif statement
-    pass # end loop over all VFATs
+chamber_vfatPos2PadIdx = {}
+for key in chamber_iEta2VFATPos:
+    chamber_vfatPos2PadIdx[key] = {}
+    niEta = chamber_maxiEtaiPhiPair[key][0]
+    nVFats = chamber_maxiEtaiPhiPair[key][1]*niEta
+
+    shift = nVFats + niEta + 1
+    for vfat in range(0, nVFats):
+        if vfat % niEta == 0:
+            shift -= niEta*2
+        chamber_vfatPos2PadIdx[key][vfat] = vfat + shift
+        pass
+    pass
+
+

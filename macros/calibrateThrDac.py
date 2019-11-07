@@ -127,6 +127,7 @@ if __name__ == '__main__':
         savePlots=args.savePlots,
         debug=args.debug
     )
+
     try:
         retCode = calibrateThrDAC(ns)
     except IOError as err:

@@ -112,12 +112,12 @@ Environment
 
 if __name__ == '__main__':
     from gempython.gemplotting.utils.anaInfo import tree_names
-    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make2x4Canvas, make3x8Canvas, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, getSummaryCanvasByiEta, getSummaryCanvas, parseListOfScanDatesFile
     from gempython.utils.nesteddict import nesteddict as ndict
     from gempython.utils.wrappers import envCheck, runCommand
     from gempython.gemplotting.macros.plotoptions import parser
     from gempython.gemplotting.macros.scurvePlottingUtitilities import overlay_scurve
-   
+
     import os
     import ROOT as r
 
@@ -133,10 +133,10 @@ if __name__ == '__main__':
                     help="Option for the output TFile, e.g. {'RECREATE','UPDATE'}", metavar="rootOpt")
     parser.add_option("--ztrim", type="float", dest="ztrim", default=4.0,
                     help="Specify the p value of the trim", metavar="ztrim")
-    
+
     parser.set_defaults(filename="listOfScanDates.txt")
     (options, args) = parser.parse_args()
- 
+
     # Suppress all pop-ups from ROOT
     r.gROOT.SetBatch(True)
 
@@ -144,7 +144,9 @@ if __name__ == '__main__':
     envCheck('DATA_PATH')
     envCheck('ELOG_PATH')
     elogPath  = os.getenv('ELOG_PATH')
-    
+
+    gemType = "ge11"
+
     # Check anaType is understood
     supportedAnaTypes = ['scurveAna','trimAna']
     if options.anaType not in supportedAnaTypes:
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     #   Inner key -> vfat position
     dict_fitSum = ndict()
     dict_ScurveMean = ndict() # Inner key: (0,23) follows vfat #, -1 is summary over all det
-    dict_ScurveSigma = ndict() 
+    dict_ScurveSigma = ndict()
     dict_ScurveEffPed = ndict()
 
     dict_ScurveMeanByiEta = ndict()
@@ -172,27 +174,31 @@ if __name__ == '__main__':
     dict_ScurveThresh_boxPlot = {}  # key: (chamberName,scandate)
     dict_ScurveSigma_boxPlot = {}  # key: (chamberName,scandate)
 
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    from gempython.gemplotting.mapping.chamberInfo import chamber_maxiEtaiPhiPair
+    maxiEta, maxiPhi = chamber_maxiEtaiPhiPair[gemType]
+    
     # Get the plots from all files
     for idx,chamberAndScanDatePair in enumerate(listChamberAndScanDate):
         # Setup the path
         dirPath = getDirByAnaType(options.anaType.strip("Ana"), chamberAndScanDatePair[0], options.ztrim)
         if not filePathExists(dirPath, chamberAndScanDatePair[1]):
-            print 'Filepath %s/%s does not exist!'%(dirPath, chamberAndScanDatePair[1])
-            print 'Please cross-check, exiting!'
+            print('Filepath {0}/{1} does not exist!'.format(dirPath, chamberAndScanDatePair[1]))
+            print('Please cross-check, exiting!')
             outF.Close()
             exit(os.EX_DATAERR)
-        filename = "%s/%s/%s"%(dirPath, chamberAndScanDatePair[1], tree_names[options.anaType][0])
+        filename = "{0}/{1}/{2}".format(dirPath, chamberAndScanDatePair[1], tree_names[options.anaType][0])
 
         # Load the file
         r.TH1.AddDirectory(False)
         scanFile   = r.TFile(filename,"READ")
-
+        
         # Get all plots from scanFile - vfat level
-        for vfat in range(0,24):
-            # Fit summary 
-            dict_fitSum[chamberAndScanDatePair][vfat] = scanFile.Get("VFAT%i/gFitSummary_VFAT%i"%(vfat,vfat))
+        for vfat in range(0,vfatsPerGemVariant[gemType]):
+            # Fit summary
+            dict_fitSum[chamberAndScanDatePair][vfat] = scanFile.Get("VFAT{0}/gFitSummary_VFAT{0}".format(vfat))
             dict_fitSum[chamberAndScanDatePair][vfat].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_fitSum[chamberAndScanDatePair][vfat].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -202,9 +208,9 @@ if __name__ == '__main__':
             dict_fitSum[chamberAndScanDatePair][vfat].SetMarkerStyle(20+idx)
 
             # Scurve Mean
-            dict_ScurveMean[chamberAndScanDatePair][vfat] = scanFile.Get("VFAT%i/gScurveMeanDist_vfat%i"%(vfat,vfat))
+            dict_ScurveMean[chamberAndScanDatePair][vfat] = scanFile.Get("VFAT{0}/gScurveMeanDist_vfat{0}".format(vfat))
             dict_ScurveMean[chamberAndScanDatePair][vfat].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveMean[chamberAndScanDatePair][vfat].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -212,11 +218,11 @@ if __name__ == '__main__':
             dict_ScurveMean[chamberAndScanDatePair][vfat].SetLineColor(getCyclicColor(idx))
             dict_ScurveMean[chamberAndScanDatePair][vfat].SetMarkerColor(getCyclicColor(idx))
             dict_ScurveMean[chamberAndScanDatePair][vfat].SetMarkerStyle(20+idx)
-            
+
             # Scurve Width
-            dict_ScurveSigma[chamberAndScanDatePair][vfat] = scanFile.Get("VFAT%i/gScurveSigmaDist_vfat%i"%(vfat,vfat))
+            dict_ScurveSigma[chamberAndScanDatePair][vfat] = scanFile.Get("VFAT{0}/gScurveSigmaDist_vfat{0}".format(vfat))
             dict_ScurveSigma[chamberAndScanDatePair][vfat].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveSigma[chamberAndScanDatePair][vfat].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -227,11 +233,11 @@ if __name__ == '__main__':
 
             pass
 
-        for ieta in range(1,9):
+        for ieta in range(1,maxiEta+1):
             # Scurve Mean
-            dict_ScurveMeanByiEta[chamberAndScanDatePair][ieta] = scanFile.Get("Summary/ieta%i/gScurveMeanDist_ieta%i"%(ieta,ieta))
+            dict_ScurveMeanByiEta[chamberAndScanDatePair][ieta] = scanFile.Get("Summary/ieta{0}/gScurveMeanDist_ieta{0}".format(ieta))
             dict_ScurveMeanByiEta[chamberAndScanDatePair][ieta].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveMeanByiEta[chamberAndScanDatePair][ieta].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -241,9 +247,9 @@ if __name__ == '__main__':
             dict_ScurveMeanByiEta[chamberAndScanDatePair][ieta].SetMarkerStyle(20+idx)
 
             # Scurve Sigma
-            dict_ScurveSigmaByiEta[chamberAndScanDatePair][ieta] = scanFile.Get("Summary/ieta%i/gScurveSigmaDist_ieta%i"%(ieta,ieta))
+            dict_ScurveSigmaByiEta[chamberAndScanDatePair][ieta] = scanFile.Get("Summary/ieta{0}/gScurveSigmaDist_ieta{0}".format(ieta))
             dict_ScurveSigmaByiEta[chamberAndScanDatePair][ieta].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveSigmaByiEta[chamberAndScanDatePair][ieta].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -256,7 +262,7 @@ if __name__ == '__main__':
         # Get the detector level plots
         dict_ScurveMean[chamberAndScanDatePair][-1] = scanFile.Get("Summary/gScurveMeanDist_All")
         dict_ScurveMean[chamberAndScanDatePair][-1].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveMean[chamberAndScanDatePair][-1].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -267,7 +273,7 @@ if __name__ == '__main__':
 
         dict_ScurveSigma[chamberAndScanDatePair][-1] = scanFile.Get("Summary/gScurveSigmaDist_All")
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveSigma[chamberAndScanDatePair][-1].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -275,10 +281,10 @@ if __name__ == '__main__':
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetLineColor(getCyclicColor(idx))
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetMarkerColor(getCyclicColor(idx))
         dict_ScurveSigma[chamberAndScanDatePair][-1].SetMarkerStyle(20+idx)
-        
+
         dict_ScurveEffPed[chamberAndScanDatePair][-1] = scanFile.Get("Summary/hScurveEffPedDist_All")
         dict_ScurveEffPed[chamberAndScanDatePair][-1].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveEffPed[chamberAndScanDatePair][-1].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -289,7 +295,7 @@ if __name__ == '__main__':
 
         dict_ScurveEffPed_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveEffPed_All")
         dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -297,7 +303,7 @@ if __name__ == '__main__':
 
         dict_ScurveThresh_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveMean_All")
         dict_ScurveThresh_boxPlot[chamberAndScanDatePair].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveThresh_boxPlot[chamberAndScanDatePair].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -305,7 +311,7 @@ if __name__ == '__main__':
 
         dict_ScurveSigma_boxPlot[chamberAndScanDatePair] = scanFile.Get("Summary/ScurveSigma_All")
         dict_ScurveSigma_boxPlot[chamberAndScanDatePair].SetName(
-                    "%s_%s_%s"%(
+                    "{0}_{1}_{2}".format(
                         dict_ScurveSigma_boxPlot[chamberAndScanDatePair].GetName(),
                         chamberAndScanDatePair[0],
                         chamberAndScanDatePair[1])
@@ -316,7 +322,7 @@ if __name__ == '__main__':
     dict_mGraph_fitSum = ndict()        # key: (0,23) follows vfat #
     dict_mGraph_ScurveMean = ndict()    # key: (0,23) follows vfat #, -1 is summary over all det
     dict_mGraph_ScurveSigma = ndict()   # key: (0,23) follows vfat #, -1 is summary over all det
-       
+
 
     dict_mGraph_ScurveMean[-1] = r.TMultiGraph("mGraph_ScurveMeanDist_All","")
     dict_mGraph_ScurveMean[-1].GetXaxis().SetTitle("scurve mean #left(fC#right)")
@@ -325,8 +331,8 @@ if __name__ == '__main__':
     dict_mGraph_ScurveSigma[-1].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
 
     dict_mGraph_ScurveMeanByiEta = ndict()
-    dict_mGraph_ScurveSigmaByiEta = ndict() 
-    
+    dict_mGraph_ScurveSigmaByiEta = ndict()
+
     # Make the canvas dictionaries
     dict_canvSCurveFitSum = ndict()
     dict_canvSCurveMean = ndict()
@@ -346,24 +352,24 @@ if __name__ == '__main__':
         drawOpt="APE1"
 
         # Draw per VFAT distributions
-        for vfat in range(0,24):
+        for vfat in range(0,vfatsPerGemVariant[gemType]):
             if idx == 0:
-                dict_mGraph_fitSum[vfat]    = r.TMultiGraph("mGraph_FitSummary_VFAT%i"%(vfat),"VFAT%i"%(vfat))
-                dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat%i"%(vfat),"VFAT%i"%(vfat))
-                dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat%i"%(vfat),"VFAT%i"%(vfat))
+                dict_mGraph_fitSum[vfat]    = r.TMultiGraph("mGraph_FitSummary_VFAT{0}".format(vfat),"VFAT{0}".format(vfat))
+                dict_mGraph_ScurveMean[vfat]= r.TMultiGraph("mGraph_ScurveMeanDist_vfat{0}".format(vfat),"VFAT{0}".format(vfat))
+                dict_mGraph_ScurveSigma[vfat]=r.TMultiGraph("mGraph_ScurveSigmaDist_vfat{0}".format(vfat),"VFAT{0}".format(vfat))
 
-                dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT%i"%(vfat),"SCurve Fit Summary - VFAT%i"%(vfat),600,600)
-                dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT%i"%(vfat),"SCurve Mean - VFAT%i"%(vfat),600,600)
-                dict_canvSCurveSigma[vfat]  = r.TCanvas("canvScurveSigma_VFAT%i"%(vfat),"SCurve Sigma - VFAT%i"%(vfat),600,600)
+                dict_canvSCurveFitSum[vfat] = r.TCanvas("canvScurveFitSum_VFAT{0}".format(vfat),"SCurve Fit Summary - VFAT{0}".format(vfat),600,600)
+                dict_canvSCurveMean[vfat]   = r.TCanvas("canvScurveMean_VFAT{0}".format(vfat),"SCurve Mean - VFAT{0}".format(vfat),600,600)
+                dict_canvSCurveSigma[vfat]  = r.TCanvas("canvScurveSigma_VFAT{0}".format(vfat),"SCurve Sigma - VFAT{0}".format(vfat),600,600)
                 pass
 
             dict_mGraph_fitSum[vfat].Add(dict_fitSum[chamberAndScanDatePair][vfat])
             dict_mGraph_ScurveMean[vfat].Add(dict_ScurveMean[chamberAndScanDatePair][vfat])
             dict_mGraph_ScurveSigma[vfat].Add(dict_ScurveSigma[chamberAndScanDatePair][vfat])
-            
+
             if (idx == (len(listChamberAndScanDate) - 1) ):
                 chanStripOrPanPin = dict_fitSum[chamberAndScanDatePair][vfat].GetXaxis().GetTitle()
-                
+
                 dict_canvSCurveFitSum[vfat].cd()
                 dict_mGraph_fitSum[vfat].Draw(drawOpt) # The axis doesn't exist unless we draw it first, ROOT magic =/
                 dict_mGraph_fitSum[vfat].GetXaxis().SetTitle(chanStripOrPanPin)
@@ -374,7 +380,7 @@ if __name__ == '__main__':
                 dict_mGraph_ScurveMean[vfat].Draw(drawOpt)
                 dict_mGraph_ScurveMean[vfat].GetXaxis().SetTitle("scurve mean #left(fC#right)")
                 dict_mGraph_ScurveMean[vfat].Draw(drawOpt)
-                
+
                 dict_canvSCurveSigma[vfat].cd()
                 dict_mGraph_ScurveSigma[vfat].Draw(drawOpt)
                 dict_mGraph_ScurveSigma[vfat].GetXaxis().SetTitle("scurve sigma #left(fC#right)")
@@ -384,13 +390,13 @@ if __name__ == '__main__':
             pass
 
         # Draw per ieta distributions
-        for ieta in range(1,9):
+        for ieta in range(1,maxiEta+1):
             if idx == 0:
-                dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta%i"%(ieta),"i#eta = %i"%(ieta))
-                dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta%i"%(ieta),"i#eta = %i"%(ieta))
+                dict_mGraph_ScurveMeanByiEta[ieta] = r.TMultiGraph("mGraph_ScurveMeanDist_ieta{0}".format(ieta),"i#eta = {0}".format(ieta))
+                dict_mGraph_ScurveSigmaByiEta[ieta] = r.TMultiGraph("mGraph_ScurveSigmaDist_ieta{0}".format(ieta),"i#eta = {0}".format(ieta))
 
-                dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta%i"%(ieta),"SCurve Mean - ieta%i"%(ieta),600,600)
-                dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta%i"%(ieta),"SCurve Sigma - ieta%i"%(ieta),600,600)
+                dict_canvSCurveMeanByiEta[ieta]   = r.TCanvas("canvScurveMean_ieta{0}".format(ieta),"SCurve Mean - ieta{0}".format(ieta),600,600)
+                dict_canvSCurveSigmaByiEta[ieta]  = r.TCanvas("canvScurveSigma_ieta{0}".format(ieta),"SCurve Sigma - ieta{0}".format(ieta),600,600)
                 pass
 
             dict_mGraph_ScurveMeanByiEta[ieta].Add(dict_ScurveMeanByiEta[chamberAndScanDatePair][ieta])
@@ -418,7 +424,7 @@ if __name__ == '__main__':
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("E1")
         else:
             dict_ScurveEffPed[chamberAndScanDatePair][-1].Draw("sameE1")
-    
+
         dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].SetFillColorAlpha(getCyclicColor(idx), 0.3)
         dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].SetLineColor(getCyclicColor(idx))
 
@@ -439,10 +445,10 @@ if __name__ == '__main__':
 
             canvScurveEffPed_boxPlot.cd()
             dict_ScurveEffPed_boxPlot[chamberAndScanDatePair].Draw("candle1")
-            
+
             canvScurveThresh_boxPlot.cd()
             dict_ScurveThresh_boxPlot[chamberAndScanDatePair].Draw("candle1")
-            
+
             canvScurveSigma_boxPlot.cd()
             dict_ScurveSigma_boxPlot[chamberAndScanDatePair].Draw("candle1")
         else:
@@ -460,13 +466,13 @@ if __name__ == '__main__':
         pass
 
     # Draw multigraphs for summary cases
-    canvFitSum_Grid = make3x8Canvas("scurveFitSummaryGridAllScandates",dict_mGraph_fitSum,"APE1")
-    canvScurveMean_Grid = make3x8Canvas("scurveMeanGridAllScandates",dict_mGraph_ScurveMean,"APE1")
-    canvScurveSigma_Grid = make3x8Canvas("scurveSigmaGridAllScandates",dict_mGraph_ScurveSigma,"APE1")
+    canvFitSum_Grid = getSummaryCanvas(dict_mGraph_fitSum, name="scurveFitSummaryGridAllScandates", drawOpt="APE1", gemType=gemType)
+    canvScurveMean_Grid = getSummaryCanvas(dict_mGraph_ScurveMean, name="scurveMeanGridAllScandates", drawOpt="APE1", gemType=gemType)
+    canvScurveSigma_Grid = getSummaryCanvas(dict_mGraph_ScurveSigma, name="scurveSigmaGridAllScandates", drawOpt="APE1", gemType=gemType)
 
-    canvScurveMean_Grid_iEta = make2x4Canvas("scurveMeanGridByiEtaAllScandates",dict_mGraph_ScurveMeanByiEta,"APE1")
-    canvScurveSigma_Grid_iEta = make2x4Canvas("scurveSigmaGridByiEtaAllScandates",dict_mGraph_ScurveSigmaByiEta,"APE1")
-    
+    canvScurveMean_Grid_iEta = getSummaryCanvasByiEta(dict_mGraph_ScurveMeanByiEta, name="scurveMeanGridByiEtaAllScandates", drawOpt="APE1", gemType=gemType)
+    canvScurveSigma_Grid_iEta = getSummaryCanvasByiEta(dict_mGraph_ScurveSigmaByiEta, name="scurveSigmaGridByiEtaAllScandates", drawOpt="APE1", gemType=gemType)
+
     canvScurveMean_DetSum.cd()
     canvScurveMean_DetSum.cd().SetLogy()
     dict_mGraph_ScurveMean[-1].Draw("APE1")
@@ -485,10 +491,10 @@ if __name__ == '__main__':
 
     if options.drawLeg:
         # VFAT level
-        for vfat in range(0,24):
+        for vfat in range(0,vfatsPerGemVariant[gemType]):
             dict_canvSCurveFitSum[vfat].cd()
             plotLeg.Draw("same")
-            
+
             dict_canvSCurveMean[vfat].cd()
             plotLeg.Draw("same")
 
@@ -497,7 +503,7 @@ if __name__ == '__main__':
             pass
 
         # ieta level
-        for ieta in range(1,9):
+        for ieta in range(1,maxiEta+1):
             dict_canvSCurveMeanByiEta[ieta].cd()
             plotLeg.Draw("same")
 
@@ -508,7 +514,7 @@ if __name__ == '__main__':
         # Draw legend once at the vfat level
         canvFitSum_Grid.cd(1)
         plotLeg.Draw("same")
-        
+
         canvScurveMean_Grid.cd(1)
         plotLeg.Draw("same")
 
@@ -521,47 +527,47 @@ if __name__ == '__main__':
 
         canvScurveSigma_Grid_iEta.cd(1)
         plotLeg.Draw("same")
-       
+
         # Draw legend at the detector level
         canvScurveMean_DetSum.cd()
         plotLeg.Draw("same")
-        
+
         canvScurveSigma_DetSum.cd()
         plotLeg.Draw("same")
-        
+
         canvScurveEffPed_DetSum.cd()
         plotLeg.Draw("same")
 
         canvScurveEffPed_boxPlot.cd()
         plotLeg.Draw("same")
-        
+
         canvScurveThresh_boxPlot.cd()
         plotLeg.Draw("same")
-        
+
         canvScurveSigma_boxPlot.cd()
         plotLeg.Draw("same")
         pass
 
     # Make output images
-    canvFitSum_Grid.SaveAs("%s/%s.png"%(elogPath,canvFitSum_Grid.GetName()))
-    canvScurveMean_Grid.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_Grid.GetName()))
-    canvScurveSigma_Grid.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_Grid.GetName()))
+    canvFitSum_Grid.SaveAs("{0}/{1}.png".format(elogPath,canvFitSum_Grid.GetName()))
+    canvScurveMean_Grid.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMean_Grid.GetName()))
+    canvScurveSigma_Grid.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigma_Grid.GetName()))
 
-    canvScurveMean_Grid_iEta.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_Grid_iEta.GetName()))
-    canvScurveSigma_Grid_iEta.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_Grid_iEta.GetName()))
-    
-    canvScurveMean_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveMean_DetSum.GetName()))
-    canvScurveSigma_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_DetSum.GetName()))
-    canvScurveEffPed_DetSum.SaveAs("%s/%s.png"%(elogPath,canvScurveEffPed_DetSum.GetName()))
-    canvScurveEffPed_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveEffPed_boxPlot.GetName()))
-    canvScurveThresh_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveThresh_boxPlot.GetName()))
-    canvScurveSigma_boxPlot.SaveAs("%s/%s.png"%(elogPath,canvScurveSigma_boxPlot.GetName()))
+    canvScurveMean_Grid_iEta.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMean_Grid_iEta.GetName()))
+    canvScurveSigma_Grid_iEta.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigma_Grid_iEta.GetName()))
+
+    canvScurveMean_DetSum.SaveAs("{0}/{1}.png".format(elogPath,canvScurveMean_DetSum.GetName()))
+    canvScurveSigma_DetSum.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigma_DetSum.GetName()))
+    canvScurveEffPed_DetSum.SaveAs("{0}/{1}.png".format(elogPath,canvScurveEffPed_DetSum.GetName()))
+    canvScurveEffPed_boxPlot.SaveAs("{0}/{1}.png".format(elogPath,canvScurveEffPed_boxPlot.GetName()))
+    canvScurveThresh_boxPlot.SaveAs("{0}/{1}.png".format(elogPath,canvScurveThresh_boxPlot.GetName()))
+    canvScurveSigma_boxPlot.SaveAs("{0}/{1}.png".format(elogPath,canvScurveSigma_boxPlot.GetName()))
 
     # Save summary canvas objects in output root file
-    outF = r.TFile("%s/%s"%(elogPath,options.rootName),options.rootOpt)
-    
-    for vfat in range(0,24):
-        dirVFAT = outF.mkdir("VFAT%i"%(vfat))
+    outF = r.TFile("{0}/{1}".format(elogPath,options.rootName),options.rootOpt)
+
+    for vfat in range(0,vfatsPerGemVariant[gemType]):
+        dirVFAT = outF.mkdir("VFAT{0}".format(vfat))
         dirVFAT.cd()
 
         dict_canvSCurveFitSum[vfat].Write()
@@ -575,8 +581,8 @@ if __name__ == '__main__':
         pass
 
     dirSummary = outF.mkdir("Summary")
-    for ieta in range(1,9):
-        dir_iEta = dirSummary.mkdir("ieta%i"%ieta)
+    for ieta in range(1,maxiEta+1):
+        dir_iEta = dirSummary.mkdir("ieta{0}".format(ieta))
         dir_iEta.cd()
 
         dict_canvSCurveMeanByiEta[ieta].Write()
@@ -601,14 +607,14 @@ if __name__ == '__main__':
     canvScurveThresh_boxPlot.Write()
     canvScurveSigma_boxPlot.Write()
 
-    print "Your plots can be found in:"
-    print ""
-    print "     %s"%elogPath
-    print ""
-    
-    print "You can open the output TFile via:"
-    print ""
-    print "     root -l %s/%s"%(elogPath,options.rootName)
+    print("Your plots can be found in:")
+    print("")
+    print("     {0}".format(elogPath))
+    print("")
 
-    print ""
-    print "Good-bye"
+    print("You can open the output TFile via:")
+    print("")
+    print("     root -l {0}/{1}".format(elogPath,options.rootName))
+
+    print("")
+    print("Good-bye")

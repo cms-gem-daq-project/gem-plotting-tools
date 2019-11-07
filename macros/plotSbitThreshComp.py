@@ -75,16 +75,19 @@ def compareSBitThreshResults(args):
     elogPath = os.getenv('ELOG_PATH')
 
     # Get info from input file
-    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, make3x8Canvas, parseArmDacCalFile, parseListOfScanDatesFile
+    from gempython.gemplotting.utils.anautilities import getCyclicColor, getDirByAnaType, filePathExists, getSummaryCanvas, parseArmDacCalFile, parseListOfScanDatesFile
     parsedTuple = parseListOfScanDatesFile(args.filename,alphaLabels=args.alphaLabels)
     listChamberAndScanDate = parsedTuple[0]
     chamberName = listChamberAndScanDate[0][0]
     thrDacName = parsedTuple[1]
 
+    gemType="ge11"
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    
     # Parse calibration file if present
     arrayCalInfo = None 
     if args.calFileARM is not None:
-        arrayCalInfo = parseArmDacCalFile(args.calFileARM) # arrayCalInfo[i][vfatN] for coef of x^(4-i)
+        arrayCalInfo = parseArmDacCalFile(args.calFileARM, gemType=gemType) # arrayCalInfo[i][vfatN] for coef of x^(4-i)
 
     legPlot = r.TLegend(0.5,0.5,0.9,0.9)
     
@@ -114,7 +117,7 @@ def compareSBitThreshResults(args):
         ###################
         # Get individual distributions
         ###################
-        for vfat in range(24):
+        for vfat in range(vfatsPerGemVariant[gemType]):
             dict_Histos[infoTuple[2]][vfat] = scanFile.Get("VFAT{0}/THR_ARM_DAC/g1D_rate_vs_THR-ARM-DAC_vfat{0}".format(vfat))
             dict_Graphs[infoTuple[2]][vfat] = r.TGraph(dict_Histos[infoTuple[2]][vfat])
 
@@ -168,7 +171,8 @@ def compareSBitThreshResults(args):
     ###################
     # Now Make plots
     ###################
-    for vfat in range(24):
+
+    for vfat in range(vfatsPerGemVariant[gemType]):
         # Make Output Canvas
         dict_canv[vfat] = r.TCanvas("canvSBitRate_VFAT{0}".format(vfat),"SBIT Rate by THR DAC",700,700)
         dict_canv[vfat].cd()
@@ -203,8 +207,8 @@ def compareSBitThreshResults(args):
         pass
 
     # Make summary canvases, always save these
-    canvSBitRate_Summary = make3x8Canvas("canvSBitRate_Summary",dict_MultiGraphs.values()[0:24],"APE1")
-    for vfatCanv in range(1,25):
+    canvSBitRate_Summary = getSummaryCanvas(dict_MultiGraphs.values()[0:vfatsPerGemVariant[gemType]], name="canvSBitRate_Summary", drawOpt="APE1", gemType=gemType)
+    for vfatCanv in range(1,vfatsPerGemVariant[gemType]+1):
         canvSBitRate_Summary.cd(vfatCanv).SetLogy()
                 
     # Draw Legend?

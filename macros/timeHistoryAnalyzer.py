@@ -304,7 +304,7 @@ if __name__ == '__main__':
         sys.exit(os.EX_USAGE)
 
     if not os.path.isdir(options.inputDir):
-        print("Error: Not a directory: %s" % options.inputDir)
+        print("Error: Not a directory: {0}".format(options.inputDir))
         sys.exit(os.EX_USAGE)
 
     from gempython.gemplotting.utils.anahistory import (
@@ -327,19 +327,22 @@ if __name__ == '__main__':
         findRangesKwArgs['minNoise'] = options.minNoise
         findRangesKwArgs['maxNoise'] = options.maxNoise
     else:
-        print("Error: Invalid argument for --ranges: %s " % options.ranges)
+        print("Error: Invalid argument for --ranges: {0} ".format(options.ranges))
         sys.exit(os.EX_USAGE)
 
-    data = TimeSeriesData(options.inputDir)
+    gemType="ge11"
+        
+    data = TimeSeriesData(options.inputDir, gemType)
     data.removeBadScans(minAverageNoise = options.minScanAvgNoise,
                         maxMaskedStripOrChanFraction = options.maxScanMaskedFrac)
 
     from gempython.gemplotting.utils.anaInfo import MaskReason
     from gempython.gemplotting.utils.anautilities import getEmptyPerVFATList
-
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    
     # Find ranges
     ranges = getEmptyPerVFATList() # [vfat][stripOrChan][ranges]
-    for vfat in range(24):
+    for vfat in range(vfatsPerGemVariant[gemType]):
         for stripOrChan in range(128):
             ranges[vfat].append(findRangesFct(data, vfat, stripOrChan, **findRangesKwArgs))
             pass
@@ -347,7 +350,7 @@ if __name__ == '__main__':
 
     # Filter if needed
     if options.onlyCurrent:
-        for vfat in range(24):
+        for vfat in range(vfatsPerGemVariant[gemType]):
             for stripOrChan in range(128):
                 ranges[vfat][stripOrChan] = list(filter(lambda r: r.end == data.numScans(),
                                                         ranges[vfat][stripOrChan]))
@@ -356,10 +359,10 @@ if __name__ == '__main__':
     rangesTables = getEmptyPerVFATList()
 
     maskReasonList = MaskReason.listReasons()
-    summaryTable = np.zeros((24, len(maskReasonList)))
+    summaryTable = np.zeros((vfatsPerGemVariant[gemType], len(maskReasonList)))
 
     # Fill tables
-    for vfat in range(24):
+    for vfat in range(vfatsPerGemVariant[gemType]):
         for stripOrChan in range(128):
             for rng in ranges[vfat][stripOrChan]:
                 # Per-vfat table
@@ -387,7 +390,7 @@ if __name__ == '__main__':
     from tabulate import tabulate
 
     headers = [
-        '`%s`' % data.stripOrChanMode,
+        '`{0}`'.format(data.stripOrChanMode),
         'Last known good',
         'Range begins',
         'Range ends',
@@ -396,10 +399,10 @@ if __name__ == '__main__':
         'Initial `maskReason`',
         'Other subsequent `maskReason`s' ]
 
-    for vfat in range(24):
-        print '''
-## VFAT %d
-''' % vfat
+    for vfat in range(vfatsPerGemVariant[gemType]):
+        print('''
+        ## VFAT {0}
+        '''.format(vfat))
 
         print(tabulate(rangesTables[vfat],
                        headers = headers,

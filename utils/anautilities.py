@@ -92,7 +92,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     # Get VFATID's
     vfatIDArray = getSubArray(vfatArray, ['vfatID','vfatN'])
     vfatIDArray = np.sort(vfatIDArray,order='vfatN')['vfatID'] # index now gauranteed to match vfatN
-    
+
     # make the crateMap
     list_bNames.remove('dacValY')
     list_bNames.remove('nameX')
@@ -100,6 +100,15 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     list_bNames.remove('vfatN')
     crateMap = np.unique(rp.tree2array(tree=dacScanTree,branches=list_bNames))
 
+    ### FIXME
+    def getGemType(entry):
+        detName = getDetName(entry)
+        return detName[:detName.find('-')].lower()
+    gemType = getGemType(crateMap[0])
+    ### END
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    nVFATS = vfatsPerGemVariant[gemType]
+    
     # get nonzero VFATs
     dict_nonzeroVFATs = {}
     for entry in crateMap:
@@ -111,7 +120,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     dataPath = getDataPath()
     elogPath = getElogPath()
-    
+
     from gempython.utils.wrappers import runCommand
     for entry in crateMap:
         detName = getDetName(entry)
@@ -125,7 +134,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 runCommand(["unlink", "{0}/{1}/dacScans/current".format(dataPath,detName)])
                 runCommand(["ln","-s","{0}/{1}/dacScans/{2}".format(dataPath,detName,scandate),"{0}/{1}/dacScans/current".format(dataPath,detName)])
             pass
-            
+
     # Determine which DAC was scanned and against which ADC
     adcName = ""
     for event in dacScanTree:
@@ -135,7 +144,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     from gempython.utils.gemlogger import colormsg
     import logging
     if adcName not in ['ADC0', 'ADC1']:
-        raise ValueError(colormsg("Error: unexpected value of adcName: '%s'"%adcName,logging.ERROR), os.EX_DATAERR)
+        raise ValueError(colormsg("Error: unexpected value of adcName: '{0}'".format(adcName),logging.ERROR), os.EX_DATAERR)
 
     from gempython.gemplotting.utils.anaInfo import nominalDacValues, nominalDacScalingFactors
     nominal = {}
@@ -165,9 +174,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 nominal[dacName] *= pow(10.0,-3)
             else:
                 # Maybe a TypeError is more appropriate...?
-                raise ValueError(colormsg("Error: unexpected units: '%s'"%nominalDacValues[dacName][1],logging.ERROR), os.EX_DATAERR)
+                raise ValueError(colormsg("Error: unexpected units: '{0}'".format(nominalDacValues[dacName][1]),logging.ERROR), os.EX_DATAERR)
 
-    #the nominal reference current is 10 uA and it has a scaling factor of 0.5   
+    #the nominal reference current is 10 uA and it has a scaling factor of 0.5
     nominal_iref = 10*0.5
 
     calInfo = {}
@@ -181,7 +190,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             link    = dataEntry[2]
             calFile = dataEntry[3]
             ohKey = (int(shelf),int(slot),int(link))
-            tuple_calInfo = parseCalFile(calFile)
+            tuple_calInfo = parseCalFile(calFile, gemType=gemType)
             calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
 
     #for each OH, check if calibration files were provided, if not search for the calFile in the $DATA_PATH, if it is not there, then skip that OH for the rest of the script
@@ -193,9 +202,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             calAdcCalFile = "{0}/{1}/calFile_{2}_{1}.txt".format(dataPath,detName,adcName)
             calAdcCalFileExists = os.path.isfile(calAdcCalFile)
             if calAdcCalFileExists:
-                tuple_calInfo = parseCalFile(calAdcCalFile)
+                tuple_calInfo = parseCalFile(calAdcCalFile, gemType=gemType)
                 calInfo[ohKey] = {'slope' : tuple_calInfo[0], 'intercept' : tuple_calInfo[1]}
-            else:    
+            else:
                 # FIXME should perform a DB query with chipID's in input dacScanTree to get calibration constants
                 print("Skipping Shelf{0}, Slot{1}, OH{2}, detector {3}, missing {4} calibration file:\n\t{5}".format(
                     ohKey[0],
@@ -208,7 +217,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     if len(crateMap) == 0:
         raise RuntimeError(colormsg('No OHs with a calFile, exiting.',logging.ERROR),os.EX_DATAERR)
-           
+
     # Initialize nested dictionaries
     from gempython.utils.nesteddict import nesteddict as ndict
     dict_DACvsADC_Graphs = ndict()
@@ -222,7 +231,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            for vfat in range(0,24):
+            for vfat in range(0,nVFATS):
                 dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat] = r.TGraphErrors()
                 dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetXaxis().SetTitle(dacName)
                 dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].GetYaxis().SetTitle(adcName)
@@ -240,7 +249,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineWidth(1)
                 dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineStyle(3)
 
-    outputFiles = {}         
+    outputFiles = {}
     for entry in crateMap:
         detName = getDetName(entry)
         if scandate == 'noscandate':
@@ -274,7 +283,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             calibrated_ADC_error = calibrated_ADC_error/20.0
 
             if dacName != 'CFG_IREF':
-                calibrated_ADC_value -= nominal_iref 
+                calibrated_ADC_value -= nominal_iref
 
             calibrated_ADC_value /= nominalDacScalingFactors[dacName]
             calibrated_ADC_error /= nominalDacScalingFactors[dacName]
@@ -299,7 +308,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            for vfat in range(0,24):
+            for vfat in range(0,nVFATS):
                 if vfat not in dict_nonzeroVFATs[ohKey]:
                     #so that the output plots for these VFATs are completely empty
                     dict_DACvsADC_Funcs[dacName][ohKey][vfat].SetLineColor(0)
@@ -331,14 +340,14 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             graph_dacVals[dacName][ohKey].GetXaxis().SetTitle("VFATN")
             graph_dacVals[dacName][ohKey].GetYaxis().SetTitle("nominal {} value".format(dacName))
 
-            for vfat in range(0,24):
+            for vfat in range(0,nVFATS):
                 if vfat not in dict_nonzeroVFATs[ohKey]:
                     continue
 
                 #evaluate the fitted function at the nominal current or voltage value and convert to an integer
                 fittedDacValue = int(dict_DACvsADC_Funcs[dacName][ohKey][vfat].Eval(nominal[dacName]))
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
-                
+
                 if fittedDacValue != finalDacValue:
                     dictOfDACsWithBadBias[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
                     errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (Shelf{7},Slot{8},OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
@@ -352,7 +361,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                             ohKey[0],
                             ohKey[1])
                     print(colormsg(errorMsg,logging.ERROR))
-                    
+
                 dict_dacVals[dacName][ohKey][vfat] = finalDacValue
                 graph_dacVals[dacName][ohKey].SetPoint(graph_dacVals[dacName][ohKey].GetN(),vfat,dict_dacVals[dacName][ohKey][vfat])
 
@@ -373,7 +382,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
         detName = getDetName(entry)
         # Per VFAT Poosition
-        for vfat in range(0,24):
+        for vfat in range(0,nVFATS):
             thisVFATDir = outputFiles[ohKey].mkdir("VFAT{0}".format(vfat))
 
             for idx in range(len(dacNameArray)):
@@ -399,13 +408,14 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             graph_dacVals[dacName][ohKey].Write("g_NominalvsVFATPos_{0}".format(dacName))
 
             # Store summary grid canvas and print images
-            canv_Summary = make3x8Canvas("canv_Summary_{0}".format(dacName),dict_DACvsADC_Graphs[dacName][ohKey],'APE1',dict_DACvsADC_Funcs[dacName][ohKey],'')
+            canv_Summary = getSummaryCanvas(dict_DACvsADC_Graphs[dacName][ohKey], name="canv_Summary_{0}".format(dacName), drawOpt='APE1', gemType=gemType)
+            canv_Summary = addPlotToCanvas(canv_Summary, dict_DACvsADC_Funcs[dacName][ohKey], gemType=gemType)
             if scandate == 'noscandate':
                 canv_Summary.SaveAs("{0}/{1}/Summary_{1}_DACScan_{2}.png".format(elogPath,detName,dacName))
             else:
                 canv_Summary.SaveAs("{0}/{1}/dacScans/{2}/Summary{1}_DACScan_{3}.png".format(dataPath,detName,scandate,dacName))
 
-    # Print Summary?
+    # Print Summary
     if args.printSum:
         print("| detName | shelf | slot | ohN | vfatN | dacName | Value |")
         print("| :-----: | :---: | :--: | :-: | :---: | :-----: | :---: |")
@@ -414,8 +424,8 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             detName = getDetName(entry)
             for idx in range(len(dacNameArray)):
                 dacName = np.asscalar(dacNameArray[idx])
-            
-                for vfat in range(0,24):
+
+                for vfat in range(0,nVFATS):
                     if vfat not in dict_nonzeroVFATs[ohKey]:
                         continue
 
@@ -449,15 +459,15 @@ def filePathExists(searchPath, subPath=None, debug=False):
     
     testPath = searchPath
     if subPath is not None:
-        testPath = "%s/%s"%(searchPath, subPath)
+        testPath = "{0}/{1}".format(searchPath, subPath)
 
     if not os.path.exists(testPath):
         if debug:
-            print "Unable to find location: %s"%(testPath)
+            print("Unable to find location: {0}".format(testPath))
         return False
     else:
         if debug:
-            print "Found %s"%s(testPath)
+            print("Found {0}".format(testPath))
         return True
 
 # Find Inflection Point /////////////////////////////////////////////////////////////////
@@ -560,7 +570,7 @@ def formatSciNotation(value, digits=2):
 
     return sciNotation % Decimal(value)
 
-def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
+def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel, gemType="ge11"):
     """
     Generates a 2D map of the detector as a TH2D. Y-axis will be ieta. X-axis will be ROBstr (strip),
     vfat channel or panasonic pin number.  The z-axis will be the elements of obsData with label zLabel
@@ -577,30 +587,35 @@ def get2DMapOfDetector(vfatChanLUT, obsData, mapName, zLabel):
     import os
 
     if mapName not in mappingNames:
-        print("get2DMapOfDetector(): mapName %s not recognized"%mapName)
+        print("get2DMapOfDetector(): mapName {0} not recognized".format(mapName))
         print("\tAvailable options are:")
         print("\t",mappingNames)
         raise LookupError
 
     import ROOT as r
-    hRetMap = r.TH2F("ieta_vs_%s_%s"%(mapName,zLabel),"",384,-0.5,383.5,8,0.5,8.5)
+    from ..mapping.chamberInfo import chamber_maxiEtaiPhiPair
+    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
+    maxiEta, maxiPhi = chamber_maxiEtaiPhiPair[gemType]
+    
+    hRetMap = r.TH2F("ieta_vs_{0}_{1}".format(mapName,zLabel),"",maxiPhi*maxChans, -0.5, maxiPhi*maxChans-0.5, maxiEta, 0.5, maxiEta + 0.5)
     hRetMap.SetXTitle(mapName)
     hRetMap.SetYTitle("i#eta")
     hRetMap.SetZTitle(zLabel)
 
     from gempython.gemplotting.mapping.chamberInfo import chamber_vfatPos2iEtaiPhi
-    for idx in range(3072):
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    for idx in range(maxChans*vfatsPerGemVariant[gemType]):
         # Determine vfat, ieta, and iphi
-        vfat = idx // 128
-        ieta = chamber_vfatPos2iEtaiPhi[vfat][0]
-        iphi = chamber_vfatPos2iEtaiPhi[vfat][1]
+        vfat = idx // maxChans
+        ieta = chamber_vfatPos2iEtaiPhi[gemType][vfat][0]
+        iphi = chamber_vfatPos2iEtaiPhi[gemType][vfat][1]
 
         # Determine strip, panasonic pin, or channel
-        chan = idx % 128
+        chan = idx % maxChans
         stripPinOrChan = vfatChanLUT[vfat][mapName][chan]
 
-        # Set Bin Content of Histogram
-        hRetMap.SetBinContent( ((iphi-1)*128+stripPinOrChan)+1, ieta, obsData[idx])
+        # Set Bin Content of Histogrma
+        hRetMap.SetBinContent(((iphi-1)*maxChans+stripPinOrChan)+1, ieta, obsData[idx])
         pass
 
     return hRetMap
@@ -669,8 +684,8 @@ def getDirByAnaType(anaType, cName, ztrim=4):
 
     # Check anaType is understood
     if anaType not in ana_config.keys():
-        print "getDirByAnaType() - Invalid analysis specificed, please select only from the list:"
-        print ana_config.keys()
+        print("getDirByAnaType() - Invalid analysis specificed, please select only from the list:")
+        print(ana_config.keys())
         exit(os.EX_USAGE)
         pass
 
@@ -679,41 +694,41 @@ def getDirByAnaType(anaType, cName, ztrim=4):
 
     dirPath = ""
     if anaType == "armDacCal":
-        dirPath = "%s/%s/%s"%(dataPath,cName,anaType)
+        dirPath = "{0}/{1}/{2}".format(dataPath,cName,anaType)
     elif anaType == "dacScanV3":
-        dirPath = "%s/%s"%(dataPath,anaType)
+        dirPath = "{0}/{1}".format(dataPath,anaType)
     elif anaType == "latency":
-        dirPath = "%s/%s/%s/trk/"%(dataPath,cName,anaType)
+        dirPath = "{0}/{1}/{2}/trk/".format(dataPath,cName,anaType)
     elif anaType == "sbitMonInt":
-        dirPath = "%s/%s/sbitMonitor/intTrig/"%(dataPath,cName)
+        dirPath = "{0}/{1}/sbitMonitor/intTrig/".format(dataPath,cName)
     elif anaType == "sbitMonRO":
-        dirPath = "%s/%s/sbitMonitor/readout/"%(dataPath,cName)
+        dirPath = "{0}/{1}/sbitMonitor/readout/".format(dataPath,cName)
     elif anaType == "sbitRatech":
         if cName is None:
-            dirPath = "%s/sbitRate/perchannel"%(dataPath)
+            dirPath = "{0}/sbitRate/perchannel".format(dataPath)
         else:
-            dirPath = "%s/%s/sbitRate/perchannel/"%(dataPath,cName)
+            dirPath = "{0}/{1}/sbitRate/perchannel/".format(dataPath,cName)
     elif anaType == "sbitRateor":
         if cName is None:
-            dirPath = "%s/sbitRate/channelOR"%(dataPath)
+            dirPath = "{0}/sbitRate/channelOR".format(dataPath)
         else:
-            dirPath = "%s/%s/sbitRate/channelOR/"%(dataPath,cName)
+            dirPath = "{0}/{1}/sbitRate/channelOR/".format(dataPath,cName)
     elif anaType == "scurve":
-        dirPath = "%s/%s/%s/"%(dataPath,cName,anaType)
+        dirPath = "{0}/{1}/{2}/".format(dataPath,cName,anaType)
     elif anaType == "temperature":
-        dirPath = "%s/%s"%(dataPath,anaType)
+        dirPath = "{0}/{1}".format(dataPath,anaType)
     elif anaType == "thresholdch":
-        dirPath = "%s/%s/threshold/channel/"%(dataPath,cName)
+        dirPath = "{0}/{1}/threshold/channel/".format(dataPath,cName)
     elif anaType == "thresholdvftrig":
-        dirPath = "%s/%s/threshold/vfat/trig/"%(dataPath,cName)
+        dirPath = "{0}/{1}/threshold/vfat/trig/".format(dataPath,cName)
     elif anaType == "thresholdvftrk":
-        dirPath = "%s/%s/threshold/vfat/trk/"%(dataPath,cName)
+        dirPath = "{0}/{1}/threshold/vfat/trk/".format(dataPath,cName)
     elif anaType == "trim":
-        dirPath = "%s/%s/%s/z%f/"%(dataPath,cName,anaType,ztrim)
+        dirPath = "{0}/{1}/{2}/z{3}/".format(dataPath,cName,anaType,ztrim)
     elif anaType == "trimV3":
-        dirPath = "%s/%s/trim/"%(dataPath,cName)
+        dirPath = "{0}/{1}/trim/".format(dataPath,cName)
     elif anaType == "iterTrim":
-        dirPath = "%s/%s/itertrim/"%(dataPath,cName)
+        dirPath = "{0}/{1}/itertrim/".format(dataPath,cName)
 
     return dirPath
 
@@ -764,7 +779,7 @@ def getGEBTypeFromFilename(filename, cName=None):
     else:
         return None
 
-def getMapping(mappingFileName, isVFAT2=True):
+def getMapping(mappingFileName, isVFAT2=True, gemType="ge11"):
     """
     Returns a nested dictionary, the outer dictionary uses VFAT position as the has a key,
     the inner most dict has keys from the list anaInfo.py mappingNames.
@@ -794,16 +809,18 @@ def getMapping(mappingFileName, isVFAT2=True):
                         PanPin - the pin number on the panasonic connector
     """
     from ...utils.nesteddict import nesteddict
-
+    
     from anaInfo import mappingNames
     import ROOT as r
-
+    
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    
     # Try to get the mapping data
     try:
         mapFile = open(mappingFileName, 'r')
     except IOError as e:
-        print "Exception:", e
-        print "Failed to open: '%s'"%mappingFileName
+        print("Exception:", e)
+        print("Failed to open: '{0}'".format(mappingFileName))
     else:
         listMapData = mapFile.readlines()
     finally:
@@ -812,9 +829,9 @@ def getMapping(mappingFileName, isVFAT2=True):
     # strip trhe end of line character
     listMapData = [x.strip('\n') for x in listMapData]
 
-    # setup the look up table
+        # setup the look up table
     ret_mapDict = nesteddict()
-    for vfat in range(0,24):
+    for vfat in range(0,vfatsPerGemVariant[gemType]):
         for name in mappingNames:
             ret_mapDict[vfat][name] = [0] * 128
 
@@ -869,7 +886,7 @@ def getNumCores2Use(args):
 
     return int(usageFactor*availableCores)
 
-def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff,savePlots=True): 
+def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff,savePlots=True, gemType="ge11"): 
     """
     Plots GBT phase scan data as a TH2F and the GBT phase set points as a TGraph for
     each optohybrid found in the two input files.  Note it's assume that if OHX is in
@@ -893,6 +910,8 @@ def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff
     import numpy as np
     import ROOT as r
 
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    nVFATS = vfatsPerGemVariant[gemType]
     # Create 2D plot showing phase scan results
     # =========================================
     # Load input data
@@ -931,7 +950,7 @@ def getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier=None,ohMask=0xfff
             name = "h2D_phaseScan_OH{0}".format(ohN)
             pass
 
-        dict_phaseScanDists[ohN] = r.TH2D(name,"",24,-0.5,23.5,16,-0.5,15.5)
+        dict_phaseScanDists[ohN] = r.TH2D(name,"", nVFATS, -0.5, nVFATS-0.5, 16,-0.5,15.5)
         dict_phaseScanDists[ohN].SetNdivisions(512,"X")
         dict_phaseScanDists[ohN].GetXaxis().SetTitle("VFAT Position")
         dict_phaseScanDists[ohN].GetYaxis().SetTitle("GBT Phase")
@@ -1052,18 +1071,18 @@ def getScandateFromFilename(infilename):
     else:    
         return 'noscandate'
 
-def getSinglePhaseScanPlot(ohN,phaseScanFile,phaseSetPtsFile,identifier=None,savePlots=True):
+def getSinglePhaseScanPlot(ohN,phaseScanFile,phaseSetPtsFile,identifier=None,savePlots=True, gemType="ge11"):
     """
     As getPhaseScanPlots but for a single optohybrid, defined by ohN, inside the input files.
     Returns a tuple where elements are given by:
-    
+
         [0] - TH2F object with the phase scan data plotted
         [1] - TGraph object with the phase set points plotted
 
     Arguments are defined as:
 
     ohN             - Optohybrid number to make the plot for
-    phaseScanFile   - file storing phase scan results, expected format to be what is 
+    phaseScanFile   - file storing phase scan results, expected format to be what is
                       defined in xhal.reg_interface_gem.core.gbt_utils_extended function
                       saveGBTPhaseScanResults
     phaseSetPtsFile - file storing phase set points determined by testConnectivity.py
@@ -1073,17 +1092,17 @@ def getSinglePhaseScanPlot(ohN,phaseScanFile,phaseSetPtsFile,identifier=None,sav
 
     ohMask = (0x1 << ohN)
     tuplePlotDicts = getPhaseScanPlots(phaseScanFile,phaseSetPtsFile,identifier,ohMask,False)
-    
+
     phaseScanDist   = tuplePlotDicts[0][ohN]
     phaseScanSetPts = tuplePlotDicts[1][ohN]
 
     if savePlots:
         from gempython.utils.wrappers import envCheck
         envCheck('ELOG_PATH')
-        
+
         import os
         elogPath  = os.getenv('ELOG_PATH')
-        
+
         if identifier is not None:
             name = "canv_GBTPhaseScanResults_{0}".format(identifier)
         else:
@@ -1231,70 +1250,6 @@ def isOutlierMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
         else:
             return modified_z_score < -1.0 * thresh
 
-def make2x4Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv=None):
-    """
-    Creates a 2x4 canvas for summary plots.
-
-    name - TName of output TCanvas
-    initialContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on the canvas.
-    initialDrawOpt - draw option to be used when drawing elements of initialContent
-    secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
-    secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
-    canv - TCanvas previously produced by make3x8Canvas() or one that has been subdivided into a 3x8 grid
-    """
-
-    import ROOT as r
-    
-    if canv is None:
-        canv = r.TCanvas(name,name,500*8,500*3)
-        canv.Divide(4,2)
-
-    if initialContent is not None:
-        for ieta in range(1,9):
-            canv.cd(ieta)
-            initialContent[ieta].Draw(initialDrawOpt)
-    if secondaryContent is not None:
-        for ieta in range(1,9):
-            canv.cd(ieta)
-            secondaryContent[ieta].Draw("same%s"%secondaryDrawOpt)
-    canv.Update()
-    return canv
-
-def make3x8Canvas(name, initialContent = None, initialDrawOpt = '', secondaryContent = None, secondaryDrawOpt = '', canv = None ):
-    """
-    Creates a 3x8 canvas for summary plots.
-
-    name - TName of output TCanvas
-    initialContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on the canvas.
-    initialDrawOpt - draw option to be used when drawing elements of initialContent
-    secondaryContent - either None or an array of 24 (one per VFAT) TObjects that will be drawn on top of the canvas.
-    secondaryDrawOpt - draw option to be used when drawing elements of secondaryContent
-    canv - TCanvas previously produced by make3x8Canvas() or one that has been subdivided into a 3x8 grid
-    """
-
-    import ROOT as r
-    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
-   
-    if canv is None:
-        canv = r.TCanvas(name,name,500*8,500*3)
-        canv.Divide(8,3)
-
-    if initialContent is not None:
-        for vfat in range(24):
-            canv.cd(chamber_vfatPos2PadIdx[vfat])
-            try:
-                initialContent[vfat].Draw(initialDrawOpt)
-            except KeyError as err:
-                continue
-    if secondaryContent is not None:
-        for vfat in range(24):
-            canv.cd(chamber_vfatPos2PadIdx[vfat])
-            try:
-                secondaryContent[vfat].Draw("same%s"%secondaryDrawOpt)
-            except KeyError as err:
-                continue
-    canv.Update()
-    return canv
 
 def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, delim='\t', ztrim=4):
     """
@@ -1331,39 +1286,39 @@ def makeListOfScanDatesFile(chamberName, anaType, startDate=None, endDate=None, 
     listOfScanDates = os.listdir(dirPath)
 
     try:
-        listOfScanDatesFile = open('%s/listOfScanDates.txt'%dirPath,'w+')
+        listOfScanDatesFile = open('{0}/listOfScanDates.txt'.format(dirPath),'w+')
     except IOError as e:
-        print "Exception:", e
-        print "Failed to open write output file"
-        print "Is the below directory writeable?"
-        print ""
-        print "\t%s"%dirPath
-        print ""
+        print("Exception:", e)
+        print("Failed to open write output file")
+        print("Is the below directory writeable?")
+        print("")
+        print("\t{0}".format(dirPath))
+        print("")
         exit(os.EX_IOERR)
         pass
     
-    listOfScanDatesFile.write('ChamberName%sscandate\n'%delim)
+    listOfScanDatesFile.write('ChamberName{0}scandate\n'.format(delim))
     for scandate in listOfScanDates:
         if "current" == scandate:
             continue
         try:
             scandateInfo = [ int(info) for info in scandate.split('.') ]
         except ValueError as e:
-            print "Skipping directory %s/%s"%(dirPath,scandate)
+            print("Skipping directory {0}/{1}".format(dirPath,scandate))
             continue
         thisDay = datetime.date(scandateInfo[0],scandateInfo[1],scandateInfo[2])
 
         if (startDay < thisDay and thisDay <= endDay):
-            listOfScanDatesFile.write('%s%s%s\n'%(chamberName,delim,scandate))
+            listOfScanDatesFile.write('{0}{1}{2}\n'.format(chamberName,delim,scandate))
             pass
         pass
 
     listOfScanDatesFile.close()
-    runCommand( ['chmod','g+rw','%s/listOfScanDates.txt'%dirPath] )
+    runCommand( ['chmod','g+rw','{0}/listOfScanDates.txt'.format(dirPath)] )
 
     return
 
-def parseCalFile(filename=None):
+def parseCalFile(filename=None, gemType="ge11"):
     """
     Gives the conversion between VCal/CFG_CAL_DAC to fC from either
     an optional external file (filename) or the hard coded vfat2 
@@ -1398,8 +1353,9 @@ def parseCalFile(filename=None):
     import ROOT as r
 
     # Set the CAL DAC to fC conversion
-    calDAC2Q_b = np.zeros(24)
-    calDAC2Q_m = np.zeros(24)
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    calDAC2Q_b = np.zeros(vfatsPerGemVariant[gemType])
+    calDAC2Q_m = np.zeros(vfatsPerGemVariant[gemType])
     if filename is not None:
         list_bNames = ["vfatN","slope","intercept"]
         calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
@@ -1411,13 +1367,13 @@ def parseCalFile(filename=None):
             calDAC2Q_m[dataPt['vfatN']] = dataPt['slope']
             pass
     else:
-        calDAC2Q_b = -0.8 * np.ones(24)
-        calDAC2Q_m = 0.05 * np.ones(24)
+        calDAC2Q_b = -0.8 * np.ones(vfatsPerGemVariant[gemType])
+        calDAC2Q_m = 0.05 * np.ones(vfatsPerGemVariant[gemType])
         pass
 
     return (calDAC2Q_m, calDAC2Q_b)
 
-def parseArmDacCalFile(filename):
+def parseArmDacCalFile(filename, gemType="ge11"):
     """
     Reads a text file and supplies the coefficients of the 
     quartic polynomial used for used for converting between 
@@ -1441,13 +1397,15 @@ def parseArmDacCalFile(filename):
     import numpy as np
     import root_numpy as rp #note need root_numpy-4.7.2 (may need to run 'pip install root_numpy --upgrade')
     import ROOT as r
+    from gempython.tools.hw_constants import vfatsPerGemVariant
 
+    
     # Set the CAL DAC to fC conversion
-    coef4 = np.zeros(24)
-    coef3 = np.zeros(24)
-    coef2 = np.zeros(24)
-    coef1 = np.zeros(24)
-    coef0 = np.zeros(24)
+    coef4 = np.zeros(vfatsPerGemVariant[gemType])
+    coef3 = np.zeros(vfatsPerGemVariant[gemType])
+    coef2 = np.zeros(vfatsPerGemVariant[gemType])
+    coef1 = np.zeros(vfatsPerGemVariant[gemType])
+    coef0 = np.zeros(vfatsPerGemVariant[gemType])
     list_bNames = ["vfatN","coef4","coef3","coef2","coef1","coef0"]
     calTree = r.TTree('calTree','Tree holding VFAT Calibration Info')
     try:
@@ -1509,8 +1467,8 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
     try:
         fileScanDates = open(filename, 'r') 
     except IOError as e:
-        print '%s does not seem to exist or is not readable'%(filename)
-        print e
+        print('{0} does not seem to exist or is not readable'.format(filename))
+        print(e)
         exit(os.EX_NOINPUT)
         pass
 
@@ -1549,11 +1507,11 @@ def parseListOfScanDatesFile(filename, alphaLabels=False, delim='\t'):
                     print("Exiting")
                     exit(os.EX_USAGE)
         else:
-            print "Input format incorrect"
-            print "I was expecting a delimited file using '%s' with all lines having either 2 or 3 entries"%delim
-            print "But I received:"
-            print "\t%s"%(line)
-            print "Exiting"
+            print("Input format incorrect")
+            print("I was expecting a delimited file using '{0}' with all lines having either 2 or 3 entries".format(delim))
+            print("But I received:")
+            print("\t{0}".format(line))
+            print("Exiting")
             exit(os.EX_USAGE)
             pass
         
@@ -1573,7 +1531,8 @@ def rejectOutliersMADOneSided(arrayData, thresh=3.5, rejectHighTail=True):
     arrayOutliers = isOutlierMADOneSided(arrayData, thresh, rejectHighTail)
     return arrayData[arrayOutliers != True]
 
-def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=None, drawOpt="colz"):
+  
+def getSummaryCanvas(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=None, drawOpt="colz", gemType="ge11", write2Disk=False):
     """
     Makes an image with summary canvases drawn on it
 
@@ -1585,82 +1544,126 @@ def saveSummary(dictSummary, dictSummaryPanPin2=None, name='Summary', trimPt=Non
     trimPt             - Optional, list of trim points the dependent variable was aligned
                          to if it is the result of trimming.  One entry per VFAT
     drawOpt            - Draw option
+    gemType            - gemType used for getting the correct mapping
+    write2Disk         - Option to save canvas with the name as the variable
     """
 
     import ROOT as r
-    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
-
+    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx, chamber_maxiEtaiPhiPair
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
+    
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
-    if dictSummaryPanPin2 is None:
-        canv = make3x8Canvas('canv', dictSummary, drawOpt)
-        for vfat in range(0,24):
-            canv.cd(chamber_vfatPos2PadIdx[vfat])
+
+    maxiEta, maxiPhi =chamber_maxiEtaiPhiPair[gemType]
+    
+    canv = r.TCanvas(name, name, 500 * maxiEta, 500 * maxiPhi)
+    
+    if dictSummary is not None and dictSummaryPanPin2 is None:
+        canv.Divide(maxiEta, maxiPhi)
+        for vfat, padIdx in chamber_vfatPos2PadIdx[gemType].iteritems():
+            canv.cd(padIdx)
+            try:
+                dictSummary[vfat].Draw(drawOpt)
+            except KeyError as err:
+                continue
             if trimPt is not None and trimLine is not None:
-                trimLine = r.TLine(-0.5, trimVcal[vfat], 127.5, trimVcal[vfat])
+                trimLine = r.TLine(-0.5, trimVcal[vfat], maxChans-0.5, trimVcal[vfat])
                 legend.Clear()
-                legend.AddEntry(trimLine, 'trimVCal is %f'%(trimVcal[vfat]))
+                legend.AddEntry(trimLine, 'trimVCal is {0}'.format(trimVcal[vfat]))
                 legend.Draw('SAME')
                 trimLine.SetLineColor(1)
                 trimLine.SetLineWidth(3)
                 trimLine.Draw('SAME')
                 pass
+            
+    elif dictSummary is not None and dictSummaryPanPin2 is not None:
+        # possibly remove unless fixed, or at the very least needs to be improved!!
+        canv.Divide(maxiEta, 2*maxiPhi)
+        shift = maxiEta*(maxiPhi+4) + 1
+        for vfat in range(0, vfatsPerGemVariant[gemType]):
+            if vfat % maxiEta == 0:
+                shift -= maxiEta*3
+            canv.cd(vfat+shift)
+            dictSummary[vfat].Draw(drawOpt)
+            canv.Update()
+            canv.cd(vfat+shift+maxiEta)
+            dictSummaryPanPin2[vfat].Draw(drawOpt)
             canv.Update()
             pass
         pass
-    else:
-        canv = r.TCanvas('canv','canv',500*8,500*3)
-        canv.Divide(8,6)
-        r.gStyle.SetOptStat(0)
-        for ieta in range(0,8):
-            for iphi in range (0,3):
-                r.gStyle.SetOptStat(0)
-                canv.cd((ieta+1 + iphi*16)%48 + 16)
-                dictSummary[ieta+(8*iphi)].Draw(drawOpt)
-                canv.Update()
-                canv.cd((ieta+9 + iphi*16)%48 + 16)
-                dictSummaryPanPin2[ieta+(8*iphi)].Draw(drawOpt)
-                canv.Update()
-                pass
-            pass
-        pass
+    
+    canv.Update()
+    
+    if write2Disk:
+        canv.SaveAs(name)        
 
-    canv.SaveAs(name)
+    return canv
 
-    return
-
-def saveSummaryByiEta(dictSummary, name='Summary', trimPt=None, drawOpt="colz"):
+def getSummaryCanvasByiEta(dictSummary, name='Summary', drawOpt="colz", gemType="ge11", write2Disk=False):
     """
-    Makes an image with summary canvases drawn on it
+    Makes an Canvas with summary canvases drawn on it
 
     dictSummary        - dict of TObjects to be drawn, one per ieta.  Each will be 
                          drawn on a separate pad
-    name               - Name of output image
-    trimPt             - Optional, list of trim points the dependent variable was aligned
-                         to if it is the result of trimming.  One entry per VFAT
+    name               - Name of canvas
     drawOpt            - Draw option
+    gemType            - gemType used for getting the correct mapping
+    write2Disk         - Option to save canvas with the name as the variable "name"
     """
 
     import ROOT as r
-
+    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx, chamber_maxiEtaiPhiPair
+    
     legend = r.TLegend(0.75,0.7,0.88,0.88)
     r.gStyle.SetOptStat(0)
-    canv = make2x4Canvas(name='canv', initialContent=dictSummary, initialDrawOpt=drawOpt)
-    for ieta in range(0,8):
-        canv.cd(ieta+1)
-        if trimPt is not None and trimLine is not None:
-            trimLine = r.TLine(-0.5, trimVcal[ieta], 127.5, trimVcal[ieta])
-            legend.Clear()
-            legend.AddEntry(trimLine, 'trimVCal is %f'%(trimVcal[vfat]))
-            legend.Draw('SAME')
-            trimLine.SetLineColor(1)
-            trimLine.SetLineWidth(3)
-            trimLine.Draw('SAME')
-            pass
-        canv.Update()
-        pass
+    
+    maxiEta = chamber_maxiEtaiPhiPair[gemType][0]
+    xyPair = (4,maxiEta//4) 
+    
+    canv = r.TCanvas(name, name, 500 * xyPair[0], 500 * xyPair[1])
+    canv.Divide(xyPair[0], xyPair[1])
 
-    canv.SaveAs(name)
+    for index in range(1,maxiEta+1):
+        canv.cd(index)
+        try:
+            dictSummary[index].Draw(drawOpt)
+        except KeyError as err:
+            continue
+                                                                                
+    canv.Update()
 
-    return
+    if write2Disk:
+        canv.SaveAs(name)
+
+    return canv
+
+
+
+
+def addPlotToCanvas(canv=None, content = None, drawOpt = '', gemType="ge11"):
+    """
+    Adds additional plots to a canvas created by getSummaryCanvas() (takes care of the mapping)
+    
+    canv - TCanvas previously produced by getSummaryCanvas
+    content - either None or an array of TObjects (one per VFAT) that will be drawn on the canvas.
+    drawOpt - draw option to be used when drawing elements of initialContent
+    gemType - gemType used for getting the correct mapping
+                               
+    """
+
+    import ROOT as r
+    from ..mapping.chamberInfo import chamber_vfatPos2PadIdx
+    
+    
+    for index, padIdx in chamber_vfatPos2PadIdx[gemType].iteritems():
+        canv.cd(padIdx)
+        try:
+            content[index].Draw(drawOpt)
+        except KeyError as err:
+            continue
+
+    canv.Update()
+    return canv
 

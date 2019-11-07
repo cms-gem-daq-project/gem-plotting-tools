@@ -17,10 +17,9 @@ if __name__ == '__main__':
     parser.set_defaults(outfilename="SBitMonitorData.root")
     args = parser.parse_args()
     
-    filename = args.filename[:-5]
-    os.system("mkdir " + args.filename[:-5])
+    filename = args.infilename[:-5]
+    os.system("mkdir " + args.infilename[:-5])
 
-    print filename
     outfilename = args.outfilename
 
     import ROOT as r
@@ -40,6 +39,18 @@ if __name__ == '__main__':
     isValidValues = np.unique(initInfo['isValid'])
     ratesUsed = np.unique(initInfo['ratePulsed'])
 
+    ##### FIXME
+    from gempython.gemplotting.mapping.chamberInfo import gemTypeMapping
+    if 'gemType' not in inF.sbitDataTree.GetListOfBranches():
+        gemType = "ge11"
+    else:
+        gemType = gemTypeMapping[rp.tree2array(tree=inF.sbitDataTree, branches =[ 'gemType' ] )[0][0]]
+    print gemType
+    ##### END
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    nVFATS = vfatsPerGemVariant[gemType]
+    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
+    
     print('Initializing histograms')
     from gempython.utils.nesteddict import nesteddict as ndict, flatten
 
@@ -88,15 +99,15 @@ if __name__ == '__main__':
                 dict_h_vfatObsVsVfatPulsed[isValid][calEnable][rate] = r.TH2F(
                         "h_vfatObservedVsVfatPulsed_{0}_{1}Hz".format(postScript,int(rate)),
                         "Summmary - Rate {0} Hz;VFAT {1};VFAT Observed".format(int(rate),strPulsedOrUnmasked),
-                        24,-0.5,23.5,24,-0.5,23.5)
+                        nVFATS,-0.5,nVFATS-0.5, nVFATS,-0.5,nVFATS-0.5)
                 dict_h_vfatObsVsVfatPulsed[isValid][calEnable][rate].Sumw2()
 
-            for vfat in range(0,24):
+            for vfat in range(0, nVFATS):
                 dict_h_chanVsRatePulsed_ZRateObs[isValid][calEnable][vfat] = r.TH2F(
                         "h_chanVsRatePulsed_ZRateObs_vfat{0}_{1}".format(vfat,postScript),
                         "VFAT{0};Rate #left(Hz#right);Channel",
                         len(ratesUsed),0,len(ratesUsed),
-                        128,-0.5,127.5)
+                        maxChans, -0.5, maxChans-0.5)
 
                 # Overall Rate Observed by CTP7
                 if calEnable:
@@ -157,7 +168,7 @@ if __name__ == '__main__':
                         dict_h_sbitObsVsChanPulsed[isValid][calEnable][rate][vfat] = r.TH2F(
                                 "h_sbitObsVsChanPulsed_vfat{0}_{1}_{2}Hz".format(vfat,postScript,int(rate)),
                                 "VFAT{0} - Rate {1} Hz;Channel {2};SBIT Observed".format(vfat,int(rate),strPulsedOrUnmasked),
-                                128,-0.5,127.5,64,-0.5,63.5)
+                                maxChans, -0.5, maxChans-0.5,64,-0.5,63.5)
                         dict_h_sbitObsVsChanPulsed[isValid][calEnable][rate][vfat].Sumw2()
 
                         dict_h_sbitMultiVsSbitSize[isValid][calEnable][rate][vfat] = r.TH2F(
@@ -277,7 +288,7 @@ if __name__ == '__main__':
         
         for calEnable in calEnableValues:
             for rate in ratesUsed:
-                for vfat in range(0,24):
+                for vfat in range(0, nVFATS):
                     for event,multi in dict_validSbitsPerEvt[isValid][calEnable][rate][vfat].iteritems():
                         dict_h_sbitMulti[isValid][calEnable][rate][vfat].Fill(multi)
 
@@ -285,7 +296,7 @@ if __name__ == '__main__':
                             dict_h_sbitMultiVsSbitSize[isValid][calEnable][rate][vfat].Fill(size,multi)
     
     print("Making summary plots")
-    from gempython.gemplotting.utils.anautilities import make3x8Canvas, saveSummary
+    from gempython.gemplotting.utils.anautilities import addPlotToCanvas, getSummaryCanvas
     for isValid in isValidValues:
         if not isValid and not args.checkInvalid:
             continue
@@ -296,17 +307,11 @@ if __name__ == '__main__':
             strValidity="invalidSbits"
 
         # All Rates
-        rateCanvas = make3x8Canvas(
-                name="rateObservedVsRatePulsed_{0}".format(strValidity),
-                initialContent=dict_g_rateObsCTP7VsRatePulsed[isValid],
-                initialDrawOpt="APE1",
-                secondaryContent=dict_g_rateObsFPGAVsRatePulsed[isValid],
-                secondaryDrawOpt="PE1")
-        rateCanvas = make3x8Canvas(
-                name="",
-                secondaryContent=dict_g_rateObsVFATVsRatePulsed[isValid],
-                secondaryDrawOpt="PE1",
-                canv=rateCanvas)
+        rateCanvas = getSummaryCanvas(dict_g_rateObsCTP7VsRatePulsed[isValid],
+                                      name="rateObservedVsRatePulsed_{0}".format(strValidity),
+                                      drawOpt="APE1", gemType=gemType)
+        rateCanvas = addPlotToCanvas(rateCanvas, dict_g_rateObsFPGAVsRatePulsed[isValid], drawOpt="PE1", gemType=gemType)
+        rateCanvas = addPlotToCanvas(rateCanvas, dict_g_rateObsVFATVsRatePulsed[isValid], drawOpt="PE1", gemType=gemType)
         
         # Make the legend
         rateLeg = r.TLegend(0.5,0.5,0.9,0.9)
@@ -330,11 +335,11 @@ if __name__ == '__main__':
         rateCanvas.SaveAs("{0}/rateObservedVsRatePulsed_{1}.png".format(filename,strValidity))
 
         # CalDisable rate 0 case
-        saveSummary(dict_h_sbitMulti[isValid][0][0], name="{0}/sbitMulti_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="")
-        saveSummary(dict_h_sbitSize[isValid][0][0], name="{0}/sbitSize_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="")
+        getSummaryCanvas(dict_h_sbitMulti[isValid][0][0], name="{0}/sbitMulti_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="", gemType=gemType, write2Disk=True)
+        getSummaryCanvas(dict_h_sbitSize[isValid][0][0], name="{0}/sbitSize_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="", gemType=gemType, write2Disk=True)
 
-        saveSummary(dict_h_sbitObsVsChanPulsed[isValid][0][0], name="{0}/sbitObsVsChanUnmasked_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ")
-        saveSummary(dict_h_sbitMultiVsSbitSize[isValid][0][0], name="{0}/sbitMultiVsSbitSize_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ")
+        getSummaryCanvas(dict_h_sbitObsVsChanPulsed[isValid][0][0], name="{0}/sbitObsVsChanUnmasked_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ", gemType=gemType, write2Disk=True)
+        getSummaryCanvas(dict_h_sbitMultiVsSbitSize[isValid][0][0], name="{0}/sbitMultiVsSbitSize_{1}_calDisabled_0Hz.png".format(filename,strValidity), drawOpt="COLZ", gemType=gemType, write2Disk=True)
         
         for idx,rate in enumerate(ratesUsed):
             # Sum over all rates
@@ -347,8 +352,8 @@ if __name__ == '__main__':
                 else:
                     dict_h_vfatObsVsVfatPulsed[isValid][1][-1].Add(dict_h_vfatObsVsVfatPulsed[isValid][1][rate])
 
-                cloneExists = { vfat:False for vfat in range(0,24) }
-                for vfat in range(0,24):
+                cloneExists = { vfat:False for vfat in range(0, nVFATS) }
+                for vfat in range(0, nVFATS):
                     if ( not cloneExists[vfat] ):
                         cloneExists[vfat] = True
 
@@ -377,15 +382,15 @@ if __name__ == '__main__':
                         dict_h_sbitObsVsChanPulsed[isValid][1][-1][vfat].Add(dict_h_sbitObsVsChanPulsed[isValid][1][rate][vfat])
                         dict_h_sbitMultiVsSbitSize[isValid][1][-1][vfat].Add(dict_h_sbitMultiVsSbitSize[isValid][1][rate][vfat])
         
-                saveSummary(dict_h_sbitMulti[isValid][1][-1], name="{0}/sbitMulti_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="")
-                saveSummary(dict_h_sbitSize[isValid][1][-1], name="{0}/sbitSize_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="")
+                getSummaryCanvas(dict_h_sbitMulti[isValid][1][-1], name="{0}/sbitMulti_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="", gemType=gemType, write2Disk=True)
+                getSummaryCanvas(dict_h_sbitSize[isValid][1][-1], name="{0}/sbitSize_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="", gemType=gemType, write2Disk=True)
 
-                saveSummary(dict_h_sbitObsVsChanPulsed[isValid][1][-1], name="{0}/sbitObsVsChanPulsed_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="COLZ")
-                saveSummary(dict_h_sbitMultiVsSbitSize[isValid][1][-1], name="{0}/sbitMultiVsSbitSize_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="COLZ")
+                getSummaryCanvas(dict_h_sbitObsVsChanPulsed[isValid][1][-1], name="{0}/sbitObsVsChanPulsed_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="COLZ", gemType=gemType, write2Disk=True)
+                getSummaryCanvas(dict_h_sbitMultiVsSbitSize[isValid][1][-1], name="{0}/sbitMultiVsSbitSize_{1}_calEnabled_SumOfAllRates.png".format(filename,strValidity), drawOpt="COLZ", gemType=gemType, write2Disk=True)
 
     print("Storing TObjects in output TFile")
     # Per VFAT Plots
-    for vfat in range(0,24):
+    for vfat in range(0, nVFATS):
         dirVFAT = outF.mkdir("VFAT{0}".format(vfat))
 
         for isValid in isValidValues:
@@ -486,7 +491,7 @@ if __name__ == '__main__':
     print("| :---: | :------: | :-------: | :----------: |")
     fileMisMappedSbits.write("| :---: | :------: | :-------: | :----------: |\n")
     for idx in range(0,len(wrongSBITMapping)):
-        print("| {0} | {1} | {2} | {3} |".format(
+        print("| {0:5d} | {1:8d} | {2:9d} | {3:12d} |".format(
             wrongSBITMapping[idx]['vfatN'],
             wrongSBITMapping[idx]['vfatSBIT'],
             wrongSBITMapping[idx]['sbitSize'],
@@ -514,7 +519,7 @@ if __name__ == '__main__':
     print("| :--------: | :----------: | :----------: |")
     fileMisMappedVFATs.write("| :--------: | :----------: | :----------: |\n")
     for idx in range(0,len(wrongVFATMapping)):
-        print("| {0} | {1} | {2} |".format(
+        print("| {0:10d} | {1:12d} | {2:12d} |".format(
             wrongVFATMapping[idx]['vfatN'],
             wrongVFATMapping[idx]['vfatObs'],
             wrongVFATMapping[idx]['N_Mismatches']))

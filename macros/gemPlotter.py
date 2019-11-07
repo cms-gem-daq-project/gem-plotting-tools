@@ -310,15 +310,15 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         # Setup Paths
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim)
         if not filePathExists(dirPath, scandate):
-            print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
+            print('Filepath {0}/{1} does not exist!'.format(dirPath, scandate))
             if skipBad:
-                print 'Skipping'
+                print('Skipping')
                 continue
             else:
-                print 'Please cross-check, exiting!'
+                print('Please cross-check, exiting!')
                 exit(os.EX_DATAERR)
                 pass
-        filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
+        filename = "{0}/{1}/{2}".format(dirPath, scandate, rootFileName)
 
         # Get TTree
         try:
@@ -326,13 +326,13 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
         except AttributeError as e:
-            print '%s may not exist in %s'%(treeName,filename)
-            print e
+            print('{0} may not exist in {1}'.format(treeName,filename))
+            print(e)
             if skipBad:
-                print 'Skipping'
+                print('Skipping')
                 continue
             else:
-                print 'Please cross-check, exiting!'
+                print('Please cross-check, exiting!')
                 exit(os.EX_DATAERR)
                 pass
             pass
@@ -340,11 +340,11 @@ def arbitraryPlotter(anaType, listDataPtTuples, rootFileName, treeName, branchNa
         # Check to make sure listNames are present in dataTree
         for testBranch in listNames:
             if testBranch not in knownBranches:
-                print "Branch %s not in TTree %s of file %s"%(branchName, treeName, filename)
-                print "Existing Branches are:"
+                print("Branch {0} not in TTree {1} of file {2}".format(branchName, treeName, filename))
+                print("Existing Branches are:")
                 for realBranch in knownBranches:
-                    print realBranch
-                print "Please try again using one of the existing branches"
+                    print(realBranch)
+                print("Please try again using one of the existing branches")
                 exit(os.EX_DATAERR)
 
         # Get dependent variable value
@@ -425,15 +425,15 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         # Setup Paths
         dirPath = getDirByAnaType(anaType.strip("Ana"), cName, ztrim)
         if not filePathExists(dirPath, scandate):
-            print 'Filepath %s/%s does not exist!'%(dirPath, scandate)
+            print('Filepath {0}/{1} does not exist!'.format(dirPath, scandate))
             if skipBad:
-                print 'Skipping'
+                print('Skipping')
                 continue
             else:
-                print 'Please cross-check, exiting!'
+                print('Please cross-check, exiting!')
                 exit(os.EX_DATAERR)
                 pass
-        filename = "%s/%s/%s"%(dirPath, scandate, rootFileName)
+        filename = "{0}/{1}/{2}".format(dirPath, scandate, rootFileName)
 
         # Get TTree
         try:
@@ -441,13 +441,13 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
             dataTree = dataFile.Get(treeName)
             knownBranches = dataTree.GetListOfBranches()
         except AttributeError as e:
-            print '%s may not exist in %s'%(treeName,filename)
-            print e
+            print('{0} may not exist in {1}'.format(treeName,filename))
+            print(e)
             if skipBad:
-                print 'Skipping'
+                print('Skipping')
                 continue
             else:
-                print 'Please cross-check, exiting!'
+                print('Please cross-check, exiting!')
                 exit(os.EX_DATAERR)
                 pass
             pass
@@ -455,11 +455,11 @@ def arbitraryPlotter2D(anaType, listDataPtTuples, rootFileName, treeName, branch
         # Check to make sure listNames are present in dataTree
         for testBranch in listNames:
             if testBranch not in knownBranches:
-                print "Branch %s not in TTree %s of file %s"%(branchName, treeName, filename)
-                print "Existing Branches are:"
+                print("Branch {0} not in TTree {1} of file {2}".format(branchName, treeName, filename))
+                print("Existing Branches are:")
                 for realBranch in knownBranches:
-                    print realBranch
-                print "Please try again using one of the existing branches"
+                    print(realBranch)
+                print("Please try again using one of the existing branches")
                 exit(os.EX_DATAERR)
 
         # Get dependent variable value - VFAT Level
@@ -526,22 +526,25 @@ if __name__ == '__main__':
     envCheck('ELOG_PATH')
     elogPath  = os.getenv('ELOG_PATH')
 
+    gemType="ge11"
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    
     # Get VFAT List
     listVFATs = []
     if options.all_plots:
-        listVFATs = (x for x in range(0,24))
+        listVFATs = (x for x in range(0,vfatsPerGemVariant[gemType]))
     elif options.vfatList != None:
         listVFATs = map(int, options.vfatList.split(','))
     elif options.vfat != None:
         listVFATs.append(options.vfat)
     else:
-        print "You must specify at least one VFAT to be considered"
+        print("You must specify at least one VFAT to be considered")
         exit(os.EX_USAGE)
     
     # Check anaType is understood
     if options.anaType not in tree_names.keys():
-        print "Invalid analysis specificed, please select only from the list:"
-        print tree_names.keys()
+        print("Invalid analysis specificed, please select only from the list:")
+        print(tree_names.keys())
         exit(os.EX_USAGE)
         pass
     
@@ -559,10 +562,10 @@ if __name__ == '__main__':
         # Set the strip or channel name
         if options.channels:
             vfatCH = options.strip
-            strStripOrChan = "vfatCH%i"%options.strip
+            strStripOrChan = "vfatCH{0}".format(options.strip)
         else:
             strip = options.strip
-            strStripOrChan = "ROBstr%i"%options.strip
+            strStripOrChan = "ROBstr{0}".format(options.strip)
     elif options.make2D:
         strDrawOpt = "COLZ"
 
@@ -600,7 +603,7 @@ if __name__ == '__main__':
 
     # Loop over the vfats in listVFATs and make the requested plot for each
     strIndepVarNoBraces = strIndepVar.replace('{','').replace('}','').replace('_','')
-    strRootName = "%s/gemPlotterOutput_%s_vs_%s.root"%(elogPath,options.branchName, strIndepVarNoBraces)
+    strRootName = "{0}/gemPlotterOutput_{1}_vs_{2}.root".format(elogPath,options.branchName, strIndepVarNoBraces)
     r.gROOT.SetBatch(True)
     outF = r.TFile(strRootName,options.rootOpt)
     listPlots = []
@@ -608,14 +611,14 @@ if __name__ == '__main__':
         # Make the output directory
         dirVFAT = r.TDirectory()
         if options.rootOpt.upper() == "UPDATE":
-            dirVFAT = outF.GetDirectory("VFAT%i"%vfat, False, "GetDirectory")
+            dirVFAT = outF.GetDirectory("VFAT{0}".format(vfat), False, "GetDirectory")
         else:
-            dirVFAT = outF.mkdir("VFAT%i"%vfat)
+            dirVFAT = outF.mkdir("VFAT{0}".format(vfat))
             pass
 
         # Make the output canvas, use a temp name and temp title for now
         strCanvName = ""
-        canvPlot = r.TCanvas("canv_VFAT%i"%(vfat),"VFAT%i"%(vfat),2400,800)
+        canvPlot = r.TCanvas("canv_VFAT{0}".format(vfat),"VFAT{0}".format(vfat),2400,800)
 
         # Make the plot, either 2D or 1D
         if options.make2D:
@@ -630,21 +633,21 @@ if __name__ == '__main__':
                     options.ztrim,
                     skipBad=options.skipBadFiles)
 
-            # Print to the user
+            # Print(to the user)
             if options.printData:
-                print "===============Printing Data for VFAT%i==============="%(vfat)
-                print "[BEGIN_DATA]"
-                print "\tVAR_INDEP,VAR_DEP,VALUE"
+                print("===============Printing Data for VFAT{0}===============".format(vfat))
+                print("[BEGIN_DATA]")
+                print("\tVAR_INDEP,VAR_DEP,VALUE")
                 for dataPt in listData:
-                    print "\t%f,%f,%f"%(dataPt[0],dataPt[1],dataPt[2])
-                print "[END_DATA]"
-                print ""
+                    print("\t{0},{1},{2}".format(dataPt[0],dataPt[1],dataPt[2]))
+                print("[END_DATA]")
+                print("")
             
 
             # Make the plot
             binsIndepVarLowEdge = array.array('d',listIndepVarLowEdge)
-            hPlot2D = r.TH2F("h_%s_vs_%s_Obs%s_VFAT%i"%(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat),
-                            "VFAT%i"%(vfat),
+            hPlot2D = r.TH2F("h_{0}_vs_{1}_Obs{2}_VFAT{3}".format(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat),
+                            "VFAT{0}".format(vfat),
                             len(listIndepVarLowEdge)-1, binsIndepVarLowEdge,
                             128, -0.5, 127.5)
             hPlot2D.SetXTitle(strIndepVar)
@@ -667,9 +670,9 @@ if __name__ == '__main__':
                 r.gStyle.SetOptStat(0000000)
                 
             # Draw this plot on a canvas
-            strCanvName = "%s/canv_%s_vs_%s_Obs%s_VFAT%i.png"%(elogPath, strStripOrChan, strIndepVarNoBraces, options.branchName, vfat)
-            canvPlot.SetName("canv_%s_vs_%s_Obs%s_VFAT%i.png"%(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat))
-            canvPlot.SetTitle("VFAT%i: %s vs. %s - Obs %s"%(vfat,strStripOrChan,strIndepVarNoBraces, options.branchName))
+            strCanvName = "{0}/canv_{1}_vs_{2}_Obs{3}_VFAT{4}.png".format(elogPath, strStripOrChan, strIndepVarNoBraces, options.branchName, vfat)
+            canvPlot.SetName("canv_{0}_vs_{1}_Obs{2}_VFAT{3}.png".format(strStripOrChan, strIndepVarNoBraces, options.branchName, vfat))
+            canvPlot.SetTitle("VFAT{0}: {1} vs. {2} - Obs {3}".format(vfat,strStripOrChan,strIndepVarNoBraces, options.branchName))
             canvPlot.SetRightMargin(0.15)
             canvPlot.cd()
             hPlot2D.GetZaxis().SetRangeUser(options.axisMin, options.axisMax)
@@ -694,16 +697,16 @@ if __name__ == '__main__':
                     options.ztrim,
                     skipBad=options.skipBadFiles)
 
-            # Print to the user
+            # Print(to the user)
             # Using format compatible with: https://github.com/cms-gem-detqc-project/CMS_GEM_Analysis_Framework#4eiviii-header-parameters---data
             if options.printData:
-                print "===============Printing Data for VFAT%i==============="%(vfat)
-                print "[BEGIN_DATA]"
-                print "\tVAR_INDEP,VAR_DEP,VAR_DEP_ERR"
+                print("===============Printing Data for VFAT{0}===============".format(vfat))
+                print("[BEGIN_DATA]")
+                print("\tVAR_INDEP,VAR_DEP,VAR_DEP_ERR")
                 for dataPt in listData:
-                    print "\t%f,%f,%f"%(dataPt[0],dataPt[1],dataPt[2])
-                print "[END_DATA]"
-                print ""
+                    print("\t{0},{1},{2}".format(dataPt[0],dataPt[1],dataPt[2]))
+                print("[END_DATA]")
+                print("")
 
             # Make the plot
             thisPlot = r.TGraphErrors(len(listData))
@@ -711,8 +714,8 @@ if __name__ == '__main__':
                 strDrawOpt = "PE1v"
                 
                 binsIndepVarLowEdge = array.array('d',listIndepVarLowEdge)
-                thisPlot = r.TH1F("h_%s_vs_%s_VFAT%i_%s"%(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan),
-                                  "VFAT%i_%s"%(vfat,strStripOrChan),
+                thisPlot = r.TH1F("h_{0}_vs_{1}_VFAT{2}_{3}".format(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan),
+                                  "VFAT{0}_{1}".format(vfat,strStripOrChan),
                                   len(listIndepVarLowEdge)-1, binsIndepVarLowEdge)
            
                 for binX,item in enumerate(listDataPtTuples):
@@ -723,8 +726,8 @@ if __name__ == '__main__':
                     if thisPlot.GetXaxis().GetBinLabel(idx+1) == listDataPtTuples[idx][2]:
                         thisPlot.SetBinError(idx+1, listData[idx][2])
             else:
-                thisPlot.SetTitle("VFAT%i_%s"%(vfat,strStripOrChan))
-                thisPlot.SetName("g_%s_vs_%s_VFAT%i_%s"%(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan))
+                thisPlot.SetTitle("VFAT{0}_{1}".format(vfat,strStripOrChan))
+                thisPlot.SetName("g_{0}_vs_{1}_VFAT{2}_{3}".format(options.branchName, strIndepVarNoBraces, vfat, strStripOrChan))
                 for idx in range(len(listData)):
                     thisPlot.SetPoint(idx, listData[idx][0], listData[idx][1])
                     thisPlot.SetPointError(idx, 0., listData[idx][2])
@@ -732,9 +735,9 @@ if __name__ == '__main__':
             # Draw this plot on a canvas
             thisPlot.SetMarkerStyle(20)
             thisPlot.SetLineWidth(2)
-            strCanvName = "%s/canv_%s_vs_%s_VFAT%i_%s.png"%(elogPath, options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
-            canvPlot.SetName("canv_%s_vs_%s_VFAT%i_%s"%(options.branchName,strIndepVarNoBraces, vfat, strStripOrChan))
-            canvPlot.SetTitle("VFAT%i_%s: %s vs. %s"%(vfat,strStripOrChan,options.branchName,strIndepVarNoBraces))
+            strCanvName = "{0}/canv_{1}_vs_{2}_VFAT{3}_{4}.png".format(elogPath, options.branchName,strIndepVarNoBraces, vfat,strStripOrChan)
+            canvPlot.SetName("canv_{0}_vs_{1}_VFAT{2}_{3}".format(options.branchName,strIndepVarNoBraces, vfat, strStripOrChan))
+            canvPlot.SetTitle("VFAT{0}_{1}: {2} vs. {3}".format(vfat,strStripOrChan,options.branchName,strIndepVarNoBraces))
             canvPlot.cd()
             thisPlot.Draw(strDrawOpt)
             thisPlot.GetXaxis().SetTitle(strIndepVar)
@@ -751,10 +754,10 @@ if __name__ == '__main__':
             pass
         
         if not options.all_plots:
-            print ""
-            print "To view your plot, execute:"
-            print ("eog " + strCanvName)
-            print ""
+            print("")
+            print("To view your plot, execute:")
+            print("eog " + strCanvName)
+            print("")
 
         # Store the Canvas
         canvPlot.Update()
@@ -765,22 +768,22 @@ if __name__ == '__main__':
 
     # Make Summary Plot
     if options.all_plots:
-        from gempython.gemplotting.utils.anautilities import make3x8Canvas
-        strSummaryName = "summary_%s_vs_%s_%s"%(options.branchName, strIndepVarNoBraces,strStripOrChan)
-        canv_summary = make3x8Canvas( strSummaryName, listPlots, strDrawOpt)
+        from gempython.gemplotting.utils.anautilities import getSummaryCanvas
+        strSummaryName = "summary_{0}_vs_{1}_{2}".format(options.branchName, strIndepVarNoBraces,strStripOrChan)
+        canv_summary = getSummaryCanvas(listPlots, name=strSummaryName, drawOpt=strDrawOpt, gemType=gemType)
         
-        strCanvName = "%s/%s.png"%(elogPath,strSummaryName)
+        strCanvName = "{0}/{1}.png".format(elogPath,strSummaryName)
         canv_summary.SaveAs(strCanvName)
         
         outF.cd()
         canv_summary.Write()
 
-        print ""
-        print "To view your plot, execute:"
-        print ("eog " + strCanvName)
-        print ""
+        print("")
+        print("To view your plot, execute:")
+        print("eog " + strCanvName)
+        print("")
 
-    print ""
-    print "Your plot is stored in a TFile, to open it execute:"
-    print ("root " + strRootName)
-    print ""
+    print("")
+    print("Your plot is stored in a TFile, to open it execute:")
+    print("root " + strRootName)
+    print("")
