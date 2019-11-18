@@ -252,6 +252,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     outputFiles = {}
     for entry in crateMap:
+        ohKey = (entry['shelf'],entry['slot'],entry['link'])
         detName = getDetName(entry)
         if scandate == 'noscandate':
             outputFiles[ohKey] = r.TFile(elogPath+"/"+detName+"/"+args.outfilename,'recreate')
@@ -310,6 +311,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
+            detName = getDetName(entry)
             for vfat in range(0,nVFATS):
                 if vfat not in dict_nonzeroVFATs[ohKey]:
                     #so that the output plots for these VFATs are completely empty
@@ -318,9 +320,9 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 #the fits fail when the errors on dacValY (the x-axis variable) are used
                 fitResult =  dict_DACvsADC_Graphs[dacName][ohKey][vfat].Fit(dict_DACvsADC_Funcs[dacName][ohKey][vfat],"SQEX0")
 
-                from anaInfo import dacScanFitChisquareMax
+                from anaInfo import dacScanFitChiSqOverNDFMax
                 
-                if dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetChisquare() > dacScanFitChisquareMax:
+                if dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetNDF() > 0 and dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetChisquare()/dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetNDF() > dacScanFitChiSqOverNDFMax:
                     dictOfDACsWithBadFit[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
                     errorMsg = "Warning: large chisquare for VFAT{2} of chamber {3} (Shelf{4},Slot{5},OH{1}) DAC {0}.".format(
                             dacName,
@@ -349,7 +351,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            getDame = getDetName(entry)
+            detName = getDetName(entry)
             graph_dacVals[dacName][ohKey] = r.TGraph()
             graph_dacVals[dacName][ohKey].SetMinimum(0)
             graph_dacVals[dacName][ohKey].GetXaxis().SetTitle("VFATN")
@@ -387,6 +389,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
+            ohKey = (entry['shelf'],entry['slot'],entry['link'])
             detName = getDetName(entry)
             if scandate == 'noscandate':
                 outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,detName,dacName),'w')
