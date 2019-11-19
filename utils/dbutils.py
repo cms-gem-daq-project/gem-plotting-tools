@@ -77,7 +77,7 @@ def getGEMDBView(view, vfatList=None, debug=False):
 
     if vfatList is not None:
         # First warn the user which VFATs are *not* found
-        if len(vfatList) != dfGEMView.shape[1]:
+        if len(vfatList) != dfGEMView.shape[0]:
             printYellow("Length of returned view does not match length of input vfat List")
             vfatsNotFound = [ "0x{:x}".format(chipId) for chipId in vfatList if "0x{:x}".format(chipId) not in list(dfGEMView['vfat3_ser_num'])]
             printYellow("VFATs not found: {0}".format(vfatsNotFound))
@@ -96,7 +96,7 @@ def getVFAT3CalInfo(vfatList, debug=False):
     for VFAT calibration.  Specifically a pandas dataframe will be returned with
     only the following columns:
 
-        ['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']
+        ['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb', 'vref_adc']
 
     vfatList    - list of VFAT Chip ID's.
     debug       - Prints additional info if true
@@ -117,7 +117,7 @@ def getVFAT3CalInfo(vfatList, debug=False):
             
             
         
-    return df_vfatCalInfo[['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb']]
+    return df_vfatCalInfo[['vfatN','vfat3_ser_num', 'vfat3_barcode', 'iref', 'adc0m', 'adc1m', 'adc0b', 'adc1b', 'cal_dacm', 'cal_dacb', 'vref_adc']]
 
 def getVFAT3ConfView(vfatList, debug=False):
     """
