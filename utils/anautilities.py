@@ -91,6 +91,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     # Get VFATID's
     vfatIDArray = getSubArray(vfatArray, ['vfatID','vfatN'])
+    vfatIDArray = np.unique(vfatIDArray)
     vfatIDArray = np.sort(vfatIDArray,order='vfatN')['vfatID'] # index now gauranteed to match vfatN
 
     # make the crateMap
@@ -459,7 +460,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
 
     if len(dictOfDACsWithBadFit):
-        err_msg = "The following (vfatN,DAC Names) have large chisquare DAC vs ADC fits"
+        err_msg = "The following (vfatID,DAC Names) have large chisquare DAC vs ADC fits"
         for ohKey,vfatDACtuple in dictOfDACsWithBadFit.iteritems():
             err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
             pass
@@ -468,7 +469,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     
     # Raise a ValueError if a DAC is found to be out of range
     if len(dictOfDACsWithBadBias):
-        err_msg = "The following (vfatN,DAC Names) were found to be out of range"
+        err_msg = "The following (vfatID,DAC Names) were found to be out of range"
         for ohKey,vfatDACtuple in dictOfDACsWithBadBias.iteritems():
             err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
             pass
