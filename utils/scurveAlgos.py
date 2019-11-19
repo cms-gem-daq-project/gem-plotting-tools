@@ -35,6 +35,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
     deadChanCutHigh - Higher bound of charge range (in fC) that will be used to determine if a channel is dead based on its ENC
     debug - If true additional debugging information will be printed
     doNotFit - If true the scurves will not be fit; this will reduce the analysis tiem and output information
+    maxChi2 - Max acceptable chi2 in scurve fits
     drawbad - If true scurve fits with chi2 values less than 1 or greater than 1000 will be drawn on a separate TCanvas
     extChanMapping - Name of externally supplied file that specifies the ROBstr:PanPin:vfatCH mapping
     isVFAT2 - If true the data is understood as coming from VFAT2
@@ -52,7 +53,10 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
     outputDir - Directory where output plots are stored.  If None this will be default to $ELOG_PATH 
     vfatList - List of VFAT positions to consider in the analysis, if None analyzes all (default). Useful for debugging
     """
-        # Check attributes of input args
+
+    from gempython.gemplotting.utils.anaInfo import maxChi2Default
+
+    # Check attributes of input args
     # If not present assign appropriate default arguments
     if hasattr(args,'calFile') is False:
         args.calFile = None
@@ -66,6 +70,8 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         args.debug = False
     if hasattr(args,'doNotFit') is False:
         args.doNotFit = False
+    if hasattr(args,'maxChi2') is False:
+        args.maxChi2 = maxChi2Default   
     if hasattr(args,'drawbad') is False:
         args.drawbad = False
     if hasattr(args,'extChanMapping') is False:
@@ -304,7 +310,8 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
                 calDAC2Q_m=calDAC2Q_Slope, 
                 calDAC2Q_b=calDAC2Q_Intercept,
                 isVFAT3=isVFAT3,
-                nVFats = nVFATS
+                nVFats = nVFATS,
+                maxChi2=args.maxChi2
                 )
         pass
 

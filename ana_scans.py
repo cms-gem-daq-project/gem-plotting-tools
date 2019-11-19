@@ -876,8 +876,10 @@ if __name__ == '__main__':
 
     # Create subparser for scurve
     # -------------------------------------------------
+    from gempython.gemplotting.utils.anaInfo import maxChi2Default
     parser_scurve = subparserCmds.add_parser("scurve", help="Analyzes scurve data taken with either ultraScurve.py or 'run_scans.py scurve'", parents = listOfParentParsers4Scurves)
     parser_scurve.add_argument("--doNotFit", action="store_true", help="Do not attempt to fit the scurves")
+    parser_scurve.add_argument("--maxChi2", type=float,dest="maxChi2",default=maxChi2Default,help="Max acceptable chi2 in scurve fits")
 
     parser_scurve.set_defaults(func=scurveParallelAna)
 
