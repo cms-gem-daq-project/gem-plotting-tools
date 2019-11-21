@@ -9,6 +9,7 @@ if __name__ == '__main__':
     # Define the parser
     import argparse
     from gempython.gemplotting.utils.anaoptions import parent_parser, parser_scurveChanMasks
+    from gempython.gemplotting.utils.anaInfo import maxChi2Default
     parser = argparse.ArgumentParser(description="Options to give to anaUltraScurve.py", parents=[parent_parser,parser_scurveChanMasks])
     
     # Positional arguments
@@ -20,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument("-e", "--extChanMapping", type=str, default=None,
                       help="Physical filename of a custom, non-default, channel mapping (optional)")
     parser.add_argument("--doNotFit", action="store_true", help="Do not attempt to fit scurves; only the summary plot showing the 2D scurve data will be generated")
+    parser.add_argument("--maxChi2", type=float,dest="maxChi2",default=maxChi2Default,help="Max acceptable chi2 in scurve fits")
     parser.add_argument("--isVFAT2", action="store_true", help="Provide this argument if input data was acquired from vfat2")
     parser.add_argument("-v", "--vfatList", type=str, default=None, help="Comma separated list of VFAT positions to consider for analysis.  If not provided default will be all positions")
     parser.add_argument("-z", "--zscore", type=float, default=3.5, help="Z-Score for Outlier Identification in MAD Algo")

@@ -130,6 +130,8 @@ class ScanDataFitter(DeadChannelFinder):
         isVFAT3 (bool): Whether the detector under consideration uses VFAT3
     """
 
+    from gempython.gemplotting.utils.anaInfo import maxChi2Default
+    
     def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False, nVFats=24):
         super(ScanDataFitter, self).__init__(nVFats)
 
@@ -146,6 +148,8 @@ class ScanDataFitter(DeadChannelFinder):
 
         self.isVFAT3    = isVFAT3
         self.nVFats     = nVFats
+
+        self.maxChi2 = maxChi2
         
         self.calDAC2Q_m = np.ones(self.nVFats)
         if calDAC2Q_m is not None:
@@ -373,7 +377,7 @@ class ScanDataFitter(DeadChannelFinder):
                         self.fitValid[vfat][ch] = True
                         MinChi2Temp = fitChi2
                         pass
-                    if (MinChi2Temp < 50): break
+                    if (MinChi2Temp < self.maxChi2): break
                     pass
                 if debug:
                     print("Converged fit results:")

@@ -21,6 +21,9 @@ scurveMeanMin = 0.1 #: points are removed if they satisfy scurveMean < scurveMea
 scurveMeanFracErrMin = 0.001 #: points are removed if they satisfy scurveMeanError/scurveMean < scurveFracErrMin
 numOfGoodChansMinDefault = 10 #: default value of: minimum number of good channels scurveMean points are required to have
 
+#: The default value for the maximum chi2 an acceptable scurve fit
+maxChi2Default=10
+
 #: The default values for the cuts that determine the scurve fit quality masks
 maxEffPedPercentDefault=0.02
 highNoiseCutDefault=1.5
