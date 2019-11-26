@@ -132,7 +132,7 @@ class ScanDataFitter(DeadChannelFinder):
 
     from gempython.gemplotting.utils.anaInfo import maxChi2Default
     
-    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False, nVFats=24):
+    def __init__(self, calDAC2Q_m=None, calDAC2Q_b=None, isVFAT3=False, nVFats=24, maxChi2=maxChi2Default):
         super(ScanDataFitter, self).__init__(nVFats)
 
         from gempython.utils.nesteddict import nesteddict as ndict
