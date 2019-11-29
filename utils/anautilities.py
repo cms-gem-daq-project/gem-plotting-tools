@@ -106,6 +106,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         detName = getDetName(entry)
         return detName[:detName.find('-')].lower()
     gemType = getGemType(crateMap[0])
+    #    gemType='ge11'
     ### END
     from gempython.tools.hw_constants import vfatsPerGemVariant
     nVFATS = vfatsPerGemVariant[gemType]
@@ -321,7 +322,6 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 fitResult =  dict_DACvsADC_Graphs[dacName][ohKey][vfat].Fit(dict_DACvsADC_Funcs[dacName][ohKey][vfat],"SQEX0")
 
                 from anaInfo import dacScanFitChiSqOverNDFMax
-                
                 if dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetNDF() > 0 and dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetChisquare()/dict_DACvsADC_Funcs[dacName][ohKey][vfat].GetNDF() > dacScanFitChiSqOverNDFMax:
                     dictOfDACsWithBadFit[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
                     errorMsg = "Warning: large chisquare for VFAT{2} of chamber {3} (Shelf{4},Slot{5},OH{1}) DAC {0}.".format(
@@ -364,7 +364,6 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 #evaluate the fitted function at the nominal current or voltage value and convert to an integer
                 fittedDacValue = int(dict_DACvsADC_Funcs[dacName][ohKey][vfat].Eval(nominal[dacName]))
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
-
                 if fittedDacValue != finalDacValue:
                     dictOfDACsWithBadBias[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
                     errorMsg = "Warning: when fitting VFAT{5} of chamber {6} (Shelf{7},Slot{8},OH{4}) DAC {0} the fitted value, {1}, is outside range the register can hold: [0,{2}]. It will be replaced by {3}.".format(
@@ -1687,7 +1686,7 @@ def addPlotToCanvas(canv=None, content = None, drawOpt = '', gemType="ge11"):
     for index, padIdx in chamber_vfatPos2PadIdx[gemType].iteritems():
         canv.cd(padIdx)
         try:
-            content[index].Draw(drawOpt)
+            content[index].Draw("same{}".format(drawOpt))
         except KeyError as err:
             continue
 
