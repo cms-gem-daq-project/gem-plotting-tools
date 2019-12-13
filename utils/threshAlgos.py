@@ -1511,7 +1511,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                     graph.GetYaxis().SetRangeUser(1e-1,1e8)
 
                     # Draw a line on the graphs
-                    kneeLine.append(r.TLine(dict_dacInflectPts[dacName][ohKey][vfat][0], 1e-1, dict_dacInflectPts[dacName][ohKey][vfat][0], 1e8))
+                    kneeLine.append(r.TLine(dict_dacInflectPts[dacName][ohKey][vfat][0][0], 1e-1, dict_dacInflectPts[dacName][ohKey][vfat][0][0], 1e8))
                     kneeLine[vfat].SetLineColor(2)
                     kneeLine[vfat].SetVertical()
                     canv_Summary1D.cd(chamber_vfatPos2PadIdx[gemType][vfat])
