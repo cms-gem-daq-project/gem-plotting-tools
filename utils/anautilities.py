@@ -361,8 +361,8 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 if vfat not in dict_nonzeroVFATs[ohKey]:
                     continue
 
-                #evaluate the fitted function at the nominal current or voltage value and convert to an integer
-                fittedDacValue = int(dict_DACvsADC_Funcs[dacName][ohKey][vfat].Eval(nominal[dacName]))
+                #evaluate the TGraphError the nominal current or voltage value and convert to an integer
+                fittedDacValue = int(dict_DACvsADC_Graphs[dacName][ohKey][vfat].Eval(nominal[dacName]))
                 finalDacValue = max(0,min(maxDacValue,fittedDacValue))
                 if fittedDacValue != finalDacValue:
                     dictOfDACsWithBadBias[(ohKey[0],ohKey[1],ohKey[2],vfat)] = (vfatIDArray[vfat],dacName)
