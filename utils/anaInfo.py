@@ -112,7 +112,8 @@ tree_names = {
         "thresholdAna":("ThresholdScanData/ThresholdPlots.root","thrAnaTree"),
         "trim":("SCurveData_Trimmed.root","scurveTree"),
         "trimV3":("SCurveData_{CONDITION}.root","scurveTree"), # here CONDITION should be {Trimmed, or trimdacXX_trimPolY} for XX the trimDac point and Y the trimPol {0,1}
-        "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree")
+        "itertrimAna":("SCurveData_{IDENTIFIER}/SCurveFitData.root","scurveFitTree"), # here IDENTIFIER should be iterN, where N is a positive integer 
+        "trimAna":("SCurveData_Trimmed/SCurveFitData.root","scurveFitTree"),
         }
 
 mappingNames = [

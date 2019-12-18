@@ -54,18 +54,20 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
     vfatList - List of VFAT positions to consider in the analysis, if None analyzes all (default). Useful for debugging
     """
 
-    from gempython.gemplotting.utils.anaInfo import maxChi2Default
+    from gempython.gemplotting.utils.anaInfo import maxChi2Default, maxEffPedPercentDefault, highNoiseCutDefault, deadChanCutLowDefault, deadChanCutHighDefault
 
     # Check attributes of input args
     # If not present assign appropriate default arguments
-    if hasattr(args,'calFile') is False:
-        args.calFile = None
     if hasattr(args,'channels') is False:
         args.channels = False
+    if hasattr(args,'maxEffPedPercent') is False:
+        args.maxEffPedPercent = maxEffPedPercentDefault        
+    if hasattr(args,'highNoiseCut') is False:
+        args.highNoiseCut = highNoiseCutDefault
     if hasattr(args,'deadChanCutLow') is False:
-        args.deadChanCutLow = None
+        args.deadChanCutLow = deadChanCutLowDefault
     if hasattr(args,'deadChanCutHigh') is False:
-        args.deadChanCutHigh = None
+        args.deadChanCutHigh = deadChanCutHighDefault
     if hasattr(args,'debug') is False:
         args.debug = False
     if hasattr(args,'doNotFit') is False:
@@ -82,6 +84,8 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         args.PanPin = False
     if hasattr(args, 'outfilename') is False:
         args.outfilename = "SCurveFitData.root"
+    if hasattr(args, 'zscore') is False:
+        args.zscore = 3.5
 
     #Get Defaults
     isVFAT3 = (not args.isVFAT2)
@@ -175,7 +179,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
     
     # Determine CAL DAC calibration
     from gempython.utils.gemlogger import printYellow
-    if args.calFile is None:
+    if calFile is None:
         printYellow("Calibration info for {0} taken from DB Query".format(dacName))
         from gempython.gemplotting.utils.dbutils import getVFAT3CalInfo
         # Need to pass a list to getVFAT3CalInfo() where idx of list matches vfatN
@@ -187,9 +191,9 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
         calDAC2Q_Slope = dbInfo['cal_dacm']
         calDAC2Q_Intercept = dbInfo['cal_dacb']
     else:
-        printYellow("Calibration info for {0} taken from input file: {1}".format(dacName,args.calFile))
+        printYellow("Calibration info for {0} taken from input file: {1}".format(dacName,calFile))
         from gempython.gemplotting.utils.anautilities import parseCalFile
-        tuple_calInfo = parseCalFile(args.calFile, gemType)
+        tuple_calInfo = parseCalFile(calFile, gemType)
         calDAC2Q_Slope = tuple_calInfo[0]
         calDAC2Q_Intercept = tuple_calInfo[1]
 
