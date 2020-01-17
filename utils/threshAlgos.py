@@ -405,14 +405,14 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
         for vfat in range(0,nVFATS):
             if vfat not in dict_chipID:
                 continue
-            txt_vfat.write('{0}\t{1}\t{2}\t{3}\n'.format(vfat,dict_chipID[vfat],vt1[vfat],trimRange[vfat]))
+            txt_vfat.write('{0:d}\t{1:d}\t{2:d}\t{3:d}\n'.format(vfat,dict_chipID[vfat],vt1[vfat],trimRange[vfat]))
             pass
     else:
         txt_vfat.write("vfatN/I:vfatID/I:vt1/I\n")
         for vfat in range(0,nVFATS):
             if vfat not in dict_chipID:
                 continue
-            txt_vfat.write('{0}i\t{1}\t{2}\n'.format(vfat,dict_chipID[vfat],vt1[vfat]))
+            txt_vfat.write('{0:d}\t{1:d}\t{2:d}\n'.format(vfat,dict_chipID[vfat],vt1[vfat]))
             pass
     txt_vfat.close()
 
@@ -430,13 +430,13 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
                 for chan in range (0, maxChans):
                     isHotChan = vfatChanArray[ vfatChanArray['vfatCH'] == chan ]['mask']
                     if args.debug:
-                        print('{0}\t{1}\t{2}\t{3}\t{4}\n'.format(
+                        print('{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\n'.format(
                             vfat,
                             dict_chipID[vfat],
                             chan,
                             dict_vfatTrimMaskData[vfat][chan]['trimDAC'],
                             int(isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask'])))
-                    confF.write('{0}\t{1}\t{2}\t{3}\t{4}\n'.format(
+                    confF.write('{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\n'.format(
                         vfat,
                         dict_chipID[vfat],
                         chan,
@@ -453,7 +453,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
                 for chan in range(0,maxChans):
                     isHotChan = vfatChanArray[ vfatChanArray['vfatCH'] == chan ]['mask']
                     if args.debug:
-                        print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(
+                        print('{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\t{6:d}\n'.format(
                             vfat,
                             dict_chipID[vfat],
                             chan,
@@ -461,7 +461,7 @@ def anaUltraThreshold(args,thrFilename,GEBtype="short",outputDir=None,fileScurve
                             dict_vfatTrimMaskData[vfat][chan]['trimPolarity'],
                             int(isHotChan or dict_vfatTrimMaskData[vfat][chan]['mask']),
                             dict_vfatTrimMaskData[vfat][chan]['maskReason']))
-                    confF.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(
+                    confF.write('{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\t{6:d}\n'.format(
                         vfat,
                         dict_chipID[vfat],
                         chan,
@@ -1079,7 +1079,7 @@ def calibrateThrDAC(args):
         dict_ScurveSigmaVsThrDac_BoxPlot[vfat].Write()
 
         # Write CFG_THR_*_DAC calibration file
-        calThrDacFile.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n".format(
+        calThrDacFile.write("{0:d}\t{1:f}\t{2:f}\t{3:f}\t{4:f}\t{5:f}\n".format(
             vfat,
             dict_funcScurveMeanVsThrDac[vfat].GetParameter(0),
             dict_funcScurveMeanVsThrDac[vfat].GetParameter(1),
@@ -1558,7 +1558,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
             
         vfatConfg.write("vfatN/I:vt1/I:trimRange/I\n")
         for vfat,armDACVal in innerDictByVFATKey.iteritems():
-            vfatConfg.write('{0}\t{1}\t{2}\n'.format(vfat, armDACVal,0))
+            vfatConfg.write('{0:d}\t{1:d}\t{2:d}\n'.format(vfat, armDACVal,0))
         vfatConfg.close()    
         
     return 
