@@ -379,7 +379,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
 
             for chan in range(0,maxChans):
                 fitSummary.write(
-                        '{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(
+                        '{0:d}\t{1:d}\t{2:d}\t{3:f}\t{4:f}\t{5:f}\t{6:f}\n'.format(
                             vfat,
                             dict_vfatID[vfat],
                             chan,
@@ -903,7 +903,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
                     continue
 
                 for chan in range(0, maxChans):
-                    confF.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(
+                    confF.write('{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\t{6:d}\n'.format(
                         vfat,
                         dict_vfatID[vfat],
                         chan,
@@ -919,7 +919,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
                     continue
 
                 for chan in range (0, maxChans):
-                    confF.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(
+                    confF.write('{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\n'.format(
                         vfat,
                         dict_vfatID[vfat],
                         chan,
