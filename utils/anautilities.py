@@ -423,7 +423,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                     sep="\t", 
                     header=False, 
                     index=True, 
-                    mode='a')
+                    mode='w')
                     
         # Summary Case
         dirSummary = outputFiles[ohKey].mkdir("Summary")
