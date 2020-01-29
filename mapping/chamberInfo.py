@@ -80,7 +80,7 @@ except ImportError as e:
     """
     Keys should be a tuple of (shelf,slot,link)
     """
-    chamber_vfatDACSettings = {    
+    chamber_vfatDACSettings = {
         # V3 Electronics Example
         #    (shelf,slot,link):{
         #        #Pulse Stertch
@@ -117,10 +117,10 @@ chamber_vfatPos2PadIdx = {}
 for key in chamber_iEta2VFATPos:
     chamber_vfatPos2PadIdx[key] = {}
     niEta = chamber_maxiEtaiPhiPair[key][0]
-    nVFats = chamber_maxiEtaiPhiPair[key][1]*niEta
+    nVFATS = chamber_maxiEtaiPhiPair[key][1]*niEta
 
-    shift = nVFats + niEta + 1
-    for vfat in range(0, nVFats):
+    shift = nVFATS + niEta + 1
+    for vfat in range(0, nVFATS):
         if vfat % niEta == 0:
             shift -= niEta*2
         chamber_vfatPos2PadIdx[key][vfat] = vfat + shift
