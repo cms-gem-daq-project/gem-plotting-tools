@@ -73,6 +73,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     import root_numpy as rp
     import numpy as np
+    import pandas as pd
 
     list_bNames = ['dacValY','link','nameX','shelf','slot','vfatID','vfatN','detName']
 
@@ -384,16 +385,16 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     print("Writing output data")
 
     # Write out the dacVal results to a root file, a text file, and the terminal
-    outputTxtFiles_dacVals = ndict()
+    outputTxtFilenames_dacVals = ndict()
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
             detName = getDetName(entry)
             if scandate == 'noscandate':
-                outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/NominalValues-{2}.txt".format(elogPath,detName,dacName),'w')
+                outputTxtFilenames_dacVals[dacName][ohKey] = "{0}/{1}/NominalValues-{2}.txt".format(elogPath,detName,dacName)
             else:
-                outputTxtFiles_dacVals[dacName][ohKey] = open("{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,detName,scandate,dacName),'w')
+                outputTxtFilenames_dacVals[dacName][ohKey] = "{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,detName,scandate,dacName)
 
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
@@ -412,9 +413,18 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
                 dict_DACvsADC_Funcs[dacName][ohKey][vfat].Write("func_VFAT{0}_DACvsADC_{1}".format(vfat,dacName))
                 dict_RawADCvsDAC_Graphs[dacName][ohKey][vfat].Write("g_VFAT{0}_RawADCvsDAC_{1}".format(vfat,dacName))
 
-                if vfat in dict_nonzeroVFATs[ohKey]:
-                    outputTxtFiles_dacVals[dacName][ohKey].write("{0}\t{1}\n".format(vfat,dict_dacVals[dacName][ohKey][vfat]))
+        for idx in range(len(dacNameArray)):
+            dacName = np.asscalar(dacNameArray[idx])
 
+            # The with...as statement ensures that the file is flushed when we are finished writing to it
+            with open(outputTxtFilenames_dacVals[dacName][ohKey],'w') as f:
+                pd.Series(dict_dacVals[dacName][ohKey],index=dict_nonzeroVFATs[ohKey]).to_csv( 
+                    path=f, 
+                    sep="\t", 
+                    header=False, 
+                    index=True, 
+                    mode='a')
+                    
         # Summary Case
         dirSummary = outputFiles[ohKey].mkdir("Summary")
         dirSummary.cd()
