@@ -384,13 +384,7 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
 
     print("Writing output data")
 
-    # Write out the dacVal results to a root file, a text file, and the terminal
-    for idx in range(len(dacNameArray)):
-        dacName = np.asscalar(dacNameArray[idx])
-        for entry in crateMap:
-            ohKey = (entry['shelf'],entry['slot'],entry['link'])
-            detName = getDetName(entry)
-
+    # Write out the results to a root file, a text file, and the terminal
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
         detName = getDetName(entry)
