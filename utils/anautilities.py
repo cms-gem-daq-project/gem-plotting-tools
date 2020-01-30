@@ -385,16 +385,11 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
     print("Writing output data")
 
     # Write out the dacVal results to a root file, a text file, and the terminal
-    outputTxtFilenames_dacVals = ndict()
     for idx in range(len(dacNameArray)):
         dacName = np.asscalar(dacNameArray[idx])
         for entry in crateMap:
             ohKey = (entry['shelf'],entry['slot'],entry['link'])
             detName = getDetName(entry)
-            if scandate == 'noscandate':
-                outputTxtFilenames_dacVals[dacName][ohKey] = "{0}/{1}/NominalValues-{2}.txt".format(elogPath,detName,dacName)
-            else:
-                outputTxtFilenames_dacVals[dacName][ohKey] = "{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,detName,scandate,dacName)
 
     for entry in crateMap:
         ohKey = (entry['shelf'],entry['slot'],entry['link'])
@@ -416,8 +411,13 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
         for idx in range(len(dacNameArray)):
             dacName = np.asscalar(dacNameArray[idx])
 
+            if scandate == 'noscandate':
+                outputTxtFilename = "{0}/{1}/NominalValues-{2}.txt".format(elogPath,detName,dacName)
+            else:
+                outputTxtFilename = "{0}/{1}/dacScans/{2}/NominalValues-{3}.txt".format(dataPath,detName,scandate,dacName)
+            
             # The with...as statement ensures that the file is flushed when we are finished writing to it
-            with open(outputTxtFilenames_dacVals[dacName][ohKey],'w') as f:
+            with open(outputTxtFilename,'w') as f:
                 pd.Series(dict_dacVals[dacName][ohKey],index=dict_nonzeroVFATs[ohKey]).to_csv( 
                     path=f, 
                     sep="\t", 
