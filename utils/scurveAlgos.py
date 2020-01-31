@@ -314,7 +314,7 @@ def anaUltraScurve(args, scurveFilename, calFile=None, GEBtype="short", outputDi
                 calDAC2Q_m=calDAC2Q_Slope,
                 calDAC2Q_b=calDAC2Q_Intercept,
                 isVFAT3=isVFAT3,
-                nVFATS = nVFATS,
+                nVFATS=nVFATS,
                 maxChi2=args.maxChi2
                 )
         pass
