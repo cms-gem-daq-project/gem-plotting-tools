@@ -1452,7 +1452,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 # channelor case
                 if perchannel == False :
 	            dict_dacInflectPts[dacName][ohKey][vfat] = findInflectionPts(dict_Rate1DVsDACNameX[dacName][ohKey][vfat])
-                    inflectTable.append([ohKey, vfat, dict_dacInflectPts[dacName][ohKey][vfat][0][0] ])
+                    inflectTable.append([ohKey, vfat, dict_dacInflectPts[dacName][ohKey][vfat][0] ])
 
                 dict_dacValsBelowCutOff[dacName][ohKey][vfat] = 255 #default to max
                 for point in range(0,dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()):
@@ -1498,24 +1498,13 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 for vfat in range(0,nVFATS):
                     canv_Summary1D.cd(chamber_vfatPos2PadIdx[gemType][vfat]).SetLogy()
 
-                    # make sure the inflection point is there
-                    if dict_dacInflectPts[dacName][ohKey][vfat][0] == None:
-                        kneeLine.append(None)
-                        continue
-
                     # make TH1F into TGraph
                     graph = dict_Rate1DVsDACNameX[dacName][ohKey][vfat]
                     if type(graph) == r.TH1F :
                         graph = r.TGraph(graph)
 
                     graph.GetYaxis().SetRangeUser(1e-1,1e8)
-
-                    # Draw a line on the graphs
-                    kneeLine.append(r.TLine(dict_dacInflectPts[dacName][ohKey][vfat][0][0], 1e-1, dict_dacInflectPts[dacName][ohKey][vfat][0][0], 1e8))
-                    kneeLine[vfat].SetLineColor(2)
-                    kneeLine[vfat].SetVertical()
                     canv_Summary1D.cd(chamber_vfatPos2PadIdx[gemType][vfat])
-                    kneeLine[vfat].Draw()
                 canv_Summary1D.Update()
 
             # Save the graphs
