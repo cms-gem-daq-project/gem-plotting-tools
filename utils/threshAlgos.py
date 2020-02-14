@@ -1190,7 +1190,7 @@ def calibrateThrDAC(args):
 
     return 0
 
-def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outfilename='SBitRatePlots.root', scandate='noscandate', printTable=False, drawInflectLine=False):
+def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outfilename='SBitRatePlots.root', scandate='noscandate', printTable=True, drawInflectLine=False):
     """
     Analyzes a scan taken with sbitRateScanAllLinks(...) from gempython.vfatqc.utils.scanUtils
 
