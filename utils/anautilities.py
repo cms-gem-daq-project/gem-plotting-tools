@@ -556,7 +556,7 @@ def findInflectionPts(graph):
     # We are defining the inflection point as the point where the most negative gradient sum begins
     try:
         inflxGrad = negGrad[bigIdx][0]
-        inflxIdx = np.where(grad == inflxGrad) #return the index at the specified value
+        inflxIdx = np.amax(np.where(grad == inflxGrad) ) #return the index at the specified value, if there are multiple possible points, take the largest one
         inflxPnt = (x[inflxIdx], y[inflxIdx] )
     # Error handling for problematic VFATs
     except IndexError:

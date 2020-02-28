@@ -1190,7 +1190,7 @@ def calibrateThrDAC(args):
 
     return 0
 
-def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outfilename='SBitRatePlots.root', scandate='noscandate'):
+def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outfilename='SBitRatePlots.root', scandate='noscandate', printTable=True, drawInflectLine=False):
     """
     Analyzes a scan taken with sbitRateScanAllLinks(...) from gempython.vfatqc.utils.scanUtils
 
@@ -1213,6 +1213,8 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
         outfilename     - Name of output TFile to be created
         scandate        - Either a string 'noscandate' or an a datetime object formated as YYYY.MM.DD.hh.mm, e.g
                           returned from "datetime.datetime.now().strftime("%Y.%m.%d.%H.%M")"
+        printTable      - Print a table of the inflection points
+        drawInflectLine - Draw a red line where the inflection points are on the sbit graphs
     """
 
     # Get paths
@@ -1452,7 +1454,7 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 # channelor case
                 if perchannel == False :
 	            dict_dacInflectPts[dacName][ohKey][vfat] = findInflectionPts(dict_Rate1DVsDACNameX[dacName][ohKey][vfat])
-                    inflectTable.append([ohKey, vfat, dict_dacInflectPts[dacName][ohKey][vfat][0][0] ])
+                    inflectTable.append([ohKey, vfat, dict_dacInflectPts[dacName][ohKey][vfat][0] ])
 
                 dict_dacValsBelowCutOff[dacName][ohKey][vfat] = 255 #default to max
                 for point in range(0,dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()):
@@ -1474,7 +1476,10 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
 
         # put inflection points in a table for each different ohKey
         if perchannel == False:
-            print(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
+            # print a table of inflection points if requested
+            if printTable == True:
+                print(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
+            # save the table of inflection points to a file
             if scandate == 'noscandate':
                 inflectTableFile = file("{0}/{1}/inflectionPointTable.txt".format(elogPath,detName), "w")
                 inflectTableFile.write(tabulate(inflectTable, headers = ['Geo Addr', 'VFAT Number', 'ARM DAC Inflection Pt'], tablefmt='orgtbl') )
@@ -1498,24 +1503,26 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 for vfat in range(0,nVFATS):
                     canv_Summary1D.cd(chamber_vfatPos2PadIdx[gemType][vfat]).SetLogy()
 
-                    # make sure the inflection point is there
-                    if dict_dacInflectPts[dacName][ohKey][vfat][0] == None:
-                        kneeLine.append(None)
-                        continue
-
                     # make TH1F into TGraph
                     graph = dict_Rate1DVsDACNameX[dacName][ohKey][vfat]
                     if type(graph) == r.TH1F :
                         graph = r.TGraph(graph)
 
                     graph.GetYaxis().SetRangeUser(1e-1,1e8)
+                    
+                    # draw line on the plot if requested by the user
+                    if drawInflectLine == True :
+                        # make sure there is an inflection point
+                        if dict_dacInflectPts[dacName][ohKey][vfat][0] == None: 
+                            kneeLine.append(None)   
+                            continue
+                        kneeLine.append(r.TLine(dict_dacInflectPts[dacName][ohKey][vfat][0], 1e-1, dict_dacInflectPts[dacName][ohKey][vfat][0], 1e8)) 
+                        kneeLine[vfat].SetLineColor(2)  
+                        kneeLine[vfat].SetVertical()    
+                        canv_Summary1D.cd(chamber_vfatPos2PadIdx[gemType][vfat])
+                        kneeLine[vfat].Draw()
 
-                    # Draw a line on the graphs
-                    kneeLine.append(r.TLine(dict_dacInflectPts[dacName][ohKey][vfat][0][0], 1e-1, dict_dacInflectPts[dacName][ohKey][vfat][0][0], 1e8))
-                    kneeLine[vfat].SetLineColor(2)
-                    kneeLine[vfat].SetVertical()
                     canv_Summary1D.cd(chamber_vfatPos2PadIdx[gemType][vfat])
-                    kneeLine[vfat].Draw()
                 canv_Summary1D.Update()
 
             # Save the graphs
