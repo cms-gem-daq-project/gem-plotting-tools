@@ -25,6 +25,9 @@ if __name__ == "__main__":
                       help="Minimum value of scan parameter range to look at")
     parser.add_argument("--scanmax", type=int, dest="scanmax", default=1024,
                       help="Maximum value of scan parameter range to look at")
+    parser.add_argument("--gemType", type=str, default="ge11",
+                      help="Used to change gemType")
+    
     args = parser.parse_args()
 
     import os
@@ -61,10 +64,11 @@ if __name__ == "__main__":
         pass
 
     ##### FIXME
-    gemType = "ge11"
-    print(gemType)            
-    ##### END
     from gempython.tools.hw_constants import vfatsPerGemVariant
+    gemType = args.gemType
+    if gemType not in vfatsPerGemVariant:
+        raise Exception("gemType ({}) not found. Please use one of the following: {}".format(gemType, "ge11, ge21, me0"))
+    ##### END
     nVFATS = vfatsPerGemVariant[gemType]
     from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
 
