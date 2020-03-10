@@ -45,17 +45,6 @@ if __name__ == "__main__":
     r.gROOT.SetBatch(True)
     r.gStyle.SetOptStat(1111111)
 
-    ##### FIXME
-    from gempython.gemplotting.mapping.chamberInfo import gemTypeMapping
-    if 'gemType' not in inFile.latTree.GetListOfBranches():
-        gemType = "ge11"
-    else:
-        gemType = gemTypeMapping[rp.tree2array(tree=inFile.latTree, branches =[ 'gemType' ] )[0][0]]
-    print gemType
-    ##### END
-    from gempython.tools.hw_constants import vfatsPerGemVariant
-    nVFATS = vfatsPerGemVariant[gemType]
-    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
 
     # Open input file
     print("Opening input file: {0}".format(args.infile))
@@ -71,6 +60,16 @@ if __name__ == "__main__":
         exit(os.EX_IOERR)
         pass
 
+    ##### FIXME
+    gemType = "ge11"
+    print(gemType)            
+    ##### END
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    nVFATS = vfatsPerGemVariant[gemType]
+    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
+
+
+    
     # Get run number
     fields = args.infile.split("_")
     if "run" in fields[0]:
