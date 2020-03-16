@@ -1460,9 +1460,9 @@ def sbitRateAnalysis(chamber_config, rateTree, cutOffRate=0.0, debug=False, outf
                 for point in range(0,dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()):
                     dacValX = r.Double()
                     rateVal = r.Double()
-                    dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetPoint(point,dacValX,rateVal)
-                    if rateVal <= cutOffRate:
-                        dict_dacValsBelowCutOff[dacName][ohKey][vfat] = int(dacValX)
+                    dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetPoint(dict_Rate1DVsDACNameX[dacName][ohKey][vfat].GetN()-point-1,dacValX,rateVal)
+                    if rateVal >= cutOffRate:
+                        dict_dacValsBelowCutOff[dacName][ohKey][vfat] = int(dacValX)+1
                         break
                     pass
 
