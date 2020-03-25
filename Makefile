@@ -43,7 +43,11 @@ default:
 	@cp -rf __init__.py $(PackageDir)
 
 # need to ensure that the python only stuff is packaged into RPMs
-.PHONY: clean preprpm
+.PHONY: clean preprpm doc
+
+doc:
+	make html
+
 _rpmprep: preprpm
 preprpm: default man
 	@if ! [ -e pkg/installrpm.sh ]; then \

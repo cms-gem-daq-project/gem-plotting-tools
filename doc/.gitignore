@@ -1,0 +1,20 @@
+# Don't ignore 
+!requirements*.txt
+
+# Don't ignore build configuration files
+!*.in
+
+# Don't ignore documentation sources
+!*.rst
+
+# Ignore auto-generated files
+source/doxyrest-api/*
+source/exhale-api/*
+source/sphinx-api/*
+
+# Don't ignore configuration files
+!source/conf.py
+
+# Don't ignore style and template files
+!source/_static/*
+!source/_templates/*
