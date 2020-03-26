@@ -18,8 +18,12 @@ import string
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath("../pkg"))  # Root of the repo
-sys.path.insert(0, os.path.abspath("../macros"))  # macros directory
+# Root of the package
+sys.path.insert(1, os.path.abspath("../../pkg"))
+# Scripts directory
+sys.path.insert(1, os.path.abspath("../../pkg/gempython/scripts"))
+# macros directory
+sys.path.insert(1, os.path.abspath("../../pkg/gempython/gemplotting/macros"))
 
 import sphinx_rtd_theme
 
@@ -361,9 +365,21 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "http://docs.python.org/": None,
-    "vfatqc": (os.getenv("GEM_DOCS_URL") + "/docs/api/vfatqc/latest", None,),
-    "gemplotting": (os.getenv("GEM_DOCS_URL") + "/docs/api/gemplotting/latest", None,),
-    "gempython": (os.getenv("GEM_DOCS_URL") + "/docs/api/gempython/latest", None,),
-    "reg-utils": (os.getenv("GEM_DOCS_URL") + "/docs/api/reg-utils/latest", None,),
+    "python": ("https://docs.python.org/", None,),
+    "cmsgemos": (os.getenv("EOS_SITE_URL") + "/docs/api/cmsgemos/latest", None,),
+    "vfatqc": (os.getenv("EOS_SITE_URL") + "/docs/api/vfatqc/latest", None,),
+    "ctp7_modules": (
+        os.getenv("EOS_SITE_URL") + "/docs/api/ctp7_modules/latest",
+        None,
+    ),
+    "reg_utils": (os.getenv("EOS_SITE_URL") + "/docs/api/reg_utils/latest", None,),
+    "xhal": (os.getenv("EOS_SITE_URL") + "/docs/api/xhal/latest", None,),
+    "reg_interface_gem": (
+        os.getenv("EOS_SITE_URL") + "/docs/api/reg_interface_gem/latest",
+        None,
+    ),
+    "reedmuller-c": (
+        os.getenv("EOS_SITE_URL") + "/docs/api/reedmuller-c/latest",
+        None,
+    ),
 }

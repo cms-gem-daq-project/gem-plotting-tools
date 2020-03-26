@@ -33,7 +33,7 @@ include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
 
 # include $(BUILD_HOME)/$(Project)/config/mfDefs.mk
 
-include $(BUILD_HOME)/$(Project)/config/mfSphinx.mk
+# include $(BUILD_HOME)/$(Project)/config/mfSphinx.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
 
 default:
@@ -45,8 +45,12 @@ default:
 # need to ensure that the python only stuff is packaged into RPMs
 .PHONY: clean preprpm doc
 
+.PHONY: doc cleandoc
 doc:
-	make html
+	$(MAKE) -C $@ docs
+
+cleandoc:
+	$(MAKE) -C doc cleanall
 
 _rpmprep: preprpm
 preprpm: default man

@@ -32,9 +32,14 @@ Table of contents
    :caption: Links to API documentation
    :maxdepth: 1
 
+   cmsgemos <http://0.0.0.0:8000/SITE_ROOT/docs/api/cmsgemos/latest>
    gemplotting (this site) <http://0.0.0.0:8000/SITE_ROOT/docs/api/gemplotting/latest>
    vfatqc <http://0.0.0.0:8000/SITE_ROOT/docs/api/vfatqc/latest>
-   reg-utils <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg-utils/latest>
+   ctp7_modules <http://0.0.0.0:8000/SITE_ROOT/docs/api/ctp7_modules/latest>
+   reg_utils <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg_utils/latest>
+   xhal <http://0.0.0.0:8000/SITE_ROOT/docs/api/xhal/latest>
+   reg_interface_gem <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg_interface_gem/latest>
+   reedmuller-c <http://0.0.0.0:8000/SITE_ROOT/docs/api/reedmuller-c/latest>
 
 Indices and tables
 ------------------
