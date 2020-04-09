@@ -11,6 +11,7 @@
 source/doxyrest-api/*
 source/exhale-api/*
 source/sphinx-api/*
+source/autoapi/*
 
 # Don't ignore configuration files
 !source/conf.py

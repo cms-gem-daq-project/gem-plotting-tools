@@ -19,11 +19,18 @@ import string
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # Root of the package
-sys.path.insert(1, os.path.abspath("../../pkg"))
+sys.path.insert(1, os.path.abspath("{}".format(os.getenv("PYTHONSOURCE"))))
 # Scripts directory
-sys.path.insert(1, os.path.abspath("../../pkg/gempython/scripts"))
+sys.path.insert(
+    1, os.path.abspath("{}/gempython/scripts".format(os.getenv("PYTHONSOURCE")))
+)
 # macros directory
-sys.path.insert(1, os.path.abspath("../../pkg/gempython/gemplotting/macros"))
+sys.path.insert(
+    1,
+    os.path.abspath(
+        "{}/gempython/gemplotting/macros".format(os.getenv("PYTHONSOURCE"))
+    ),
+)
 
 import sphinx_rtd_theme
 
@@ -68,7 +75,7 @@ print("Release {}".format(release))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    "sphinx.ext.autodoc",
+    # "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.coverage",
     "sphinx.ext.doctest",
@@ -81,7 +88,28 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_tabs.tabs",
     "sphinx_rtd_theme",
+    "autoapi.extension",
+    "sphinx.ext.inheritance_diagram",
 ]
+
+autoapi_python_use_implicit_namespaces = True  ## default False
+autoapi_dirs = [
+    "{}/gempython/gemplotting".format(os.getenv("PYTHONSOURCE")),
+    "{}/gempython/scripts".format(os.getenv("PYTHONSOURCE")),
+]
+autoapi_add_toctree_entry = False
+autoapi_keep_files = True  ## default False
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "private-members",
+    "show-inheritance",
+    "special-members",
+    "show-inheritance-diagram",
+    "show-module-summary",
+]
+## respects neither conf.py nor setup.py
+autoapi_ignore = ["*migrations*", "*conf.py", "*setup.py"]
 
 # Disable numpy docstrings for Napoleon, because they eat headers such as
 # "Examples"
@@ -272,59 +300,71 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ("index", "gemplotting", u"gemplotting Documentation", authors, 1),
-    ("man/anaDACScan", "anaDACScan.py", u"Perform a DAC scan analysis", authors, 1),
     (
-        "man/clusterAnaScurve",
+        "autoapi/anaDACScan/index",
+        "anaDACScan.py",
+        u"Perform a DAC scan analysis",
+        authors,
+        1,
+    ),
+    (
+        "autoapi/gempython/gemplotting/macros/clusterAnaScurve/index",
         "clusterAnaScurve.py",
         u"Analyze S-curves using the LSF cluster",
         authors,
         1,
     ),
     (
-        "man/gemPlotter",
+        "autoapi/gempython/gemplotting/macros/gemPlotter/index",
         "gemPlotter.py",
         u"Plot time evolution of scan results",
         authors,
         1,
     ),
     (
-        "man/gemSCurveAnaToolkit",
+        "autoapi/gempython/gemplotting/macros/gemSCurveAnaToolkit/index",
         "gemSCurveAnaToolkit.py",
         u"Plot scan results vs time",
         authors,
         1,
     ),
     (
-        "man/gemTreeDrawWrapper",
+        "autoapi/gempython/gemplotting/macros/gemTreeDrawWrapper/index",
         "gemTreeDrawWrapper.py",
         u"Make X-Y plots for each scan date",
         authors,
         1,
     ),
     (
-        "man/packageFiles4Docker",
+        "autoapi/packageFiles4Docker/index",
         "packageFiles4Docker.py",
         u"Creates a tarball containing data",
         authors,
         1,
     ),
     (
-        "man/plotChanLossRate",
+        "autoapi/gempython/gemplotting/macros/plotChanLossRate/index",
         "plotChanLossRate.py",
         u"Plots channel loss as a function of time",
         authors,
         1,
     ),
     (
-        "man/plotSCurveFitResults",
+        "autoapi/gempython/gemplotting/macros/plotSCurveFitResults/index",
         "plotSCurveFitResults.py",
         u"Compare S-curves results across scandates",
         authors,
         1,
     ),
-    ("man/plot_eff", "plot_eff.py", u"Perform an efficiency analysis", authors, 1),
     (
-        "man/timeHistoryAnalyzer",
+        "autoapi/gempython/gemplotting/macros/plot_eff/index",
+        "plot_eff.py",
+        u"Perform an efficiency analysis",
+        authors,
+        1,
+    ),
+    (
+        "autoapi/gempython/gemplotting/macros/timeHistoryAnalyzer/index",
         "timeHistoryAnalyzer.py",
         u"Analyze the time evolution of channels",
         authors,

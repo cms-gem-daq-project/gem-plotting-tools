@@ -3,29 +3,36 @@ Python modules
 
 This page lists the available Python modules.
 
-``gempython.gemplotting.fitting`` --- Fitting tools
----------------------------------------------------
 
 .. toctree::
-    :maxdepth: 1
-    :glob:
+   :caption: Module overview
+   :maxdepth: 1
+   :glob:
 
-    modules/fitting/*
+   Fitting tools <autoapi/gempython/gemplotting/fitting/index>
+   Information about hardware <autoapi/gempython/gemplotting/mapping/index>
+   Utilities <autoapi/gempython/gemplotting/utils/index>
 
-``gempython.gemplotting.mapping`` --- Information about hardware
-----------------------------------------------------------------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    modules/mapping/*
-
-``gempython.gemplotting.utils`` --- Utilities
----------------------------------------------
 
 .. toctree::
-    :maxdepth: 1
-    :glob:
+   :caption: Fitting tools
+   :maxdepth: 1
+   :glob:
 
-    modules/utils/*
+   autoapi/gempython/gemplotting/fitting/*/index
+
+
+.. toctree::
+   :caption: Information about hardware
+   :maxdepth: 1
+   :glob:
+
+   autoapi/gempython/gemplotting/mapping/*/index
+
+
+.. toctree::
+   :caption: Utilities
+   :maxdepth: 1
+   :glob:
+
+   autoapi/gempython/gemplotting/utils/*/index

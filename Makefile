@@ -30,10 +30,6 @@ GEMPLOTTING_VER_PATCH:=$(shell ./config/tag2rel.sh | awk '{split($$0,a," "); pri
 
 include $(BUILD_HOME)/$(Project)/config/mfCommonDefs.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
-
-# include $(BUILD_HOME)/$(Project)/config/mfDefs.mk
-
-# include $(BUILD_HOME)/$(Project)/config/mfSphinx.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
 
 default:
@@ -43,20 +39,8 @@ default:
 	@cp -rf __init__.py $(PackageDir)
 
 # need to ensure that the python only stuff is packaged into RPMs
-.PHONY: clean preprpm doc
-
-.PHONY: doc cleandoc
-doc:
-	$(MAKE) -C $@ docs
-
-cleandoc:
-	$(MAKE) -C doc cleanall
-
-_rpmprep: preprpm
-preprpm: default man
-	@if ! [ -e pkg/installrpm.sh ]; then \
-		cp -rf config/scriptlets/installrpm.sh pkg/; \
-	fi
+.PHONY: clean package preprpm
+package: default
 	$(MakeDir) $(ScriptDir)
 	@cp -rf anaUltra*.py $(ScriptDir)
 	@cp -rf anaSBit*.py $(ScriptDir)
@@ -65,9 +49,25 @@ preprpm: default man
 	@cp -rf anaDACScan.py $(ScriptDir)
 	@cp -rf anaXDAQLatency.py $(ScriptDir)
 	@cp -rf packageFiles4Docker.py $(ScriptDir)
+
+.PHONY: doc man cleandoc
+doc: package man
+	$(MAKE) -C $@ docs
+
+man:
 	-rm -rf $(ManDir)
 	$(MakeDir) $(ManDir)
-	@cp -rf doc/_build/man/* $(ManDir)
+	$(MAKE) -C doc $@
+	@cp -rf doc/build/man/* $(ManDir)
+
+cleandoc:
+	$(MAKE) -C doc cleanall
+
+_rpmprep: preprpm
+preprpm: package man
+	@if ! [ -e pkg/installrpm.sh ]; then \
+		cp -rf config/scriptlets/installrpm.sh pkg/; \
+	fi
 	gzip $(ManDir)/*
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt pkg

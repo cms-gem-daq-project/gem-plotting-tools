@@ -5,7 +5,7 @@ Table of contents
 -----------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    setup
    coding
@@ -16,6 +16,14 @@ Table of contents
    scurve-plotting-tools
    man-index
    modules-index
+
+.. toctree::
+   :caption: API documentation
+   :maxdepth: 1
+   :glob:
+
+   autoapi/gempython/gemplotting/index
+   scripts
 
 .. toctree::
    :hidden:

@@ -8,46 +8,42 @@ pages lists the ones that are available.
     :depth: 2
     :local:
 
-Analysis tools
---------------
 
 .. toctree::
-    :maxdepth: 1
+   :caption: Analysis tools
+   :maxdepth: 1
 
-    man/plot_eff
-    man/anaDACScan
-    man/anaSBitReadout
+   autoapi/gempython/gemplotting/macros/plot_eff/index
+   autoapi/gempython/gemplotting/macros/anaDACScan/index
+   autoapi/gempython/gemplotting/macros/anaSBitReadout/index
 
-Arbitrary plotting tools
-------------------------
-
-.. toctree::
-    :maxdepth: 1
-
-    man/gemPlotter
-    man/gemTreeDrawWrapper
-
-S-curve plotting tools
-----------------------
 
 .. toctree::
-    :maxdepth: 1
+   :caption: Arbitrary plotting tools
+   :maxdepth: 1
 
-    man/gemSCurveAnaToolkit
-    man/plotSCurveFitResults
-    man/timeHistoryAnalyzer
+   autoapi/gempython/gemplotting/macros/gemPlotter/index
+   autoapi/gempython/gemplotting/macros/gemTreeDrawWrapper/index
 
-Miscellaneous
--------------
 
 .. toctree::
-    :maxdepth: 1
+   :caption: S-curve plotting tools
+   :maxdepth: 1
 
-    man/clusterAnaScurve
-    man/makePhaseScanPlots
-    man/packageFiles4Docker
-    man/plotChanLossRate
-    man/plotTimeSeriesHV
+   autoapi/gempython/gemplotting/macros/gemSCurveAnaToolkit/index
+   autoapi/gempython/gemplotting/macros/plotSCurveFitResults/index
+   autoapi/gempython/gemplotting/macros/timeHistoryAnalyzer/index
+
+
+.. toctree::
+   :caption: Miscellaneous
+   :maxdepth: 1
+
+   autoapi/gempython/gemplotting/macros/clusterAnaScurve/index
+   autoapi/gempython/gemplotting/macros/makePhaseScanPlots/index
+   autoapi/gempython/gemplotting/macros/packageFiles4Docker/index
+   autoapi/gempython/gemplotting/macros/plotChanLossRate/index
+   autoapi/gempython/gemplotting/macros/plotTimeSeriesHV/index
 
 Missing pages
 -------------
