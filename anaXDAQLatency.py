@@ -25,6 +25,9 @@ if __name__ == "__main__":
                       help="Minimum value of scan parameter range to look at")
     parser.add_argument("--scanmax", type=int, dest="scanmax", default=1024,
                       help="Maximum value of scan parameter range to look at")
+    parser.add_argument("--gemType", type=str, default="ge11",
+                      help="Used to change gemType")
+    
     args = parser.parse_args()
 
     import os
@@ -45,17 +48,6 @@ if __name__ == "__main__":
     r.gROOT.SetBatch(True)
     r.gStyle.SetOptStat(1111111)
 
-    ##### FIXME
-    from gempython.gemplotting.mapping.chamberInfo import gemTypeMapping
-    if 'gemType' not in inFile.latTree.GetListOfBranches():
-        gemType = "ge11"
-    else:
-        gemType = gemTypeMapping[rp.tree2array(tree=inFile.latTree, branches =[ 'gemType' ] )[0][0]]
-    print gemType
-    ##### END
-    from gempython.tools.hw_constants import vfatsPerGemVariant
-    nVFATS = vfatsPerGemVariant[gemType]
-    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
 
     # Open input file
     print("Opening input file: {0}".format(args.infile))
@@ -71,6 +63,17 @@ if __name__ == "__main__":
         exit(os.EX_IOERR)
         pass
 
+    ##### FIXME
+    from gempython.tools.hw_constants import vfatsPerGemVariant
+    gemType = args.gemType
+    if gemType not in vfatsPerGemVariant:
+        raise Exception("gemType ({}) not found. Please use one of the following: {}".format(gemType, "ge11, ge21, me0"))
+    ##### END
+    nVFATS = vfatsPerGemVariant[gemType]
+    from gempython.gemplotting.mapping.chamberInfo import CHANNELS_PER_VFAT as maxChans
+
+
+    
     # Get run number
     fields = args.infile.split("_")
     if "run" in fields[0]:
