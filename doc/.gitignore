@@ -1,4 +1,7 @@
-# Don't ignore 
+# Ignore everything
+*
+
+# Don't ignore requirements files
 !requirements*.txt
 
 # Don't ignore build configuration files
@@ -7,10 +10,10 @@
 # Don't ignore documentation sources
 !*.rst
 
+# Don't ignore source tree
+!source
+
 # Ignore auto-generated files
-source/doxyrest-api/*
-source/exhale-api/*
-source/sphinx-api/*
 source/autoapi/*
 
 # Don't ignore configuration files
