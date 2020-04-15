@@ -46,8 +46,6 @@ Table of contents
    ctp7_modules <http://0.0.0.0:8000/SITE_ROOT/docs/api/ctp7_modules/latest>
    reg_utils <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg_utils/latest>
    xhal <http://0.0.0.0:8000/SITE_ROOT/docs/api/xhal/latest>
-   reg_interface_gem <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg_interface_gem/latest>
-   reedmuller-c <http://0.0.0.0:8000/SITE_ROOT/docs/api/reedmuller-c/latest>
 
 Indices and tables
 ------------------
