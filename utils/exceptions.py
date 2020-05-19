@@ -15,6 +15,18 @@ Documentation
 """
 
 class VFATDACBiasCannotBeReached(ValueError):
+
+    def __init__(self, message, errors):
+        super(VFATDACBiasCannotBeReached, self).__init__(message)
+
+        self.errors = errors
+        return
+
+class DACAnalysisException(ValueError):
+    """
+    This exception is raised when a DAC vs ADC fit returns a large chisquare value
+
+    """
     """
     This exception is raised if DAC analysis determines that to achieve the 
     nominal bias current/voltages in ``nominalDacValues`` dictionary, 
@@ -23,20 +35,11 @@ class VFATDACBiasCannotBeReached(ValueError):
     ``maxVfat3DACSize[dacSelect][0]``.  Info can be found on these ranges in
     the ``maxVfat3DACSize`` dictionary of: ``gempython.tools.hw_constants``
     """
-    def __init__(self, message, errors):
-        super(VFATDACBiasCannotBeReached, self).__init__(message)
+    def __init__(self, isBadFit, isBadBias, message, errors):
+        super(DACAnalysisException, self).__init__(message)
 
-        self.errors = errors
-        return
-
-class VFATDACFitLargeChisquare(ValueError):
-    """
-    This exception is raised when a DAC vs ADC fit returns a large chisquare value
-
-    """
-    def __init__(self, message, errors):
-        super(VFATDACFitLargeChisquare, self).__init__(message)
-
+        self.isBadFit = isBadFit
+        self.isBadBias = isBadBias
         self.errors = errors
         return
 
