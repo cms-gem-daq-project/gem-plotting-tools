@@ -57,8 +57,9 @@ doc: package man
 man:
 	-rm -rf $(ManDir)
 	$(MakeDir) $(ManDir)
-	$(MAKE) -C doc $@
+	USE_CONDA=YES ENV_NAME=condaman $(MAKE) -C doc $@
 	@cp -rf doc/build/man/* $(ManDir)
+	@rm -rf $(ManDir)/_static
 
 cleandoc:
 	$(MAKE) -C doc cleanall
