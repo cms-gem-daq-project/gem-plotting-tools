@@ -14,21 +14,11 @@ Documentation
 -------------
 """
 
-class VFATDACBiasCannotBeReached(ValueError):
-
-    def __init__(self, message, errors):
-        super(VFATDACBiasCannotBeReached, self).__init__(message)
-
-        self.errors = errors
-        return
-
 class DACAnalysisException(ValueError):
     """
-    This exception is raised when a DAC vs ADC fit returns a large chisquare value
-
-    """
-    """
-    This exception is raised if DAC analysis determines that to achieve the 
+    This is exception is raised when one or more of the following flags is set.
+    isBadFit: This flag is set when a DAC vs ADC fit returns a large chisquare value
+    isBadBias: This flag is set DAC analysis determines that to achieve the 
     nominal bias current/voltages in ``nominalDacValues`` dictionary, 
     of: ``gempython.gemplotting.utils.anaInfo``, the DAC would need to be set
     to a value outside of the DAC range ``[0, max]`` where ``max`` is
