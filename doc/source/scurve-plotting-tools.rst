@@ -3,12 +3,12 @@ S-curve plotting tools
 
 The following tools exist for helping to understand scurve data:
 
-1. :doc:`gemSCurveAnaToolkit.py </man/gemSCurveAnaToolkit>`
-2. :program:`plot_noise_vs_trim.py`
-3. :program:`plot_vfat_and_channel_Scurve.py`
-4. :program:`plot_vfat_summary.py`
-5. :program:`summary_plots.py`
-6. :doc:`plotSCurveFitResults.py </man/plotSCurveFitResults>`
+1. :doc:`gemSCurveAnaToolkit.py </autoapi/gempython/gemplotting/macros/gemSCurveAnaToolkit/index>`
+2. :doc:`plot_noise_vs_trim.py <autoapi/gempython/gemplotting/macros/plot_noise_vs_trim/index>`
+3. :doc:`plot_vfat_and_channel_Scurve.py <autoapi/gempython/gemplotting/macros/plot_vfat_and_channel_Scurve/index>`
+4. :doc:`plot_vfat_summary.py <autoapi/gempython/gemplotting/macros/plot_vfat_summary/index>`
+5. :doc:`summary_plots.py <autoapi/gempython/gemplotting/macros/summary_plots/index>`
+6. :doc:`plotSCurveFitResults.py </autoapi/gempython/gemplotting/macros/plotSCurveFitResults/index>`
 
 These tools can all by found in the ``macros/`` subdirectory and are designed to
 be run on ``TFile`` objects containing the ``scurveFitTree`` ``TTree`` object
@@ -35,7 +35,7 @@ input file for a given VFAT depending on the command line argument supplied:
 - Plot of channel/strip scurve mean vs. scurve width as a ``TH2D``, and
 - Plot of channel/strip scurve width vs. trimDAC as a ``TH2D``.
 
-Tool 6 :doc:`plotSCurveFitResults.py </man/plotSCurveFitResults>` superimposes
+Tool 6 :doc:`plotSCurveFitResults.py </autoapi/gempython/gemplotting/macros/plotSCurveFitResults/index>` superimposes
 the results of S-curve fits for several scandates.
 
 The command line options for tools 2-5 are:
