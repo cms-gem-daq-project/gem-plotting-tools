@@ -36,7 +36,7 @@ def anaDACScan(args):
 
     from gempython.gemplotting.utils.anautilities import dacAnalysis
     from gempython.gemplotting.utils.anautilities import getScandateFromFilename
-    from gempython.gemplotting.utils.exceptions import VFATDACBiasCannotBeReached
+    from gempython.gemplotting.utils.exceptions import DACAnalysisException
     args.assignXErrors = False
     args.printSum = False
     for geoAddr,fileTuple in dictOfFiles.iteritems():
@@ -49,7 +49,7 @@ def anaDACScan(args):
 
         try:
             dacAnalysis(args, dacScanFile.dacScanTree, chamber_config, scandate=args.scandate)
-        except VFATDACBiasCannotBeReached as err:
+        except DACAnalysisException as err:
             from gempython.utils.gemlogger import printRed
             printRed(err.message)
             printRed("VFATs above may *NOT* be properly biased")

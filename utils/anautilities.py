@@ -464,24 +464,23 @@ def dacAnalysis(args, dacScanTree, chamber_config, scandate='noscandate'):
             pass
         pass
 
+    if len(dictOfDACsWithBadFit) or len(dictOfDACsWithBadBias):
+        err_msg = ""
+        if len(dictOfDACsWithBadFit):
+            err_msg = "The following (vfatID,DAC Names) have large chisquare DAC vs ADC fits"
+            for ohKey,vfatDACtuple in dictOfDACsWithBadFit.iteritems():
+                err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
 
-    if len(dictOfDACsWithBadFit):
-        err_msg = "The following (vfatID,DAC Names) have large chisquare DAC vs ADC fits"
-        for ohKey,vfatDACtuple in dictOfDACsWithBadFit.iteritems():
-            err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
-            pass
-        from gempython.gemplotting.utils.exceptions import VFATDACFitLargeChisquare
-        raise VFATDACFitLargeChisquare(err_msg, os.EX_DATAERR)
+        if len(dictOfDACsWithBadBias):
+            if len(err_msg):
+                err_msg += "\n"
+            err_msg += "The following (vfatID,DAC Names) were found to be out of range"
+            for ohKey,vfatDACtuple in dictOfDACsWithBadBias.iteritems():
+                err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
+
+        from gempython.gemplotting.utils.exceptions import DACAnalysisException
+        raise DACAnalysisException(bool(len(dictOfDACsWithBadFit)),bool(len(dictOfDACsWithBadBias)),err_msg,os.EX_DATAERR)
     
-    # Raise a ValueError if a DAC is found to be out of range
-    if len(dictOfDACsWithBadBias):
-        err_msg = "The following (vfatID,DAC Names) were found to be out of range"
-        for ohKey,vfatDACtuple in dictOfDACsWithBadBias.iteritems():
-            err_msg = "{0}\n\t{1}\t{2}".format(err_msg,ohKey,vfatDACtuple)
-            pass
-        from gempython.gemplotting.utils.exceptions import VFATDACBiasCannotBeReached
-        raise VFATDACBiasCannotBeReached(err_msg, os.EX_DATAERR)
-
     return dict_dacVals
 
 def filePathExists(searchPath, subPath=None, debug=False):
